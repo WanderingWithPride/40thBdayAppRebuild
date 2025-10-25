@@ -999,8 +999,17 @@ def get_optional_activities():
             {"name": "Saturday Farmer's Market", "description": "Local produce, crafts, and food vendors", "cost_range": "Varies", "duration": "1-2 hours", "phone": "N/A", "tips": "Only on Saturday mornings 9am-1pm, arrive early", "rating": "4.6/5"},
             {"name": "Art Galleries Walk", "description": "Multiple galleries along Centre Street", "cost_range": "FREE to browse", "duration": "1-2 hours", "phone": "N/A", "tips": "First Friday ArtWalk if timing works out", "rating": "4.5/5"},
         ],
-        "💆 More Relaxation": [
-            {"name": "Extra Spa Services", "description": "Manicures, pedicures, body wraps at Ritz Spa", "cost_range": "$75-250", "duration": "1-2 hours", "phone": "904-277-1100", "tips": "Book multiple services for package discount", "rating": "4.9/5"},
+        "💆 Ritz-Carlton Spa Services": [
+            {"name": "Heaven in a Hammock Massage (Couples)", "description": "ALREADY BOOKED - Beachside couples massage in swaying hammocks", "cost_range": "$245 each", "duration": "80 minutes", "phone": "904-277-1100", "tips": "Book together for birthday celebration", "rating": "5.0/5"},
+            {"name": "HydraFacial Treatment", "description": "ALREADY BOOKED - Advanced facial for glowing skin", "cost_range": "$195", "duration": "50 minutes", "phone": "904-277-1100", "tips": "Perfect before birthday dinner", "rating": "4.9/5"},
+            {"name": "Aromatherapy Massage", "description": "Full body massage with essential oils", "cost_range": "$185-245", "duration": "50-80 minutes", "phone": "904-277-1100", "tips": "Choose from lavender, eucalyptus, or citrus blends", "rating": "4.9/5"},
+            {"name": "Mani-Pedi Combo", "description": "Professional manicure and pedicure", "cost_range": "$125", "duration": "90 minutes", "phone": "904-277-1100", "tips": "Great add-on for spa day", "rating": "4.8/5"},
+            {"name": "Body Scrub & Wrap", "description": "Exfoliating scrub followed by hydrating wrap", "cost_range": "$175-225", "duration": "50-80 minutes", "phone": "904-277-1100", "tips": "Ocean salt scrub is signature treatment", "rating": "4.8/5"},
+            {"name": "Hot Stone Massage", "description": "Deep relaxation with heated volcanic stones", "cost_range": "$205", "duration": "80 minutes", "phone": "904-277-1100", "tips": "Perfect for sore muscles after activities", "rating": "4.9/5"},
+            {"name": "Gentleman's Facial", "description": "Facial designed for men's skin", "cost_range": "$165", "duration": "50 minutes", "phone": "904-277-1100", "tips": "John might enjoy this!", "rating": "4.7/5"},
+            {"name": "Reflexology Treatment", "description": "Therapeutic foot and lower leg massage", "cost_range": "$115", "duration": "50 minutes", "phone": "904-277-1100", "tips": "Great after beach walking", "rating": "4.6/5"},
+        ],
+        "🏊 Resort Amenities": [
             {"name": "Resort Pool Day", "description": "Relax at multiple Ritz-Carlton pools and hot tubs", "cost_range": "FREE (hotel guests)", "duration": "2-4 hours", "phone": "N/A", "tips": "Reserve a cabana for ultimate luxury relaxation", "rating": "4.8/5"},
             {"name": "Beach Sunset Viewing", "description": "Watch gorgeous sunset from the shore", "cost_range": "FREE", "duration": "30-60 minutes", "phone": "N/A", "tips": "Check sunset time, bring camera and beach blanket", "rating": "5.0/5"},
             {"name": "Yoga on the Beach", "description": "Morning yoga classes on the beach", "cost_range": "$20-35", "duration": "1 hour", "phone": "904-277-1100", "tips": "Hotel offers classes, check schedule", "rating": "4.6/5"},
