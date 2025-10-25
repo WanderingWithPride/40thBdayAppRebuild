@@ -1,5 +1,5 @@
-# 40th Birthday Trip Assistant - Production Requirements
-# Streamlit deployment optimized
+# 40th Birthday Trip Assistant - ENHANCED Production Requirements
+# Full-featured trip assistant with real-time integrations
 
 # Core Streamlit Framework
 streamlit>=1.28.0
@@ -13,14 +13,28 @@ plotly>=5.15.0
 
 # HTTP Requests and APIs
 requests>=2.31.0
+requests-cache>=1.1.0        # API response caching
 
 # Environment Variables
 python-dotenv>=1.0.0
 
 # Date and Time Handling
 python-dateutil>=2.8.2
+pytz>=2023.3                 # Timezone handling
 
-# Optional: Enhanced Features (comment out if not needed)
-# Pillow>=10.0.0              # Image processing for photos
-# folium>=0.14.0               # Interactive maps
-# streamlit-folium>=0.15.0     # Streamlit-Folium integration
+# Interactive Maps
+folium>=0.14.0               # Interactive maps
+streamlit-folium>=0.15.0     # Streamlit-Folium integration
+geopy>=2.3.0                 # Geocoding and distance calculations
+
+# Image Processing and QR Codes
+Pillow>=10.0.0               # Image processing for photos
+qrcode>=7.4.2                # QR code generation
+
+# Export Capabilities
+fpdf2>=2.7.0                 # PDF generation
+icalendar>=5.0.0             # Calendar export
+
+# Additional Utilities
+# streamlit-extras>=0.3.0      # Extra Streamlit components (skipping due to compatibility)
+# streamlit-option-menu>=0.3.0 # Better navigation menu (building custom)
