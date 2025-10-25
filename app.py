@@ -596,6 +596,48 @@ def load_ultimate_css():
         background: linear-gradient(135deg, #ffeef8 0%, #ffd6e7 100%);
         border-left-color: var(--danger);
     }
+
+    /* Enhanced Streamlit Tabs Styling */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 1rem;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 0.75rem;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        height: 60px;
+        background: white;
+        border-radius: 12px;
+        padding: 0 2rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: #2d3436;
+        border: 2px solid transparent;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .stTabs [data-baseweb="tab"]:hover {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, #ff6b6b 0%, #f093fb 100%) !important;
+        color: white !important;
+        box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4) !important;
+        border-color: rgba(255, 255, 255, 0.5) !important;
+        transform: scale(1.05);
+    }
+
+    .stTabs [data-baseweb="tab-panel"] {
+        padding-top: 2rem;
+    }
     </style>
     """
     st.markdown(css, unsafe_allow_html=True)
@@ -634,7 +676,7 @@ def get_ultimate_trip_data():
             "id": "arr002",
             "date": "2025-11-08",
             "time": "10:40",
-            "activity": "John Arrives",
+            "activity": "John Arrives at JAX",
             "type": "transport",
             "location": {
                 "name": "Jacksonville International Airport (JAX)",
@@ -646,11 +688,34 @@ def get_ultimate_trip_data():
             "status": "Confirmed",
             "cost": 0,
             "category": "Transport",
-            "notes": "AA1585 from DCA - Pick up John at arrivals",
+            "notes": "AA1585 from DCA - Flight lands 10:40am. Plan realistic timeline: 15min deplaning + 10min baggage + 10min to curb = pickup ~11:15am. Then 45min drive to hotel = arrive ~12:00pm",
             "flight_number": "AA1585",
-            "what_to_bring": [],
-            "tips": ["Track flight status", "Plan 45 min drive from hotel"],
+            "what_to_bring": ["Track flight on FlightAware", "Phone charged for coordination"],
+            "tips": ["Leave hotel by 10:00am to arrive on time", "Text when boarding/landing", "Account for traffic on A1A", "Plan lunch after arrival at hotel"],
+            "estimated_pickup_time": "11:15",
+            "estimated_hotel_arrival": "12:00",
             "priority": 3
+        },
+        {
+            "id": "arr002b",
+            "date": "2025-11-08",
+            "time": "12:00",
+            "activity": "Back at Hotel + Lunch",
+            "type": "dining",
+            "location": {
+                "name": "The Ritz-Carlton, Amelia Island",
+                "address": "4750 Amelia Island Parkway",
+                "lat": 30.6074,
+                "lon": -81.4493,
+                "phone": "904-277-1100"
+            },
+            "status": "Confirmed",
+            "cost": 50,
+            "category": "Dining",
+            "notes": "Quick lunch after airport pickup - either at hotel restaurant or nearby casual spot",
+            "what_to_bring": [],
+            "tips": ["The Surf Restaurant at hotel is convenient", "Salt Life Food Shack nearby", "Keep it light before boat tour"],
+            "priority": 2
         },
         {
             "id": "act001",
@@ -693,6 +758,7 @@ def get_ultimate_trip_data():
             "what_to_bring": ["Arrive 15 min early", "Robe provided", "Clean feet"],
             "tips": ["Hydrate before", "Communicate pressure preferences", "No heavy meal before"],
             "dress_code": "Spa attire provided",
+            "booking_url": "https://www.ritzcarlton.com/en/hotels/ameliarc/spa",
             "priority": 1
         },
         {
@@ -714,6 +780,7 @@ def get_ultimate_trip_data():
             "notes": "Advanced facial - book with massage for package deal",
             "what_to_bring": ["Clean face (no makeup)", "Hair tie", "Empty stomach OK"],
             "tips": ["Ask about serums for your skin type", "Great for pre-dinner glow"],
+            "booking_url": "https://www.ritzcarlton.com/en/hotels/ameliarc/spa",
             "priority": 1
         },
         {
@@ -736,6 +803,7 @@ def get_ultimate_trip_data():
             "what_to_bring": ["Nice outfit", "ID", "Camera for birthday photos"],
             "tips": ["Request window table", "Ask about chef's specials", "Save room for dessert!"],
             "dress_code": "Business casual to dressy",
+            "booking_url": "https://www.opentable.com/r/davids-restaurant-and-lounge-fernandina-beach",
             "priority": 1
         },
         {
@@ -779,6 +847,7 @@ def get_ultimate_trip_data():
             "what_to_bring": ["Casual clothes", "Cash (faster)"],
             "tips": ["Try the blackened mahi tacos", "BYOB friendly", "Often a wait but moves fast"],
             "dress_code": "Beach casual",
+            "booking_url": "https://www.timotisseafoodshack.com",
             "priority": 2
         },
         {
@@ -947,11 +1016,11 @@ def get_optional_activities():
     """Database of 30+ optional activities in Amelia Island for trip planning"""
     return {
         "🍽️ Dining Options": [
-            {"name": "Salt Life Food Shack", "description": "Oceanfront casual dining with amazing views and fresh seafood", "cost_range": "$15-30 per person", "duration": "1-2 hours", "phone": "904-277-3811", "tips": "Perfect for lunch, great outdoor seating with ocean breeze", "rating": "4.5/5"},
-            {"name": "Brett's Waterway Cafe", "description": "Waterfront dining with marina views, fresh catch daily", "cost_range": "$20-40 per person", "duration": "1.5-2 hours", "phone": "904-261-2660", "tips": "Amazing sunset views, try the seafood platter", "rating": "4.7/5"},
-            {"name": "Le Clos", "description": "French bistro with romantic atmosphere, extensive wine selection", "cost_range": "$40-70 per person", "duration": "2-3 hours", "phone": "904-261-8100", "tips": "Reservations required, dress code (business casual)", "rating": "4.8/5"},
-            {"name": "29 South", "description": "Farm-to-table Southern cuisine, excellent brunch", "cost_range": "$25-45 per person", "duration": "1.5-2 hours", "phone": "904-277-7919", "tips": "Amazing brunch on weekends, local ingredients", "rating": "4.6/5"},
-            {"name": "The Surf Restaurant", "description": "Beachfront dining at Ritz-Carlton", "cost_range": "$30-60 per person", "duration": "1.5-2 hours", "phone": "904-277-1100", "tips": "No reservation needed, great ocean views", "rating": "4.7/5"},
+            {"name": "Salt Life Food Shack", "description": "Oceanfront casual dining with amazing views and fresh seafood", "cost_range": "$15-30 per person", "duration": "1-2 hours", "phone": "904-277-3811", "booking_url": "https://www.saltlifefoodshack.com", "tips": "Perfect for lunch, great outdoor seating with ocean breeze", "rating": "4.5/5"},
+            {"name": "Brett's Waterway Cafe", "description": "Waterfront dining with marina views, fresh catch daily", "cost_range": "$20-40 per person", "duration": "1.5-2 hours", "phone": "904-261-2660", "booking_url": "https://www.opentable.com/r/bretts-waterway-cafe-fernandina-beach", "tips": "Amazing sunset views, try the seafood platter", "rating": "4.7/5"},
+            {"name": "Le Clos", "description": "French bistro with romantic atmosphere, extensive wine selection", "cost_range": "$40-70 per person", "duration": "2-3 hours", "phone": "904-261-8100", "booking_url": "https://www.opentable.com/r/le-clos-fernandina-beach", "tips": "Reservations required, dress code (business casual)", "rating": "4.8/5"},
+            {"name": "29 South", "description": "Farm-to-table Southern cuisine, excellent brunch", "cost_range": "$25-45 per person", "duration": "1.5-2 hours", "phone": "904-277-7919", "booking_url": "https://www.opentable.com/r/29-south-fernandina-beach", "tips": "Amazing brunch on weekends, local ingredients", "rating": "4.6/5"},
+            {"name": "The Surf Restaurant", "description": "Beachfront dining at Ritz-Carlton", "cost_range": "$30-60 per person", "duration": "1.5-2 hours", "phone": "904-277-1100", "booking_url": "https://www.ritzcarlton.com/en/hotels/ameliarc/dining", "tips": "No reservation needed, great ocean views", "rating": "4.7/5"},
         ],
         "🏖️ Beach & Water": [
             {"name": "Horseback Riding on Beach", "description": "Ride horses along the beautiful Amelia Island shoreline", "cost_range": "$75-125 per person", "duration": "1-2 hours", "phone": "904-491-5166", "tips": "Book 2-3 days in advance, wear comfortable pants", "rating": "5.0/5"},
@@ -973,8 +1042,17 @@ def get_optional_activities():
             {"name": "Saturday Farmer's Market", "description": "Local produce, crafts, and food vendors", "cost_range": "Varies", "duration": "1-2 hours", "phone": "N/A", "tips": "Only on Saturday mornings 9am-1pm, arrive early", "rating": "4.6/5"},
             {"name": "Art Galleries Walk", "description": "Multiple galleries along Centre Street", "cost_range": "FREE to browse", "duration": "1-2 hours", "phone": "N/A", "tips": "First Friday ArtWalk if timing works out", "rating": "4.5/5"},
         ],
-        "💆 More Relaxation": [
-            {"name": "Extra Spa Services", "description": "Manicures, pedicures, body wraps at Ritz Spa", "cost_range": "$75-250", "duration": "1-2 hours", "phone": "904-277-1100", "tips": "Book multiple services for package discount", "rating": "4.9/5"},
+        "💆 Ritz-Carlton Spa Services": [
+            {"name": "Heaven in a Hammock Massage (Couples)", "description": "ALREADY BOOKED - Beachside couples massage in swaying hammocks", "cost_range": "$245 each", "duration": "80 minutes", "phone": "904-277-1100", "tips": "Book together for birthday celebration", "rating": "5.0/5"},
+            {"name": "HydraFacial Treatment", "description": "ALREADY BOOKED - Advanced facial for glowing skin", "cost_range": "$195", "duration": "50 minutes", "phone": "904-277-1100", "tips": "Perfect before birthday dinner", "rating": "4.9/5"},
+            {"name": "Aromatherapy Massage", "description": "Full body massage with essential oils", "cost_range": "$185-245", "duration": "50-80 minutes", "phone": "904-277-1100", "tips": "Choose from lavender, eucalyptus, or citrus blends", "rating": "4.9/5"},
+            {"name": "Mani-Pedi Combo", "description": "Professional manicure and pedicure", "cost_range": "$125", "duration": "90 minutes", "phone": "904-277-1100", "tips": "Great add-on for spa day", "rating": "4.8/5"},
+            {"name": "Body Scrub & Wrap", "description": "Exfoliating scrub followed by hydrating wrap", "cost_range": "$175-225", "duration": "50-80 minutes", "phone": "904-277-1100", "tips": "Ocean salt scrub is signature treatment", "rating": "4.8/5"},
+            {"name": "Hot Stone Massage", "description": "Deep relaxation with heated volcanic stones", "cost_range": "$205", "duration": "80 minutes", "phone": "904-277-1100", "tips": "Perfect for sore muscles after activities", "rating": "4.9/5"},
+            {"name": "Gentleman's Facial", "description": "Facial designed for men's skin", "cost_range": "$165", "duration": "50 minutes", "phone": "904-277-1100", "tips": "John might enjoy this!", "rating": "4.7/5"},
+            {"name": "Reflexology Treatment", "description": "Therapeutic foot and lower leg massage", "cost_range": "$115", "duration": "50 minutes", "phone": "904-277-1100", "tips": "Great after beach walking", "rating": "4.6/5"},
+        ],
+        "🏊 Resort Amenities": [
             {"name": "Resort Pool Day", "description": "Relax at multiple Ritz-Carlton pools and hot tubs", "cost_range": "FREE (hotel guests)", "duration": "2-4 hours", "phone": "N/A", "tips": "Reserve a cabana for ultimate luxury relaxation", "rating": "4.8/5"},
             {"name": "Beach Sunset Viewing", "description": "Watch gorgeous sunset from the shore", "cost_range": "FREE", "duration": "30-60 minutes", "phone": "N/A", "tips": "Check sunset time, bring camera and beach blanket", "rating": "5.0/5"},
             {"name": "Yoga on the Beach", "description": "Morning yoga classes on the beach", "cost_range": "$20-35", "duration": "1 hour", "phone": "904-277-1100", "tips": "Hotel offers classes, check schedule", "rating": "4.6/5"},
@@ -1063,29 +1141,114 @@ def mask_info(text, show=False):
 # ============================================================================
 
 @st.cache_data(ttl=1800)
+def get_uv_index():
+    """Get UV index data from OpenWeather"""
+    api_key = os.getenv('OPENWEATHER_API_KEY', '')
+    lat, lon = 30.6074, -81.4493  # Amelia Island
+
+    if api_key:
+        try:
+            # UV Index endpoint (using One Call API 3.0)
+            uv_url = f"https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={lon}&appid={api_key}&exclude=minutely,hourly,alerts"
+            resp = requests.get(uv_url, timeout=5)
+
+            if resp.status_code == 200:
+                data = resp.json()
+                return {
+                    'current': round(data.get('current', {}).get('uvi', 5), 1),
+                    'daily': [{'date': datetime.fromtimestamp(day['dt']).strftime('%Y-%m-%d'),
+                               'uv': round(day.get('uvi', 5), 1)}
+                              for day in data.get('daily', [])[:6]]
+                }
+        except:
+            pass
+
+    # Fallback UV data (moderate levels)
+    from datetime import datetime, timedelta
+    today = datetime.now()
+    return {
+        'current': 5.0,
+        'daily': [{'date': (today + timedelta(days=i)).strftime('%Y-%m-%d'), 'uv': 5.0 + (i % 3)}
+                  for i in range(6)]
+    }
+
+@st.cache_data(ttl=3600)
+def get_tide_data():
+    """Get tide data from NOAA for Fernandina Beach, FL"""
+    station_id = "8720030"  # Fernandina Beach, FL
+
+    try:
+        # Get tide predictions for next 7 days
+        from datetime import datetime, timedelta
+        begin_date = datetime.now().strftime('%Y%m%d')
+        end_date = (datetime.now() + timedelta(days=7)).strftime('%Y%m%d')
+
+        url = f"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?begin_date={begin_date}&end_date={end_date}&station={station_id}&product=predictions&datum=MLLW&time_zone=lst_ldt&units=english&interval=hilo&format=json"
+
+        resp = requests.get(url, timeout=10)
+
+        if resp.status_code == 200:
+            data = resp.json()
+            predictions = data.get('predictions', [])
+
+            # Group by date
+            daily_tides = {}
+            for pred in predictions:
+                date_str = pred['t'].split(' ')[0]
+                if date_str not in daily_tides:
+                    daily_tides[date_str] = {'high': [], 'low': []}
+
+                if pred['type'] == 'H':
+                    daily_tides[date_str]['high'].append({'time': pred['t'].split(' ')[1], 'height': float(pred['v'])})
+                else:
+                    daily_tides[date_str]['low'].append({'time': pred['t'].split(' ')[1], 'height': float(pred['v'])})
+
+            return daily_tides
+    except:
+        pass
+
+    # Fallback tide data
+    return {
+        '2025-11-07': {'high': [{'time': '06:30', 'height': 6.5}, {'time': '19:00', 'height': 6.8}],
+                       'low': [{'time': '00:15', 'height': 0.5}, {'time': '12:45', 'height': 0.3}]},
+        '2025-11-08': {'high': [{'time': '07:15', 'height': 6.6}, {'time': '19:45', 'height': 6.9}],
+                       'low': [{'time': '01:00', 'height': 0.4}, {'time': '13:30', 'height': 0.2}]},
+    }
+
+@st.cache_data(ttl=1800)
 def get_weather_ultimate():
     """Get real weather data with fallback"""
     api_key = os.getenv('OPENWEATHER_API_KEY', '')
     lat, lon = 30.6074, -81.4493  # Amelia Island
-    
+
     if api_key:
         try:
             # Current weather
             current_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={api_key}&units=imperial"
             forecast_url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={api_key}&units=imperial"
-            
+
             current_resp = requests.get(current_url, timeout=5)
             forecast_resp = requests.get(forecast_url, timeout=5)
-            
+
             if current_resp.status_code == 200 and forecast_resp.status_code == 200:
                 current_data = current_resp.json()
                 forecast_data = forecast_resp.json()
-                
+
+                # Get UV data
+                uv_data = get_uv_index()
+
                 # Process forecast
                 daily_forecasts = {}
                 for item in forecast_data['list']:
                     date = item['dt_txt'].split(' ')[0]
                     if date not in daily_forecasts:
+                        # Find UV for this date
+                        uv_for_date = 5.0
+                        for uv_day in uv_data['daily']:
+                            if uv_day['date'] == date:
+                                uv_for_date = uv_day['uv']
+                                break
+
                         daily_forecasts[date] = {
                             'date': date,
                             'high': item['main']['temp_max'],
@@ -1093,12 +1256,13 @@ def get_weather_ultimate():
                             'condition': item['weather'][0]['description'].title(),
                             'precipitation': int(item.get('pop', 0) * 100),
                             'humidity': item['main']['humidity'],
-                            'wind': round(item['wind']['speed'])
+                            'wind': round(item['wind']['speed']),
+                            'uv_index': uv_for_date
                         }
                     else:
                         daily_forecasts[date]['high'] = max(daily_forecasts[date]['high'], item['main']['temp_max'])
                         daily_forecasts[date]['low'] = min(daily_forecasts[date]['low'], item['main']['temp_min'])
-                
+
                 return {
                     "current": {
                         "temperature": round(current_data['main']['temp']),
@@ -1106,7 +1270,8 @@ def get_weather_ultimate():
                         "condition": current_data['weather'][0]['description'].title(),
                         "humidity": current_data['main']['humidity'],
                         "wind_speed": round(current_data['wind']['speed']),
-                        "visibility": round(current_data.get('visibility', 10000) / 1609.34, 1)
+                        "visibility": round(current_data.get('visibility', 10000) / 1609.34, 1),
+                        "uv_index": uv_data['current']
                     },
                     "forecast": list(daily_forecasts.values())[:6],
                     "source": "OpenWeather API (Real Data)"
@@ -1122,15 +1287,16 @@ def get_weather_ultimate():
             "condition": "Partly Cloudy",
             "humidity": 68,
             "wind_speed": 8,
-            "visibility": 10.0
+            "visibility": 10.0,
+            "uv_index": 5.0
         },
         "forecast": [
-            {"date": "2025-11-07", "high": 78, "low": 65, "condition": "Sunny", "precipitation": 0, "humidity": 65, "wind": 7},
-            {"date": "2025-11-08", "high": 75, "low": 62, "condition": "Partly Cloudy", "precipitation": 10, "humidity": 70, "wind": 9},
-            {"date": "2025-11-09", "high": 72, "low": 58, "condition": "Cloudy", "precipitation": 20, "humidity": 75, "wind": 10},
-            {"date": "2025-11-10", "high": 74, "low": 60, "condition": "Sunny", "precipitation": 0, "humidity": 63, "wind": 8},
-            {"date": "2025-11-11", "high": 76, "low": 63, "condition": "Partly Cloudy", "precipitation": 5, "humidity": 68, "wind": 7},
-            {"date": "2025-11-12", "high": 77, "low": 64, "condition": "Sunny", "precipitation": 0, "humidity": 65, "wind": 6}
+            {"date": "2025-11-07", "high": 78, "low": 65, "condition": "Sunny", "precipitation": 0, "humidity": 65, "wind": 7, "uv_index": 6.0},
+            {"date": "2025-11-08", "high": 75, "low": 62, "condition": "Partly Cloudy", "precipitation": 10, "humidity": 70, "wind": 9, "uv_index": 5.5},
+            {"date": "2025-11-09", "high": 72, "low": 58, "condition": "Cloudy", "precipitation": 20, "humidity": 75, "wind": 10, "uv_index": 4.0},
+            {"date": "2025-11-10", "high": 74, "low": 60, "condition": "Sunny", "precipitation": 0, "humidity": 63, "wind": 8, "uv_index": 6.5},
+            {"date": "2025-11-11", "high": 76, "low": 63, "condition": "Partly Cloudy", "precipitation": 5, "humidity": 68, "wind": 7, "uv_index": 5.0},
+            {"date": "2025-11-12", "high": 77, "low": 64, "condition": "Sunny", "precipitation": 0, "humidity": 65, "wind": 6, "uv_index": 6.0}
         ],
         "source": "Sample Data (Set OPENWEATHER_API_KEY for real data)"
     }
@@ -1203,7 +1369,7 @@ def analyze_schedule_gaps(activities_data):
                                 'end_time': f'{first_activity_hour:02d}:00',
                                 'duration_hours': duration,
                                 'time_of_day': 'morning',
-                                'description': f"{day_name}: Morning free (until {first_activity_time.strftime('%-I:%M %p')})"
+                                'description': f"{day_name}: Morning free (until {first_activity_time.strftime('%I:%M %p')})"
                             })
 
                 # Gap between activities
@@ -1231,7 +1397,7 @@ def analyze_schedule_gaps(activities_data):
                             'end_time': f'{end_hour:02d}:00',
                             'duration_hours': int(gap_hours),
                             'time_of_day': time_of_day,
-                            'description': f"{day_name}: {time_of_day.title()} gap ({current_end.strftime('%-I:%M %p')} - {next_start.strftime('%-I:%M %p')})"
+                            'description': f"{day_name}: {time_of_day.title()} gap ({current_end.strftime('%I:%M %p')} - {next_start.strftime('%I:%M %p')})"
                         })
 
                 # Evening gap (after last activity)
@@ -1248,7 +1414,7 @@ def analyze_schedule_gaps(activities_data):
                                 'end_time': '21:00',
                                 'duration_hours': duration,
                                 'time_of_day': 'evening',
-                                'description': f"{day_name}: Evening free (after {(last_activity_time + timedelta(hours=2)).strftime('%-I:%M %p')})"
+                                'description': f"{day_name}: Evening free (after {(last_activity_time + timedelta(hours=2)).strftime('%I:%M %p')})"
                             })
 
     return gaps
@@ -1360,13 +1526,43 @@ def get_smart_recommendations(gap, weather_data, optional_activities):
                     score += 20
                     reasons.append("Ideal conditions for water activities")
 
-            # 4. UV/sun considerations (assume high UV on sunny days)
-            if 'sunny' in condition or 'clear' in condition:
-                if time_of_day == 'afternoon':  # Peak UV hours
-                    if any(keyword in activity_name for keyword in ['beach', 'outdoor', 'walk', 'bike', 'golf']):
-                        warnings.append("☀️ Peak UV hours - use SPF 50+ sunscreen")
+            # 4. UV/sun considerations (use actual UV data)
+            uv_index = gap_weather.get('uv_index', 5.0)
+            if any(keyword in activity_name for keyword in ['beach', 'outdoor', 'walk', 'bike', 'golf', 'horseback']):
+                if uv_index >= 8:
+                    score -= 15
+                    warnings.append(f"☀️ Very High UV ({uv_index}) - Seek shade, use SPF 50+, wear hat")
+                elif uv_index >= 6:
+                    score -= 5
+                    warnings.append(f"☀️ High UV ({uv_index}) - Use SPF 30+, reapply frequently")
+                elif uv_index >= 3:
+                    reasons.append(f"Moderate UV ({uv_index}) - Good for outdoor activities with sunscreen")
+                else:
+                    score += 5
+                    reasons.append(f"Low UV ({uv_index}) - Great for extended outdoor time")
 
-            # 5. Rating boost
+            # 5. Tide considerations for beach/water activities
+            try:
+                tide_data = get_tide_data()
+                day_tides = tide_data.get(gap['date'], {})
+
+                if any(keyword in activity_name for keyword in ['beach', 'swim', 'kayak', 'paddleboard', 'fishing']):
+                    if day_tides:
+                        # Check if activity time aligns with good tides
+                        gap_start_hour = int(gap['start_time'].split(':')[0])
+                        high_tides = day_tides.get('high', [])
+
+                        for high_tide in high_tides:
+                            tide_hour = int(high_tide['time'].split(':')[0])
+                            # If activity time is within 2 hours of high tide
+                            if abs(tide_hour - gap_start_hour) <= 2:
+                                score += 15
+                                reasons.append(f"🌊 High tide at {high_tide['time']} - perfect for beach/water activities")
+                                break
+            except:
+                pass  # If tide data fails, continue without it
+
+            # 6. Rating boost
             rating = activity.get('rating', 0)
             score += rating * 2  # Each star adds 2 points
 
@@ -1683,13 +1879,32 @@ def render_dashboard_ultimate(df, activities_data, weather_data, show_sensitive)
             </div>
             """, unsafe_allow_html=True)
             
-            col1, col2 = st.columns(2)
-            with col1:
-                if st.button(f"📞 Call {phone}", key=f"call_{item['id']}", use_container_width=True):
-                    st.info(f"Opening dialer for {phone}...")
-            with col2:
-                if st.button(f"✅ Mark as Booked", key=f"book_{item['id']}", use_container_width=True):
-                    st.success("Great! Marked as booked.")
+            # Get booking URL if available
+            booking_url = None
+            for activity in activities_data:
+                if activity['id'] == item['id']:
+                    booking_url = activity.get('booking_url')
+                    break
+
+            # Show action buttons
+            if booking_url:
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    if st.button(f"📞 Call", key=f"call_{item['id']}", use_container_width=True):
+                        st.info(f"Opening dialer for {phone}...")
+                with col2:
+                    st.link_button("🔗 Book Online", booking_url, use_container_width=True)
+                with col3:
+                    if st.button(f"✅ Booked", key=f"book_{item['id']}", use_container_width=True):
+                        st.success("Great! Marked as booked.")
+            else:
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.button(f"📞 Call {phone}", key=f"call_{item['id']}", use_container_width=True):
+                        st.info(f"Opening dialer for {phone}...")
+                with col2:
+                    if st.button(f"✅ Mark as Booked", key=f"book_{item['id']}", use_container_width=True):
+                        st.success("Great! Marked as booked.")
     else:
         st.markdown("""
         <div class="info-box info-success fade-in">
@@ -1719,7 +1934,41 @@ def render_today_view(df, activities_data, weather_data, show_sensitive):
         
         # Show preparation checklist
         st.markdown("### 🎒 Getting Ready")
-        st.info(f"**{days_until} days** to prepare! Time to start packing and confirming bookings.")
+
+        st.markdown("""
+        <div class="ultimate-card fade-in">
+            <div class="card-header">✈️ Pre-Trip Preparation</div>
+            <div class="card-body">
+                <p style="font-size: 1.1rem; margin-bottom: 1rem;">
+                    <strong>{} days</strong> to prepare! Here's what you need to do:
+                </p>
+            </div>
+        </div>
+        """.format(days_until), unsafe_allow_html=True)
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.markdown("#### 📋 Quick Links")
+            if st.button("🎒 View Packing List", key="packing_link", use_container_width=True):
+                st.session_state['nav_to_packing'] = True
+                st.rerun()
+
+            if st.button("📞 View Urgent Bookings", key="bookings_link", use_container_width=True):
+                st.info("Check the Dashboard for urgent bookings!")
+
+        with col2:
+            st.markdown("#### ✅ Pre-Trip Checklist")
+            st.checkbox("📞 All reservations confirmed", key="check_reservations")
+            st.checkbox("🎒 Packing list reviewed", key="check_packing")
+            st.checkbox("✈️ Flight details saved", key="check_flights")
+            st.checkbox("🏨 Hotel confirmation ready", key="check_hotel")
+            st.checkbox("💳 Payment methods packed", key="check_payment")
+
+        # Show urgent items that need booking
+        urgent_count = len(df[df['status'] == 'URGENT'])
+        if urgent_count > 0:
+            st.warning(f"⚠️ **{urgent_count} urgent booking(s)** need attention! Check the Dashboard.")
         
     elif trip_start <= today <= trip_end:
         st.markdown('<div class="today-badge">📍 YOU\'RE ON YOUR TRIP!</div>', unsafe_allow_html=True)
@@ -1923,20 +2172,32 @@ def render_full_schedule(df, activities_data, show_sensitive):
                                 <p style="margin: 0.5rem 0;">📞 {mask_info(activity['location'].get('phone', 'N/A'), show_sensitive)}</p>
                                 <p style="margin: 0.5rem 0;">💰 {"$" + str(activity['cost']) if show_sensitive else "$***"}</p>
                                 <p style="margin: 0.5rem 0; font-style: italic;">{mask_info(activity['notes'], show_sensitive)}</p>
-                                
-                                {f'<p style="margin: 0.5rem 0;"><b>👔 Dress Code:</b> {activity.get("dress_code", "Casual")}</p>' if activity.get('dress_code') else ''}
-                                
-                                {f'<div style="margin-top: 1rem;"><b>🎒 What to Bring:</b><ul style="margin: 0.5rem 0;">' + 
-                                 ''.join([f'<li>{item}</li>' for item in activity.get('what_to_bring', [])]) + 
-                                 '</ul></div>' if activity.get('what_to_bring') else ''}
-                                
-                                {f'<div style="margin-top: 1rem; padding: 1rem; background: #f0f9ff; border-left: 4px solid #4ecdc4; border-radius: 8px;"><b>💡 Tips:</b><ul style="margin: 0.5rem 0;">' + 
-                                 ''.join([f'<li>{tip}</li>' for tip in activity.get('tips', [])]) + 
-                                 '</ul></div>' if activity.get('tips') else ''}
                             </div>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
+
+                    # Display additional details (dress code, what to bring, tips) below the card
+                    if activity.get('dress_code'):
+                        st.markdown(f"**👔 Dress Code:** {activity['dress_code']}")
+
+                    if activity.get('what_to_bring'):
+                        st.markdown("**🎒 What to Bring:**")
+                        items = activity['what_to_bring']
+                        if isinstance(items, list):
+                            for item in items:
+                                st.markdown(f"- {item}")
+                        else:
+                            st.markdown(f"- {items}")
+
+                    if activity.get('tips'):
+                        tips = activity['tips']
+                        if isinstance(tips, list):
+                            st.markdown("**💡 Tips:**")
+                            for tip in tips:
+                                st.markdown(f"- {tip}")
+                        elif isinstance(tips, str):
+                            st.info(f"💡 **Tip:** {tips}")
                 
                 st.markdown('</div>', unsafe_allow_html=True)
             else:
@@ -2255,6 +2516,134 @@ def render_explore_activities():
         """, unsafe_allow_html=True)
 
 # ============================================================================
+# JOHN'S PAGE
+# ============================================================================
+
+def render_johns_page(df, activities_data, show_sensitive):
+    """John's dedicated page to manage his activities and opt-ins"""
+    st.markdown('<h2 class="fade-in">👤 John\'s Trip Overview</h2>', unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="birthday-special">
+        <h3 style="margin: 0 0 0.5rem 0;">🎉 Welcome John!</h3>
+        <p style="margin: 0; font-size: 1.1rem;">Your Amelia Island adventure awaits! Nov 8-11, 2025</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # John's activities
+    johns_activities = [a for a in activities_data if 'john' in a['activity'].lower() or a['date'] >= '2025-11-08']
+
+    st.markdown("### 📅 Your Schedule")
+
+    # Categorize activities
+    included_activities = []
+    optional_activities_john = []
+
+    for activity in johns_activities:
+        # Activities John is definitely in
+        if activity['date'] >= '2025-11-08' and activity['date'] <= '2025-11-11':
+            if activity['type'] in ['transport', 'dining'] and activity['id'] != 'arr002':
+                included_activities.append(activity)
+            elif activity['id'] in ['act001', 'bch001', 'din002']:  # Shared activities
+                included_activities.append(activity)
+            elif activity['id'] == 'arr002':
+                included_activities.append(activity)
+
+    # Optional spa services for John
+    spa_options = [
+        {"name": "Aromatherapy Massage", "cost": "$185-245", "duration": "50-80 min"},
+        {"name": "Hot Stone Massage", "cost": "$205", "duration": "80 min"},
+        {"name": "Gentleman's Facial", "cost": "$165", "duration": "50 min"},
+        {"name": "Mani-Pedi", "cost": "$125", "duration": "90 min"},
+        {"name": "Body Scrub & Wrap", "cost": "$175-225", "duration": "50-80 min"},
+    ]
+
+    # Display John's confirmed activities
+    st.markdown("#### ✅ Included in Your Trip")
+
+    for activity in sorted(included_activities, key=lambda x: x['date'] + x['time']):
+        date_obj = pd.to_datetime(activity['date'])
+
+        paid_by = ""
+        if activity['id'] == 'arr002':
+            paid_by = "<span style='background: #e8f5e9; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem;'>✈️ Your Flight</span>"
+        elif activity['id'] in ['act001', 'bch001']:
+            paid_by = "<span style='background: #fff9c4; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem;'>💝 Shared Activity</span>"
+
+        cost_display = f"${activity['cost']}" if show_sensitive and activity['cost'] > 0 else ""
+        if not show_sensitive and activity['cost'] > 0:
+            cost_display = "$***"
+
+        st.markdown(f"""
+        <div class="ultimate-card fade-in">
+            <div class="card-body">
+                <h4 style="margin: 0 0 0.5rem 0;">{activity['activity']}</h4>
+                <p style="margin: 0.25rem 0;"><strong>📅 {date_obj.strftime('%A, %B %d')} at {activity['time']}</strong></p>
+                <p style="margin: 0.25rem 0;">📍 {activity['location']['name']}</p>
+                {f"<p style='margin: 0.25rem 0;'>💰 {cost_display}</p>" if cost_display else ""}
+                <p style="margin: 0.5rem 0; font-style: italic;">{activity['notes']}</p>
+                {paid_by}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # Optional spa services John can opt into
+    st.markdown("---")
+    st.markdown("### 💆 Optional Spa Services (You Pay)")
+
+    st.markdown("""
+    <div class="info-box" style="background: linear-gradient(135deg, #e3f2fd 0%, #e1f5fe 100%);">
+        <p style="margin: 0;"><strong>ℹ️ Info:</strong> These spa treatments are optional. If you'd like to book any, let the trip organizer know and you'll cover the cost.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    for idx, spa in enumerate(spa_options):
+        col1, col2, col3 = st.columns([3, 1, 1])
+
+        with col1:
+            st.markdown(f"**{spa['name']}**")
+            st.caption(f"{spa['duration']} • {spa['cost']}")
+
+        with col2:
+            interested = st.checkbox("Interested?", key=f"john_spa_{idx}")
+
+        with col3:
+            if interested:
+                st.success("✓ Noted")
+
+    # Pool access reminder
+    st.markdown("---")
+    st.markdown("### 🏊 Complimentary Access")
+
+    st.markdown("""
+    <div class="ultimate-card" style="border-left: 4px solid #4caf50;">
+        <div class="card-body">
+            <h4 style="margin: 0 0 0.5rem 0;">🌴 Resort Pool & Beach Access</h4>
+            <p style="margin: 0;">You have full access to all Ritz-Carlton pools, hot tubs, and beach facilities during your stay!</p>
+            <ul style="margin: 0.5rem 0;">
+                <li>Multiple pools & hot tubs</li>
+                <li>Beach chairs & umbrellas</li>
+                <li>Towel service</li>
+                <li>Poolside bar & dining</li>
+            </ul>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Summary
+    st.markdown("---")
+    st.markdown("### 📊 Trip Summary")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("Days on Island", "3.5 days")
+        st.metric("Confirmed Activities", len(included_activities))
+    with col2:
+        st.metric("Flight Arrival", "Sat Nov 8, 10:40am")
+        st.metric("Flight Departure", "Tue Nov 11, 11:05am")
+
+
+# ============================================================================
 # MAIN APPLICATION
 # ============================================================================
 
@@ -2301,6 +2690,13 @@ def main():
         st.markdown("---")
         
         # Navigation
+        # Check if nav override is set (from Getting Ready button)
+        if st.session_state.get('nav_to_packing', False):
+            default_index = 5  # Packing List
+            st.session_state['nav_to_packing'] = False
+        else:
+            default_index = 0
+
         page = st.selectbox(
             "Navigate to:",
             [
@@ -2308,15 +2704,17 @@ def main():
                 "📅 Today",
                 "🗓️ Full Schedule",
                 "🎯 Explore & Plan",
+                "👤 John's Page",
                 "🗺️ Map & Locations",
                 "🎒 Packing List",
                 "💰 Budget",
                 "🌤️ Weather",
                 "ℹ️ About"
             ],
+            index=default_index,
             label_visibility="collapsed"
         )
-        
+
         st.markdown("---")
         
         # Quick stats
@@ -2353,6 +2751,9 @@ def main():
     elif page == "🎯 Explore & Plan":
         render_explore_activities()
 
+    elif page == "👤 John's Page":
+        render_johns_page(df, activities_data, show_sensitive)
+
     elif page == "🗺️ Map & Locations":
         render_map_page(activities_data)
     
@@ -2363,36 +2764,99 @@ def main():
         render_budget(df, show_sensitive)
     
     elif page == "🌤️ Weather":
-        st.markdown('<h2 class="fade-in">🌤️ Weather & Forecast</h2>', unsafe_allow_html=True)
-        
-        current = weather_data['current']
-        st.markdown(f"""
-        <div class="weather-widget">
-            <h2>Current Conditions</h2>
-            <div class="weather-temp">{current['temperature']}°F</div>
-            <p style="font-size: 1.3rem;">{current['condition']}</p>
-            <div style="margin-top: 1rem; opacity: 0.9;">
-                <p>Feels like: {current['feels_like']}°F</p>
-                <p>💧 Humidity: {current['humidity']}%</p>
-                <p>💨 Wind: {current['wind_speed']} mph</p>
-                <p>👁️ Visibility: {current['visibility']} mi</p>
+        st.markdown('<h2 class="fade-in">🌤️ Weather, UV & Tides</h2>', unsafe_allow_html=True)
+
+        # Get tide data
+        tide_data = get_tide_data()
+
+        col1, col2 = st.columns([2, 1])
+
+        with col1:
+            current = weather_data['current']
+            uv_current = current.get('uv_index', 5.0)
+
+            # UV warning level
+            if uv_current < 3:
+                uv_level = "Low"
+                uv_color = "#4caf50"
+            elif uv_current < 6:
+                uv_level = "Moderate"
+                uv_color = "#ff9800"
+            elif uv_current < 8:
+                uv_level = "High"
+                uv_color = "#ff5722"
+            else:
+                uv_level = "Very High"
+                uv_color = "#d32f2f"
+
+            st.markdown(f"""
+            <div class="weather-widget">
+                <h2>Current Conditions</h2>
+                <div class="weather-temp">{current['temperature']}°F</div>
+                <p style="font-size: 1.3rem;">{current['condition']}</p>
+                <div style="margin-top: 1rem; opacity: 0.9;">
+                    <p>Feels like: {current['feels_like']}°F</p>
+                    <p>💧 Humidity: {current['humidity']}%</p>
+                    <p>💨 Wind: {current['wind_speed']} mph</p>
+                    <p>👁️ Visibility: {current['visibility']} mi</p>
+                    <p style="color: {uv_color}; font-weight: bold;">☀️ UV Index: {uv_current} ({uv_level})</p>
+                </div>
             </div>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown("### 📅 6-Day Forecast")
-        
+            """, unsafe_allow_html=True)
+
+        with col2:
+            st.markdown("### 🌊 Today's Tides")
+            today_str = datetime.now().strftime('%Y-%m-%d')
+            today_tides = tide_data.get(today_str, {})
+
+            if today_tides:
+                st.markdown("**High Tides:**")
+                for high in today_tides.get('high', []):
+                    st.markdown(f"- {high['time']}: {high['height']}ft")
+
+                st.markdown("**Low Tides:**")
+                for low in today_tides.get('low', []):
+                    st.markdown(f"- {low['time']}: {low['height']}ft")
+            else:
+                st.info("Tide data unavailable")
+
+        st.markdown("---")
+        st.markdown("### 📅 6-Day Forecast with UV Index")
+
         for day in weather_data['forecast']:
             date_obj = datetime.strptime(day['date'], '%Y-%m-%d')
             emoji = get_weather_emoji(day['condition'])
-            
+            uv = day.get('uv_index', 5.0)
+
+            # UV level for this day
+            if uv < 3:
+                uv_level = "Low"
+                uv_color = "#4caf50"
+            elif uv < 6:
+                uv_level = "Moderate"
+                uv_color = "#ff9800"
+            elif uv < 8:
+                uv_level = "High"
+                uv_color = "#ff5722"
+            else:
+                uv_level = "Very High"
+                uv_color = "#d32f2f"
+
+            # Get tide info for this day
+            day_tides = tide_data.get(day['date'], {})
+            tide_info = ""
+            if day_tides:
+                high_times = [h['time'] for h in day_tides.get('high', [])]
+                tide_info = f"<p style='margin: 0.5rem 0; font-size: 0.85rem;'>🌊 High tides: {', '.join(high_times) if high_times else 'N/A'}</p>"
+
             st.markdown(f"""
             <div class="ultimate-card fade-in">
                 <div class="card-body">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
+                        <div style="flex: 1;">
                             <h4 style="margin: 0;">{date_obj.strftime('%A, %B %d')}</h4>
                             <p style="margin: 0.5rem 0;">{emoji} {day['condition']}</p>
+                            {tide_info}
                         </div>
                         <div style="text-align: right;">
                             <p style="margin: 0; font-size: 1.5rem; font-weight: bold;">
@@ -2400,6 +2864,9 @@ def main():
                             </p>
                             <p style="margin: 0.5rem 0; font-size: 0.9rem;">
                                 💧 {day.get('precipitation', 0)}% • 💨 {day.get('wind', 0)} mph
+                            </p>
+                            <p style="margin: 0.5rem 0; font-size: 0.9rem; color: {uv_color}; font-weight: bold;">
+                                ☀️ UV: {uv} ({uv_level})
                             </p>
                         </div>
                     </div>
