@@ -1563,8 +1563,18 @@ def get_smart_recommendations(gap, weather_data, optional_activities):
                 pass  # If tide data fails, continue without it
 
             # 6. Rating boost
-            rating = activity.get('rating', 0)
-            score += rating * 2  # Each star adds 2 points
+            rating = activity.get('rating', '0')
+            try:
+                # Parse rating from format like "4.5/5" to float 4.5
+                if isinstance(rating, str) and '/' in rating:
+                    rating_num = float(rating.split('/')[0])
+                elif isinstance(rating, (int, float)):
+                    rating_num = float(rating)
+                else:
+                    rating_num = 0
+                score += rating_num * 2  # Each star adds 2 points
+            except:
+                pass  # If rating parsing fails, skip the boost
 
             # Only recommend if score is positive
             if score > 0:
