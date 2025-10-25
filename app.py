@@ -1474,13 +1474,43 @@ def get_smart_recommendations(gap, weather_data, optional_activities):
                     score += 20
                     reasons.append("Ideal conditions for water activities")
 
-            # 4. UV/sun considerations (assume high UV on sunny days)
-            if 'sunny' in condition or 'clear' in condition:
-                if time_of_day == 'afternoon':  # Peak UV hours
-                    if any(keyword in activity_name for keyword in ['beach', 'outdoor', 'walk', 'bike', 'golf']):
-                        warnings.append("☀️ Peak UV hours - use SPF 50+ sunscreen")
+            # 4. UV/sun considerations (use actual UV data)
+            uv_index = gap_weather.get('uv_index', 5.0)
+            if any(keyword in activity_name for keyword in ['beach', 'outdoor', 'walk', 'bike', 'golf', 'horseback']):
+                if uv_index >= 8:
+                    score -= 15
+                    warnings.append(f"☀️ Very High UV ({uv_index}) - Seek shade, use SPF 50+, wear hat")
+                elif uv_index >= 6:
+                    score -= 5
+                    warnings.append(f"☀️ High UV ({uv_index}) - Use SPF 30+, reapply frequently")
+                elif uv_index >= 3:
+                    reasons.append(f"Moderate UV ({uv_index}) - Good for outdoor activities with sunscreen")
+                else:
+                    score += 5
+                    reasons.append(f"Low UV ({uv_index}) - Great for extended outdoor time")
 
-            # 5. Rating boost
+            # 5. Tide considerations for beach/water activities
+            try:
+                tide_data = get_tide_data()
+                day_tides = tide_data.get(gap['date'], {})
+
+                if any(keyword in activity_name for keyword in ['beach', 'swim', 'kayak', 'paddleboard', 'fishing']):
+                    if day_tides:
+                        # Check if activity time aligns with good tides
+                        gap_start_hour = int(gap['start_time'].split(':')[0])
+                        high_tides = day_tides.get('high', [])
+
+                        for high_tide in high_tides:
+                            tide_hour = int(high_tide['time'].split(':')[0])
+                            # If activity time is within 2 hours of high tide
+                            if abs(tide_hour - gap_start_hour) <= 2:
+                                score += 15
+                                reasons.append(f"🌊 High tide at {high_tide['time']} - perfect for beach/water activities")
+                                break
+            except:
+                pass  # If tide data fails, continue without it
+
+            # 6. Rating boost
             rating = activity.get('rating', 0)
             score += rating * 2  # Each star adds 2 points
 
