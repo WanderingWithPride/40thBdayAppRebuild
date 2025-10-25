@@ -596,6 +596,48 @@ def load_ultimate_css():
         background: linear-gradient(135deg, #ffeef8 0%, #ffd6e7 100%);
         border-left-color: var(--danger);
     }
+
+    /* Enhanced Streamlit Tabs Styling */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 1rem;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 0.75rem;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        height: 60px;
+        background: white;
+        border-radius: 12px;
+        padding: 0 2rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: #2d3436;
+        border: 2px solid transparent;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .stTabs [data-baseweb="tab"]:hover {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, #ff6b6b 0%, #f093fb 100%) !important;
+        color: white !important;
+        box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4) !important;
+        border-color: rgba(255, 255, 255, 0.5) !important;
+        transform: scale(1.05);
+    }
+
+    .stTabs [data-baseweb="tab-panel"] {
+        padding-top: 2rem;
+    }
     </style>
     """
     st.markdown(css, unsafe_allow_html=True)
@@ -805,6 +847,7 @@ def get_ultimate_trip_data():
             "what_to_bring": ["Casual clothes", "Cash (faster)"],
             "tips": ["Try the blackened mahi tacos", "BYOB friendly", "Often a wait but moves fast"],
             "dress_code": "Beach casual",
+            "booking_url": "https://www.timotisseafoodshack.com",
             "priority": 2
         },
         {
@@ -973,11 +1016,11 @@ def get_optional_activities():
     """Database of 30+ optional activities in Amelia Island for trip planning"""
     return {
         "🍽️ Dining Options": [
-            {"name": "Salt Life Food Shack", "description": "Oceanfront casual dining with amazing views and fresh seafood", "cost_range": "$15-30 per person", "duration": "1-2 hours", "phone": "904-277-3811", "tips": "Perfect for lunch, great outdoor seating with ocean breeze", "rating": "4.5/5"},
-            {"name": "Brett's Waterway Cafe", "description": "Waterfront dining with marina views, fresh catch daily", "cost_range": "$20-40 per person", "duration": "1.5-2 hours", "phone": "904-261-2660", "tips": "Amazing sunset views, try the seafood platter", "rating": "4.7/5"},
-            {"name": "Le Clos", "description": "French bistro with romantic atmosphere, extensive wine selection", "cost_range": "$40-70 per person", "duration": "2-3 hours", "phone": "904-261-8100", "tips": "Reservations required, dress code (business casual)", "rating": "4.8/5"},
-            {"name": "29 South", "description": "Farm-to-table Southern cuisine, excellent brunch", "cost_range": "$25-45 per person", "duration": "1.5-2 hours", "phone": "904-277-7919", "tips": "Amazing brunch on weekends, local ingredients", "rating": "4.6/5"},
-            {"name": "The Surf Restaurant", "description": "Beachfront dining at Ritz-Carlton", "cost_range": "$30-60 per person", "duration": "1.5-2 hours", "phone": "904-277-1100", "tips": "No reservation needed, great ocean views", "rating": "4.7/5"},
+            {"name": "Salt Life Food Shack", "description": "Oceanfront casual dining with amazing views and fresh seafood", "cost_range": "$15-30 per person", "duration": "1-2 hours", "phone": "904-277-3811", "booking_url": "https://www.saltlifefoodshack.com", "tips": "Perfect for lunch, great outdoor seating with ocean breeze", "rating": "4.5/5"},
+            {"name": "Brett's Waterway Cafe", "description": "Waterfront dining with marina views, fresh catch daily", "cost_range": "$20-40 per person", "duration": "1.5-2 hours", "phone": "904-261-2660", "booking_url": "https://www.opentable.com/r/bretts-waterway-cafe-fernandina-beach", "tips": "Amazing sunset views, try the seafood platter", "rating": "4.7/5"},
+            {"name": "Le Clos", "description": "French bistro with romantic atmosphere, extensive wine selection", "cost_range": "$40-70 per person", "duration": "2-3 hours", "phone": "904-261-8100", "booking_url": "https://www.opentable.com/r/le-clos-fernandina-beach", "tips": "Reservations required, dress code (business casual)", "rating": "4.8/5"},
+            {"name": "29 South", "description": "Farm-to-table Southern cuisine, excellent brunch", "cost_range": "$25-45 per person", "duration": "1.5-2 hours", "phone": "904-277-7919", "booking_url": "https://www.opentable.com/r/29-south-fernandina-beach", "tips": "Amazing brunch on weekends, local ingredients", "rating": "4.6/5"},
+            {"name": "The Surf Restaurant", "description": "Beachfront dining at Ritz-Carlton", "cost_range": "$30-60 per person", "duration": "1.5-2 hours", "phone": "904-277-1100", "booking_url": "https://www.ritzcarlton.com/en/hotels/ameliarc/dining", "tips": "No reservation needed, great ocean views", "rating": "4.7/5"},
         ],
         "🏖️ Beach & Water": [
             {"name": "Horseback Riding on Beach", "description": "Ride horses along the beautiful Amelia Island shoreline", "cost_range": "$75-125 per person", "duration": "1-2 hours", "phone": "904-491-5166", "tips": "Book 2-3 days in advance, wear comfortable pants", "rating": "5.0/5"},
@@ -2473,6 +2516,134 @@ def render_explore_activities():
         """, unsafe_allow_html=True)
 
 # ============================================================================
+# JOHN'S PAGE
+# ============================================================================
+
+def render_johns_page(df, activities_data, show_sensitive):
+    """John's dedicated page to manage his activities and opt-ins"""
+    st.markdown('<h2 class="fade-in">👤 John\'s Trip Overview</h2>', unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="birthday-special">
+        <h3 style="margin: 0 0 0.5rem 0;">🎉 Welcome John!</h3>
+        <p style="margin: 0; font-size: 1.1rem;">Your Amelia Island adventure awaits! Nov 8-11, 2025</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # John's activities
+    johns_activities = [a for a in activities_data if 'john' in a['activity'].lower() or a['date'] >= '2025-11-08']
+
+    st.markdown("### 📅 Your Schedule")
+
+    # Categorize activities
+    included_activities = []
+    optional_activities_john = []
+
+    for activity in johns_activities:
+        # Activities John is definitely in
+        if activity['date'] >= '2025-11-08' and activity['date'] <= '2025-11-11':
+            if activity['type'] in ['transport', 'dining'] and activity['id'] != 'arr002':
+                included_activities.append(activity)
+            elif activity['id'] in ['act001', 'bch001', 'din002']:  # Shared activities
+                included_activities.append(activity)
+            elif activity['id'] == 'arr002':
+                included_activities.append(activity)
+
+    # Optional spa services for John
+    spa_options = [
+        {"name": "Aromatherapy Massage", "cost": "$185-245", "duration": "50-80 min"},
+        {"name": "Hot Stone Massage", "cost": "$205", "duration": "80 min"},
+        {"name": "Gentleman's Facial", "cost": "$165", "duration": "50 min"},
+        {"name": "Mani-Pedi", "cost": "$125", "duration": "90 min"},
+        {"name": "Body Scrub & Wrap", "cost": "$175-225", "duration": "50-80 min"},
+    ]
+
+    # Display John's confirmed activities
+    st.markdown("#### ✅ Included in Your Trip")
+
+    for activity in sorted(included_activities, key=lambda x: x['date'] + x['time']):
+        date_obj = pd.to_datetime(activity['date'])
+
+        paid_by = ""
+        if activity['id'] == 'arr002':
+            paid_by = "<span style='background: #e8f5e9; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem;'>✈️ Your Flight</span>"
+        elif activity['id'] in ['act001', 'bch001']:
+            paid_by = "<span style='background: #fff9c4; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem;'>💝 Shared Activity</span>"
+
+        cost_display = f"${activity['cost']}" if show_sensitive and activity['cost'] > 0 else ""
+        if not show_sensitive and activity['cost'] > 0:
+            cost_display = "$***"
+
+        st.markdown(f"""
+        <div class="ultimate-card fade-in">
+            <div class="card-body">
+                <h4 style="margin: 0 0 0.5rem 0;">{activity['activity']}</h4>
+                <p style="margin: 0.25rem 0;"><strong>📅 {date_obj.strftime('%A, %B %d')} at {activity['time']}</strong></p>
+                <p style="margin: 0.25rem 0;">📍 {activity['location']['name']}</p>
+                {f"<p style='margin: 0.25rem 0;'>💰 {cost_display}</p>" if cost_display else ""}
+                <p style="margin: 0.5rem 0; font-style: italic;">{activity['notes']}</p>
+                {paid_by}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # Optional spa services John can opt into
+    st.markdown("---")
+    st.markdown("### 💆 Optional Spa Services (You Pay)")
+
+    st.markdown("""
+    <div class="info-box" style="background: linear-gradient(135deg, #e3f2fd 0%, #e1f5fe 100%);">
+        <p style="margin: 0;"><strong>ℹ️ Info:</strong> These spa treatments are optional. If you'd like to book any, let the trip organizer know and you'll cover the cost.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    for idx, spa in enumerate(spa_options):
+        col1, col2, col3 = st.columns([3, 1, 1])
+
+        with col1:
+            st.markdown(f"**{spa['name']}**")
+            st.caption(f"{spa['duration']} • {spa['cost']}")
+
+        with col2:
+            interested = st.checkbox("Interested?", key=f"john_spa_{idx}")
+
+        with col3:
+            if interested:
+                st.success("✓ Noted")
+
+    # Pool access reminder
+    st.markdown("---")
+    st.markdown("### 🏊 Complimentary Access")
+
+    st.markdown("""
+    <div class="ultimate-card" style="border-left: 4px solid #4caf50;">
+        <div class="card-body">
+            <h4 style="margin: 0 0 0.5rem 0;">🌴 Resort Pool & Beach Access</h4>
+            <p style="margin: 0;">You have full access to all Ritz-Carlton pools, hot tubs, and beach facilities during your stay!</p>
+            <ul style="margin: 0.5rem 0;">
+                <li>Multiple pools & hot tubs</li>
+                <li>Beach chairs & umbrellas</li>
+                <li>Towel service</li>
+                <li>Poolside bar & dining</li>
+            </ul>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Summary
+    st.markdown("---")
+    st.markdown("### 📊 Trip Summary")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("Days on Island", "3.5 days")
+        st.metric("Confirmed Activities", len(included_activities))
+    with col2:
+        st.metric("Flight Arrival", "Sat Nov 8, 10:40am")
+        st.metric("Flight Departure", "Tue Nov 11, 11:05am")
+
+
+# ============================================================================
 # MAIN APPLICATION
 # ============================================================================
 
@@ -2533,6 +2704,7 @@ def main():
                 "📅 Today",
                 "🗓️ Full Schedule",
                 "🎯 Explore & Plan",
+                "👤 John's Page",
                 "🗺️ Map & Locations",
                 "🎒 Packing List",
                 "💰 Budget",
@@ -2578,6 +2750,9 @@ def main():
 
     elif page == "🎯 Explore & Plan":
         render_explore_activities()
+
+    elif page == "👤 John's Page":
+        render_johns_page(df, activities_data, show_sensitive)
 
     elif page == "🗺️ Map & Locations":
         render_map_page(activities_data)
