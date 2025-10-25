@@ -943,6 +943,44 @@ def get_smart_packing_list():
         ]
     }
 
+def get_optional_activities():
+    """Database of 30+ optional activities in Amelia Island for trip planning"""
+    return {
+        "🍽️ Dining Options": [
+            {"name": "Salt Life Food Shack", "description": "Oceanfront casual dining with amazing views and fresh seafood", "cost_range": "$15-30 per person", "duration": "1-2 hours", "phone": "904-277-3811", "tips": "Perfect for lunch, great outdoor seating with ocean breeze", "rating": "4.5/5"},
+            {"name": "Brett's Waterway Cafe", "description": "Waterfront dining with marina views, fresh catch daily", "cost_range": "$20-40 per person", "duration": "1.5-2 hours", "phone": "904-261-2660", "tips": "Amazing sunset views, try the seafood platter", "rating": "4.7/5"},
+            {"name": "Le Clos", "description": "French bistro with romantic atmosphere, extensive wine selection", "cost_range": "$40-70 per person", "duration": "2-3 hours", "phone": "904-261-8100", "tips": "Reservations required, dress code (business casual)", "rating": "4.8/5"},
+            {"name": "29 South", "description": "Farm-to-table Southern cuisine, excellent brunch", "cost_range": "$25-45 per person", "duration": "1.5-2 hours", "phone": "904-277-7919", "tips": "Amazing brunch on weekends, local ingredients", "rating": "4.6/5"},
+            {"name": "The Surf Restaurant", "description": "Beachfront dining at Ritz-Carlton", "cost_range": "$30-60 per person", "duration": "1.5-2 hours", "phone": "904-277-1100", "tips": "No reservation needed, great ocean views", "rating": "4.7/5"},
+        ],
+        "🏖️ Beach & Water": [
+            {"name": "Horseback Riding on Beach", "description": "Ride horses along the beautiful Amelia Island shoreline", "cost_range": "$75-125 per person", "duration": "1-2 hours", "phone": "904-491-5166", "tips": "Book 2-3 days in advance, wear comfortable pants", "rating": "5.0/5"},
+            {"name": "Kayaking/Paddleboarding", "description": "Explore marshes, creeks, and waterways", "cost_range": "$40-75", "duration": "2-3 hours", "phone": "904-321-0697", "tips": "Morning is best, calm waters and lots of wildlife", "rating": "4.7/5"},
+            {"name": "Peters Point Beach", "description": "Quieter beach, less crowded than Main Beach", "cost_range": "FREE", "duration": "2-4 hours", "phone": "N/A", "tips": "More secluded, bring your own beach gear", "rating": "4.5/5"},
+            {"name": "Fishing Charter", "description": "Deep sea or inshore fishing adventure", "cost_range": "$400-800 (up to 4 people)", "duration": "4-8 hours", "phone": "904-206-0200", "tips": "Book early, half-day or full-day options available", "rating": "4.8/5"},
+            {"name": "Sunset Cruise", "description": "Relaxing sunset sail", "cost_range": "$45-65 per person", "duration": "2 hours", "phone": "904-261-9972", "tips": "Bring camera, BYOB allowed", "rating": "4.9/5"},
+        ],
+        "🎯 Activities & Adventure": [
+            {"name": "Fort Clinch State Park", "description": "Historic Civil War fort with beach, trails, and ranger-led tours", "cost_range": "$6-8 per vehicle", "duration": "2-3 hours", "phone": "904-277-7274", "tips": "Great for history buffs, bring sunscreen and water", "rating": "4.6/5"},
+            {"name": "Bike Rentals & Trails", "description": "Explore the island on two wheels", "cost_range": "$20-40 per day", "duration": "2-4 hours", "phone": "Multiple locations", "tips": "Great for exploring downtown Fernandina Beach", "rating": "4.5/5"},
+            {"name": "Golf at Oak Marsh", "description": "Championship 18-hole golf course designed by Tom Fazio", "cost_range": "$80-150", "duration": "4-5 hours", "phone": "904-277-5907", "tips": "Book tee times in advance, beautiful course", "rating": "4.7/5"},
+            {"name": "Egan's Creek Greenway", "description": "Nature trails with boardwalks, excellent birdwatching", "cost_range": "FREE", "duration": "1-2 hours", "phone": "N/A", "tips": "Bring bug spray, early morning for best wildlife viewing", "rating": "4.4/5"},
+            {"name": "Segway Tours", "description": "Guided Segway tour of historic Fernandina Beach", "cost_range": "$65-75 per person", "duration": "1.5-2 hours", "phone": "904-556-7594", "tips": "Fun way to see the sights, no experience needed", "rating": "4.8/5"},
+        ],
+        "🛍️ Shopping & Culture": [
+            {"name": "Downtown Fernandina Beach", "description": "Historic downtown with 50+ shops, galleries, and cafes", "cost_range": "Varies", "duration": "2-3 hours", "phone": "N/A", "tips": "Centre Street is main drag, very walkable and charming", "rating": "4.8/5"},
+            {"name": "Amelia Island Museum of History", "description": "Learn local history with engaging guided tours", "cost_range": "$10-15", "duration": "1-2 hours", "phone": "904-261-7378", "tips": "Oral history tours are fantastic and unique", "rating": "4.7/5"},
+            {"name": "Saturday Farmer's Market", "description": "Local produce, crafts, and food vendors", "cost_range": "Varies", "duration": "1-2 hours", "phone": "N/A", "tips": "Only on Saturday mornings 9am-1pm, arrive early", "rating": "4.6/5"},
+            {"name": "Art Galleries Walk", "description": "Multiple galleries along Centre Street", "cost_range": "FREE to browse", "duration": "1-2 hours", "phone": "N/A", "tips": "First Friday ArtWalk if timing works out", "rating": "4.5/5"},
+        ],
+        "💆 More Relaxation": [
+            {"name": "Extra Spa Services", "description": "Manicures, pedicures, body wraps at Ritz Spa", "cost_range": "$75-250", "duration": "1-2 hours", "phone": "904-277-1100", "tips": "Book multiple services for package discount", "rating": "4.9/5"},
+            {"name": "Resort Pool Day", "description": "Relax at multiple Ritz-Carlton pools and hot tubs", "cost_range": "FREE (hotel guests)", "duration": "2-4 hours", "phone": "N/A", "tips": "Reserve a cabana for ultimate luxury relaxation", "rating": "4.8/5"},
+            {"name": "Beach Sunset Viewing", "description": "Watch gorgeous sunset from the shore", "cost_range": "FREE", "duration": "30-60 minutes", "phone": "N/A", "tips": "Check sunset time, bring camera and beach blanket", "rating": "5.0/5"},
+            {"name": "Yoga on the Beach", "description": "Morning yoga classes on the beach", "cost_range": "$20-35", "duration": "1 hour", "phone": "904-277-1100", "tips": "Hotel offers classes, check schedule", "rating": "4.6/5"},
+        ]
+    }
+
 # ============================================================================
 # AUTHENTICATION
 # ============================================================================
@@ -1731,6 +1769,202 @@ def render_budget(df, show_sensitive):
     fig.update_layout(height=400)
     st.plotly_chart(fig, use_container_width=True)
 
+def render_explore_activities():
+    """Explore & Plan page - discover optional activities and fill your schedule"""
+    st.markdown('<h2 class="fade-in">🎯 Explore & Plan Activities</h2>', unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="info-box info-success">
+        <h4 style="margin: 0 0 0.5rem 0;">✨ Discover More to Do in Amelia Island!</h4>
+        <p style="margin: 0;">Browse 30+ optional activities to fill your free time and make the most of your trip. Filter by budget, time, and interests!</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Show free time analysis
+    st.markdown("### 📅 Your Free Time")
+
+    st.markdown("""
+    <div class="ultimate-card">
+        <div class="card-body">
+            <p style="margin: 0.5rem 0;"><strong>Thursday, Nov 7:</strong> Evening free after arrival (~7pm onwards)</p>
+            <p style="margin: 0.5rem 0;"><strong>Friday, Nov 8:</strong> Morning free before John arrives (~8am-10:30am)</p>
+            <p style="margin: 0.5rem 0;"><strong>Saturday, Nov 9:</strong> Afternoon gap between spa and dinner (~2pm-6pm)</p>
+            <p style="margin: 0.5rem 0;"><strong>Sunday, Nov 10:</strong> All day flexible after beach</p>
+            <p style="margin: 0.5rem 0;"><strong>Monday, Nov 11:</strong> Morning and afternoon before John departs</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # Filter options
+    st.markdown("### 🔍 Filter Activities")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        budget_filter = st.selectbox(
+            "💰 Budget",
+            ["All Budgets", "Free", "Under $50", "$50-100", "$100+"]
+        )
+
+    with col2:
+        time_filter = st.selectbox(
+            "⏱️ Time Needed",
+            ["All Durations", "< 1 hour", "1-2 hours", "2-4 hours", "4+ hours"]
+        )
+
+    with col3:
+        category_filter = st.selectbox(
+            "📂 Category",
+            ["All Categories", "Dining", "Beach & Water", "Activities", "Shopping", "Relaxation"]
+        )
+
+    st.markdown("---")
+
+    # Display activities by category
+    activities = get_optional_activities()
+
+    for category, items in activities.items():
+        with st.expander(f"{category} ({len(items)} options)", expanded=(category == "🍽️ Dining Options")):
+            for idx, activity in enumerate(items):
+                st.markdown(f"""
+                <div class="ultimate-card fade-in" style="margin: 1rem 0;">
+                    <div class="card-body">
+                        <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap;">
+                            <div style="flex: 1; min-width: 300px;">
+                                <h4 style="margin: 0 0 0.5rem 0; color: #ff6b6b;">{activity['name']}</h4>
+                                <p style="margin: 0.5rem 0; color: #636e72;">{activity['description']}</p>
+                                <div style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; font-size: 0.95rem;">
+                                    <span style="background: #f0f9ff; padding: 0.25rem 0.75rem; border-radius: 15px;">💰 {activity['cost_range']}</span>
+                                    <span style="background: #fff5e6; padding: 0.25rem 0.75rem; border-radius: 15px;">⏱️ {activity['duration']}</span>
+                                    <span style="background: #ffe6f0; padding: 0.25rem 0.75rem; border-radius: 15px;">⭐ {activity.get('rating', 'N/A')}</span>
+                                </div>
+                                {f'<div style="margin-top: 0.75rem;"><span style="background: #e6f7ff; padding: 0.25rem 0.75rem; border-radius: 15px;">📞 {activity["phone"]}</span></div>' if activity.get('phone') and activity['phone'] != 'N/A' else ''}
+                                <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%); padding: 0.75rem; border-radius: 10px; margin-top: 1rem; border-left: 3px solid #4ecdc4;">
+                                    <strong>💡 Pro Tip:</strong> {activity['tips']}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    if st.button(f"⭐ Save", key=f"save_{category}_{idx}", use_container_width=True):
+                        st.success(f"✅ Saved {activity['name']} to your wishlist!")
+                with col2:
+                    if st.button(f"📋 Notes", key=f"note_{category}_{idx}", use_container_width=True):
+                        st.info("💭 Add this to your trip notes!")
+                with col3:
+                    if activity.get('phone') and activity['phone'] != 'N/A' and activity['phone'] != 'Multiple locations':
+                        if st.button(f"📞 Call", key=f"call_{category}_{idx}", use_container_width=True):
+                            st.info(f"Calling {activity['phone']}...")
+
+    # Smart recommendations
+    st.markdown("---")
+    st.markdown("### 💡 Smart Recommendations Based on Your Schedule")
+
+    st.markdown("""
+    <div class="info-box" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+        <h4 style="margin: 0 0 1rem 0;">Suggested Activities by Day:</h4>
+
+        <div style="margin-bottom: 1rem;">
+            <strong>📅 Thursday Evening (Nov 7) - After Arrival:</strong>
+            <ul style="margin: 0.5rem 0;">
+                <li>🍽️ Casual dinner at <strong>Salt Life Food Shack</strong> or <strong>The Surf Restaurant</strong> (at hotel)</li>
+                <li>🌅 Evening beach walk to decompress from travel</li>
+            </ul>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            <strong>📅 Friday Morning (Nov 8) - Before John Arrives:</strong>
+            <ul style="margin: 0.5rem 0;">
+                <li>🏖️ Quick beach time or pool relaxation</li>
+                <li>💆 Morning yoga on the beach</li>
+                <li>🚴 Short bike ride to explore</li>
+            </ul>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            <strong>📅 Saturday Afternoon (Nov 9) - Between Spa & Birthday Dinner:</strong>
+            <ul style="margin: 0.5rem 0;">
+                <li>🏊 Relax by the pool (perfect post-spa)</li>
+                <li>🛍️ Quick downtown shopping walk</li>
+                <li>📸 Photo time to get ready for birthday dinner</li>
+            </ul>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            <strong>📅 Sunday (Nov 10) - Full Flexible Day:</strong>
+            <ul style="margin: 0.5rem 0;">
+                <li>🐴 <strong>Horseback riding on the beach</strong> (must-do experience!)</li>
+                <li>🏛️ Fort Clinch State Park exploration</li>
+                <li>🛍️ Downtown Fernandina Beach shopping & lunch</li>
+                <li>🎨 Art gallery walk if it's First Friday</li>
+            </ul>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            <strong>📅 Monday (Nov 11) - Before Departure:</strong>
+            <ul style="margin: 0.5rem 0;">
+                <li>🌅 Sunrise beach walk (beautiful and peaceful)</li>
+                <li>💆 One more spa treatment</li>
+                <li>🍽️ Final amazing brunch at <strong>29 South</strong></li>
+            </ul>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Additional tips
+    st.markdown("---")
+    st.markdown("### 🎯 Top Picks")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.markdown("""
+        <div class="ultimate-card" style="border-top: 4px solid #ff6b6b;">
+            <div class="card-body">
+                <h4 style="color: #ff6b6b;">🏆 Must-Do</h4>
+                <ul style="margin: 0.5rem 0; padding-left: 1.25rem;">
+                    <li>Horseback riding on beach</li>
+                    <li>Birthday dinner at David's</li>
+                    <li>Sunset viewing</li>
+                </ul>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col2:
+        st.markdown("""
+        <div class="ultimate-card" style="border-top: 4px solid #4ecdc4;">
+            <div class="card-body">
+                <h4 style="color: #4ecdc4;">💎 Hidden Gems</h4>
+                <ul style="margin: 0.5rem 0; padding-left: 1.25rem;">
+                    <li>Peters Point Beach (quiet)</li>
+                    <li>Egan's Creek nature trail</li>
+                    <li>Saturday farmer's market</li>
+                </ul>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col3:
+        st.markdown("""
+        <div class="ultimate-card" style="border-top: 4px solid #96ceb4;">
+            <div class="card-body">
+                <h4 style="color: #96ceb4;">🍽️ Foodie Favorites</h4>
+                <ul style="margin: 0.5rem 0; padding-left: 1.25rem;">
+                    <li>Brett's for sunset dinner</li>
+                    <li>29 South for brunch</li>
+                    <li>Le Clos for romance</li>
+                </ul>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
 # ============================================================================
 # MAIN APPLICATION
 # ============================================================================
@@ -1776,6 +2010,7 @@ def main():
                 "🏠 Dashboard",
                 "📅 Today",
                 "🗓️ Full Schedule",
+                "🎯 Explore & Plan",
                 "🗺️ Map & Locations",
                 "🎒 Packing List",
                 "💰 Budget",
@@ -1817,7 +2052,10 @@ def main():
     
     elif page == "🗓️ Full Schedule":
         render_full_schedule(df, activities_data, show_sensitive)
-    
+
+    elif page == "🎯 Explore & Plan":
+        render_explore_activities()
+
     elif page == "🗺️ Map & Locations":
         render_map_page(activities_data)
     
