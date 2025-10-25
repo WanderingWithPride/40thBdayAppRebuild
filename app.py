@@ -2421,55 +2421,57 @@ def render_explore_activities():
                 for i, rec in enumerate(recommendations[:5], 1):  # Show top 5
                     activity = rec['activity']
 
-                    # Build recommendation card
-                    card_html = f"""
-                    <div class="ultimate-card fade-in" style="margin: 1rem 0; border-left: 4px solid #4ecdc4;">
-                        <div class="card-body">
-                            <div style="display: flex; justify-content: space-between; align-items: start;">
-                                <div style="flex: 1;">
-                                    <h5 style="margin: 0 0 0.5rem 0; color: #ff6b6b;">
-                                        #{i} {activity['name']}
-                                        <span style="background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); color: white; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem; margin-left: 0.5rem;">
-                                            Score: {rec['score']}/100
-                                        </span>
-                                    </h5>
-                                    <p style="margin: 0.5rem 0; color: #636e72; font-size: 0.95rem;">{activity['description']}</p>
-
-                                    <div style="display: flex; gap: 0.75rem; margin: 0.75rem 0; flex-wrap: wrap; font-size: 0.9rem;">
-                                        <span style="background: #f0f9ff; padding: 0.25rem 0.75rem; border-radius: 15px;">💰 {activity['cost_range']}</span>
-                                        <span style="background: #fff5e6; padding: 0.25rem 0.75rem; border-radius: 15px;">⏱️ {activity['duration']}</span>
-                                        <span style="background: #ffe6f0; padding: 0.25rem 0.75rem; border-radius: 15px;">⭐ {activity.get('rating', 'N/A')}</span>
-                                    </div>
-                    """
-
-                    # Add "Why Recommended" reasons
-                    if rec['reasons']:
-                        card_html += '<div style="background: linear-gradient(135deg, #e6f7ff 0%, #d9f7e8 100%); padding: 0.75rem; border-radius: 10px; margin: 0.75rem 0;">'
-                        card_html += '<strong style="color: #27ae60;">✅ Why This Fits:</strong><ul style="margin: 0.25rem 0; padding-left: 1.5rem;">'
-                        for reason in rec['reasons']:
-                            card_html += f'<li style="margin: 0.25rem 0;">{reason}</li>'
-                        card_html += '</ul></div>'
-
-                    # Add warnings if any
-                    if rec['warnings']:
-                        card_html += '<div style="background: #fff4e6; padding: 0.75rem; border-radius: 10px; margin: 0.75rem 0; border-left: 3px solid #f39c12;">'
-                        card_html += '<strong style="color: #d35400;">⚠️ Important Notes:</strong><ul style="margin: 0.25rem 0; padding-left: 1.5rem;">'
-                        for warning in rec['warnings']:
-                            card_html += f'<li style="margin: 0.25rem 0;">{warning}</li>'
-                        card_html += '</ul></div>'
-
-                    # Add pro tip
-                    card_html += f"""
-                                    <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%); padding: 0.75rem; border-radius: 10px; margin: 0.75rem 0; border-left: 3px solid #4ecdc4;">
-                                        <strong>💡 Pro Tip:</strong> {activity['tips']}
-                                    </div>
-                                </div>
-                            </div>
+                    # Use Streamlit container for clean card display
+                    with st.container():
+                        # Header with score
+                        st.markdown(f"""
+                        <div style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+                                    padding: 1.5rem;
+                                    border-radius: 12px;
+                                    border-left: 4px solid #4ecdc4;
+                                    margin: 1rem 0;
+                                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <h4 style="margin: 0; color: #ff6b6b;">
+                                #{i} {activity['name']}
+                                <span style="background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+                                            color: white;
+                                            padding: 0.35rem 0.85rem;
+                                            border-radius: 15px;
+                                            font-size: 0.85rem;
+                                            margin-left: 0.5rem;
+                                            font-weight: normal;">
+                                    Score: {rec['score']}/100
+                                </span>
+                            </h4>
+                            <p style="margin: 0.75rem 0; color: #636e72; line-height: 1.6;">{activity['description']}</p>
                         </div>
-                    </div>
-                    """
+                        """, unsafe_allow_html=True)
 
-                    st.markdown(card_html, unsafe_allow_html=True)
+                        # Activity details in columns
+                        col1, col2, col3 = st.columns(3)
+                        with col1:
+                            st.markdown(f"**💰 Cost:** {activity['cost_range']}")
+                        with col2:
+                            st.markdown(f"**⏱️ Duration:** {activity['duration']}")
+                        with col3:
+                            st.markdown(f"**⭐ Rating:** {activity.get('rating', 'N/A')}")
+
+                        # Why This Fits section
+                        if rec['reasons']:
+                            st.success("**✅ Why This Fits:**")
+                            for reason in rec['reasons']:
+                                st.markdown(f"• {reason}")
+
+                        # Warnings section
+                        if rec['warnings']:
+                            st.warning("**⚠️ Important Notes:**")
+                            for warning in rec['warnings']:
+                                st.markdown(f"• {warning}")
+
+                        # Pro tip
+                        st.info(f"**💡 Pro Tip:** {activity['tips']}")
+
+                        st.markdown("---")
 
                 st.markdown("---")
             else:
