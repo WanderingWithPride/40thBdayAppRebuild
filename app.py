@@ -634,7 +634,7 @@ def get_ultimate_trip_data():
             "id": "arr002",
             "date": "2025-11-08",
             "time": "10:40",
-            "activity": "John Arrives",
+            "activity": "John Arrives at JAX",
             "type": "transport",
             "location": {
                 "name": "Jacksonville International Airport (JAX)",
@@ -646,11 +646,34 @@ def get_ultimate_trip_data():
             "status": "Confirmed",
             "cost": 0,
             "category": "Transport",
-            "notes": "AA1585 from DCA - Pick up John at arrivals",
+            "notes": "AA1585 from DCA - Flight lands 10:40am. Plan realistic timeline: 15min deplaning + 10min baggage + 10min to curb = pickup ~11:15am. Then 45min drive to hotel = arrive ~12:00pm",
             "flight_number": "AA1585",
-            "what_to_bring": [],
-            "tips": ["Track flight status", "Plan 45 min drive from hotel"],
+            "what_to_bring": ["Track flight on FlightAware", "Phone charged for coordination"],
+            "tips": ["Leave hotel by 10:00am to arrive on time", "Text when boarding/landing", "Account for traffic on A1A", "Plan lunch after arrival at hotel"],
+            "estimated_pickup_time": "11:15",
+            "estimated_hotel_arrival": "12:00",
             "priority": 3
+        },
+        {
+            "id": "arr002b",
+            "date": "2025-11-08",
+            "time": "12:00",
+            "activity": "Back at Hotel + Lunch",
+            "type": "dining",
+            "location": {
+                "name": "The Ritz-Carlton, Amelia Island",
+                "address": "4750 Amelia Island Parkway",
+                "lat": 30.6074,
+                "lon": -81.4493,
+                "phone": "904-277-1100"
+            },
+            "status": "Confirmed",
+            "cost": 50,
+            "category": "Dining",
+            "notes": "Quick lunch after airport pickup - either at hotel restaurant or nearby casual spot",
+            "what_to_bring": [],
+            "tips": ["The Surf Restaurant at hotel is convenient", "Salt Life Food Shack nearby", "Keep it light before boat tour"],
+            "priority": 2
         },
         {
             "id": "act001",
@@ -693,6 +716,7 @@ def get_ultimate_trip_data():
             "what_to_bring": ["Arrive 15 min early", "Robe provided", "Clean feet"],
             "tips": ["Hydrate before", "Communicate pressure preferences", "No heavy meal before"],
             "dress_code": "Spa attire provided",
+            "booking_url": "https://www.ritzcarlton.com/en/hotels/ameliarc/spa",
             "priority": 1
         },
         {
@@ -714,6 +738,7 @@ def get_ultimate_trip_data():
             "notes": "Advanced facial - book with massage for package deal",
             "what_to_bring": ["Clean face (no makeup)", "Hair tie", "Empty stomach OK"],
             "tips": ["Ask about serums for your skin type", "Great for pre-dinner glow"],
+            "booking_url": "https://www.ritzcarlton.com/en/hotels/ameliarc/spa",
             "priority": 1
         },
         {
@@ -736,6 +761,7 @@ def get_ultimate_trip_data():
             "what_to_bring": ["Nice outfit", "ID", "Camera for birthday photos"],
             "tips": ["Request window table", "Ask about chef's specials", "Save room for dessert!"],
             "dress_code": "Business casual to dressy",
+            "booking_url": "https://www.opentable.com/r/davids-restaurant-and-lounge-fernandina-beach",
             "priority": 1
         },
         {
@@ -1203,7 +1229,7 @@ def analyze_schedule_gaps(activities_data):
                                 'end_time': f'{first_activity_hour:02d}:00',
                                 'duration_hours': duration,
                                 'time_of_day': 'morning',
-                                'description': f"{day_name}: Morning free (until {first_activity_time.strftime('%-I:%M %p')})"
+                                'description': f"{day_name}: Morning free (until {first_activity_time.strftime('%I:%M %p')})"
                             })
 
                 # Gap between activities
@@ -1231,7 +1257,7 @@ def analyze_schedule_gaps(activities_data):
                             'end_time': f'{end_hour:02d}:00',
                             'duration_hours': int(gap_hours),
                             'time_of_day': time_of_day,
-                            'description': f"{day_name}: {time_of_day.title()} gap ({current_end.strftime('%-I:%M %p')} - {next_start.strftime('%-I:%M %p')})"
+                            'description': f"{day_name}: {time_of_day.title()} gap ({current_end.strftime('%I:%M %p')} - {next_start.strftime('%I:%M %p')})"
                         })
 
                 # Evening gap (after last activity)
@@ -1248,7 +1274,7 @@ def analyze_schedule_gaps(activities_data):
                                 'end_time': '21:00',
                                 'duration_hours': duration,
                                 'time_of_day': 'evening',
-                                'description': f"{day_name}: Evening free (after {(last_activity_time + timedelta(hours=2)).strftime('%-I:%M %p')})"
+                                'description': f"{day_name}: Evening free (after {(last_activity_time + timedelta(hours=2)).strftime('%I:%M %p')})"
                             })
 
     return gaps
@@ -1683,13 +1709,32 @@ def render_dashboard_ultimate(df, activities_data, weather_data, show_sensitive)
             </div>
             """, unsafe_allow_html=True)
             
-            col1, col2 = st.columns(2)
-            with col1:
-                if st.button(f"📞 Call {phone}", key=f"call_{item['id']}", use_container_width=True):
-                    st.info(f"Opening dialer for {phone}...")
-            with col2:
-                if st.button(f"✅ Mark as Booked", key=f"book_{item['id']}", use_container_width=True):
-                    st.success("Great! Marked as booked.")
+            # Get booking URL if available
+            booking_url = None
+            for activity in activities_data:
+                if activity['id'] == item['id']:
+                    booking_url = activity.get('booking_url')
+                    break
+
+            # Show action buttons
+            if booking_url:
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    if st.button(f"📞 Call", key=f"call_{item['id']}", use_container_width=True):
+                        st.info(f"Opening dialer for {phone}...")
+                with col2:
+                    st.link_button("🔗 Book Online", booking_url, use_container_width=True)
+                with col3:
+                    if st.button(f"✅ Booked", key=f"book_{item['id']}", use_container_width=True):
+                        st.success("Great! Marked as booked.")
+            else:
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.button(f"📞 Call {phone}", key=f"call_{item['id']}", use_container_width=True):
+                        st.info(f"Opening dialer for {phone}...")
+                with col2:
+                    if st.button(f"✅ Mark as Booked", key=f"book_{item['id']}", use_container_width=True):
+                        st.success("Great! Marked as booked.")
     else:
         st.markdown("""
         <div class="info-box info-success fade-in">
@@ -1719,7 +1764,41 @@ def render_today_view(df, activities_data, weather_data, show_sensitive):
         
         # Show preparation checklist
         st.markdown("### 🎒 Getting Ready")
-        st.info(f"**{days_until} days** to prepare! Time to start packing and confirming bookings.")
+
+        st.markdown("""
+        <div class="ultimate-card fade-in">
+            <div class="card-header">✈️ Pre-Trip Preparation</div>
+            <div class="card-body">
+                <p style="font-size: 1.1rem; margin-bottom: 1rem;">
+                    <strong>{} days</strong> to prepare! Here's what you need to do:
+                </p>
+            </div>
+        </div>
+        """.format(days_until), unsafe_allow_html=True)
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.markdown("#### 📋 Quick Links")
+            if st.button("🎒 View Packing List", key="packing_link", use_container_width=True):
+                st.session_state['nav_to_packing'] = True
+                st.rerun()
+
+            if st.button("📞 View Urgent Bookings", key="bookings_link", use_container_width=True):
+                st.info("Check the Dashboard for urgent bookings!")
+
+        with col2:
+            st.markdown("#### ✅ Pre-Trip Checklist")
+            st.checkbox("📞 All reservations confirmed", key="check_reservations")
+            st.checkbox("🎒 Packing list reviewed", key="check_packing")
+            st.checkbox("✈️ Flight details saved", key="check_flights")
+            st.checkbox("🏨 Hotel confirmation ready", key="check_hotel")
+            st.checkbox("💳 Payment methods packed", key="check_payment")
+
+        # Show urgent items that need booking
+        urgent_count = len(df[df['status'] == 'URGENT'])
+        if urgent_count > 0:
+            st.warning(f"⚠️ **{urgent_count} urgent booking(s)** need attention! Check the Dashboard.")
         
     elif trip_start <= today <= trip_end:
         st.markdown('<div class="today-badge">📍 YOU\'RE ON YOUR TRIP!</div>', unsafe_allow_html=True)
@@ -1923,20 +2002,32 @@ def render_full_schedule(df, activities_data, show_sensitive):
                                 <p style="margin: 0.5rem 0;">📞 {mask_info(activity['location'].get('phone', 'N/A'), show_sensitive)}</p>
                                 <p style="margin: 0.5rem 0;">💰 {"$" + str(activity['cost']) if show_sensitive else "$***"}</p>
                                 <p style="margin: 0.5rem 0; font-style: italic;">{mask_info(activity['notes'], show_sensitive)}</p>
-                                
-                                {f'<p style="margin: 0.5rem 0;"><b>👔 Dress Code:</b> {activity.get("dress_code", "Casual")}</p>' if activity.get('dress_code') else ''}
-                                
-                                {f'<div style="margin-top: 1rem;"><b>🎒 What to Bring:</b><ul style="margin: 0.5rem 0;">' + 
-                                 ''.join([f'<li>{item}</li>' for item in activity.get('what_to_bring', [])]) + 
-                                 '</ul></div>' if activity.get('what_to_bring') else ''}
-                                
-                                {f'<div style="margin-top: 1rem; padding: 1rem; background: #f0f9ff; border-left: 4px solid #4ecdc4; border-radius: 8px;"><b>💡 Tips:</b><ul style="margin: 0.5rem 0;">' + 
-                                 ''.join([f'<li>{tip}</li>' for tip in activity.get('tips', [])]) + 
-                                 '</ul></div>' if activity.get('tips') else ''}
                             </div>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
+
+                    # Display additional details (dress code, what to bring, tips) below the card
+                    if activity.get('dress_code'):
+                        st.markdown(f"**👔 Dress Code:** {activity['dress_code']}")
+
+                    if activity.get('what_to_bring'):
+                        st.markdown("**🎒 What to Bring:**")
+                        items = activity['what_to_bring']
+                        if isinstance(items, list):
+                            for item in items:
+                                st.markdown(f"- {item}")
+                        else:
+                            st.markdown(f"- {items}")
+
+                    if activity.get('tips'):
+                        tips = activity['tips']
+                        if isinstance(tips, list):
+                            st.markdown("**💡 Tips:**")
+                            for tip in tips:
+                                st.markdown(f"- {tip}")
+                        elif isinstance(tips, str):
+                            st.info(f"💡 **Tip:** {tips}")
                 
                 st.markdown('</div>', unsafe_allow_html=True)
             else:
@@ -2301,6 +2392,13 @@ def main():
         st.markdown("---")
         
         # Navigation
+        # Check if nav override is set (from Getting Ready button)
+        if st.session_state.get('nav_to_packing', False):
+            default_index = 5  # Packing List
+            st.session_state['nav_to_packing'] = False
+        else:
+            default_index = 0
+
         page = st.selectbox(
             "Navigate to:",
             [
@@ -2314,9 +2412,10 @@ def main():
                 "🌤️ Weather",
                 "ℹ️ About"
             ],
+            index=default_index,
             label_visibility="collapsed"
         )
-        
+
         st.markdown("---")
         
         # Quick stats
