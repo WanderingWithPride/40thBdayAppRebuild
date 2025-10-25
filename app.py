@@ -1150,6 +1150,246 @@ def get_weather_emoji(condition):
         return '🌤️'
 
 # ============================================================================
+# SMART SCHEDULE ANALYZER
+# ============================================================================
+
+def analyze_schedule_gaps(activities_data):
+    """
+    Analyze the schedule to find free time gaps.
+    Returns a list of time gaps with metadata for smart recommendations.
+    """
+    from datetime import datetime, timedelta
+
+    # Convert to DataFrame for easier manipulation
+    df = pd.DataFrame(activities_data)
+    df['datetime'] = pd.to_datetime(df['date'] + ' ' + df['time'])
+    df = df.sort_values('datetime')
+
+    gaps = []
+    trip_dates = pd.date_range(start='2025-11-07', end='2025-11-12', freq='D')
+
+    for date in trip_dates:
+        date_str = date.strftime('%Y-%m-%d')
+        day_name = date.strftime('%A, %b %d')
+
+        # Get activities for this day
+        day_activities = df[df['date'] == date_str].sort_values('datetime')
+
+        if len(day_activities) == 0:
+            # Full day free
+            gaps.append({
+                'date': date_str,
+                'day_name': day_name,
+                'start_time': '08:00',
+                'end_time': '22:00',
+                'duration_hours': 14,
+                'time_of_day': 'all_day',
+                'description': f"{day_name}: Full day available"
+            })
+        else:
+            # Check for gaps between activities
+            for i in range(len(day_activities)):
+                # Morning gap (before first activity)
+                if i == 0:
+                    first_activity_time = day_activities.iloc[i]['datetime']
+                    first_activity_hour = first_activity_time.hour
+                    if first_activity_hour > 9:  # Gap before first activity (assuming 8am start)
+                        duration = first_activity_hour - 8
+                        if duration >= 2:  # Only show gaps of 2+ hours
+                            gaps.append({
+                                'date': date_str,
+                                'day_name': day_name,
+                                'start_time': '08:00',
+                                'end_time': f'{first_activity_hour:02d}:00',
+                                'duration_hours': duration,
+                                'time_of_day': 'morning',
+                                'description': f"{day_name}: Morning free (until {first_activity_time.strftime('%-I:%M %p')})"
+                            })
+
+                # Gap between activities
+                if i < len(day_activities) - 1:
+                    current_end = day_activities.iloc[i]['datetime'] + timedelta(hours=2)  # Assume 2hr activity
+                    next_start = day_activities.iloc[i + 1]['datetime']
+                    gap_hours = (next_start - current_end).total_seconds() / 3600
+
+                    if gap_hours >= 2:  # Only show gaps of 2+ hours
+                        start_hour = current_end.hour
+                        end_hour = next_start.hour
+
+                        # Determine time of day
+                        if start_hour < 12:
+                            time_of_day = 'morning'
+                        elif start_hour < 17:
+                            time_of_day = 'afternoon'
+                        else:
+                            time_of_day = 'evening'
+
+                        gaps.append({
+                            'date': date_str,
+                            'day_name': day_name,
+                            'start_time': f'{start_hour:02d}:00',
+                            'end_time': f'{end_hour:02d}:00',
+                            'duration_hours': int(gap_hours),
+                            'time_of_day': time_of_day,
+                            'description': f"{day_name}: {time_of_day.title()} gap ({current_end.strftime('%-I:%M %p')} - {next_start.strftime('%-I:%M %p')})"
+                        })
+
+                # Evening gap (after last activity)
+                if i == len(day_activities) - 1:
+                    last_activity_time = day_activities.iloc[i]['datetime']
+                    last_activity_hour = last_activity_time.hour + 2  # Assume 2hr activity
+                    if last_activity_hour < 21:  # Gap after last activity
+                        duration = 21 - last_activity_hour
+                        if duration >= 2:
+                            gaps.append({
+                                'date': date_str,
+                                'day_name': day_name,
+                                'start_time': f'{last_activity_hour:02d}:00',
+                                'end_time': '21:00',
+                                'duration_hours': duration,
+                                'time_of_day': 'evening',
+                                'description': f"{day_name}: Evening free (after {(last_activity_time + timedelta(hours=2)).strftime('%-I:%M %p')})"
+                            })
+
+    return gaps
+
+
+def get_smart_recommendations(gap, weather_data, optional_activities):
+    """
+    Generate smart activity recommendations based on:
+    - Schedule gap duration and time of day
+    - Real weather conditions
+    - UV index (from weather data)
+    - Activity suitability
+    """
+    # Get weather for this date
+    gap_weather = None
+    for forecast in weather_data.get('forecast', []):
+        if forecast['date'] == gap['date']:
+            gap_weather = forecast
+            break
+
+    if not gap_weather:
+        gap_weather = weather_data.get('current', {})
+
+    recommendations = []
+
+    # Score each activity based on conditions
+    for category, activities in optional_activities.items():
+        for activity in activities:
+            score = 0
+            reasons = []
+            warnings = []
+
+            # 1. Duration match (most important)
+            activity_duration = activity.get('duration', '2-3 hours')
+            duration_match = False
+            if '1-2' in activity_duration and gap['duration_hours'] >= 1:
+                duration_match = True
+                score += 30
+            elif '2-3' in activity_duration and gap['duration_hours'] >= 2:
+                duration_match = True
+                score += 30
+            elif '3-4' in activity_duration and gap['duration_hours'] >= 3:
+                duration_match = True
+                score += 30
+            elif '1 hour' in activity_duration and gap['duration_hours'] >= 1:
+                duration_match = True
+                score += 30
+
+            if not duration_match:
+                continue  # Skip activities that don't fit the time window
+
+            # 2. Time of day match
+            time_of_day = gap['time_of_day']
+            activity_name = activity['name'].lower()
+
+            # Dining recommendations based on time
+            if 'dining' in category.lower():
+                if 'breakfast' in activity_name and time_of_day == 'morning':
+                    score += 25
+                    reasons.append("Perfect breakfast timing")
+                elif 'lunch' in activity_name and time_of_day == 'afternoon':
+                    score += 25
+                    reasons.append("Ideal lunch hour")
+                elif ('dinner' in activity_name or 'sunset' in activity_name) and time_of_day == 'evening':
+                    score += 25
+                    reasons.append("Great dinner timing")
+                elif 'coffee' in activity_name or 'cafe' in activity_name:
+                    score += 15
+                    reasons.append("Good for a casual break")
+
+            # 3. Weather suitability
+            condition = gap_weather.get('condition', '').lower()
+            temp = gap_weather.get('high', 75)
+            precipitation = gap_weather.get('precipitation', 0)
+            wind = gap_weather.get('wind', 5)
+
+            # Beach/outdoor activities
+            if any(keyword in activity_name for keyword in ['beach', 'kayak', 'bike', 'walk', 'golf', 'park', 'outdoor']):
+                if 'rain' in condition or precipitation > 50:
+                    score -= 40
+                    warnings.append("⚠️ Rain expected - bring rain gear or reschedule")
+                elif 'clear' in condition or 'sunny' in condition:
+                    score += 20
+                    reasons.append("Perfect weather for outdoor activity")
+                    if temp > 85:
+                        warnings.append("🌡️ High temperature - bring extra water and sunscreen")
+                elif 'cloud' in condition:
+                    score += 10
+                    reasons.append("Good cloud cover reduces sun exposure")
+
+            # Indoor activities (good for bad weather)
+            if any(keyword in activity_name for keyword in ['museum', 'shopping', 'spa', 'indoor', 'gallery', 'theater']):
+                if 'rain' in condition or precipitation > 30:
+                    score += 25
+                    reasons.append("Indoor activity - perfect for rainy weather")
+                elif temp > 90 or temp < 60:
+                    score += 15
+                    reasons.append("Indoor comfort in extreme temperatures")
+
+            # Water activities
+            if any(keyword in activity_name for keyword in ['kayak', 'paddleboard', 'boat', 'fishing', 'swim']):
+                if wind > 15:
+                    score -= 20
+                    warnings.append("⚠️ High winds - check conditions before going")
+                elif temp < 70:
+                    score -= 10
+                    warnings.append("🌡️ Cool temperature for water activities")
+                elif 'clear' in condition and 65 < temp < 85:
+                    score += 20
+                    reasons.append("Ideal conditions for water activities")
+
+            # 4. UV/sun considerations (assume high UV on sunny days)
+            if 'sunny' in condition or 'clear' in condition:
+                if time_of_day == 'afternoon':  # Peak UV hours
+                    if any(keyword in activity_name for keyword in ['beach', 'outdoor', 'walk', 'bike', 'golf']):
+                        warnings.append("☀️ Peak UV hours - use SPF 50+ sunscreen")
+
+            # 5. Rating boost
+            rating = activity.get('rating', 0)
+            score += rating * 2  # Each star adds 2 points
+
+            # Only recommend if score is positive
+            if score > 0:
+                recommendations.append({
+                    'activity': activity,
+                    'category': category,
+                    'score': score,
+                    'reasons': reasons,
+                    'warnings': warnings,
+                    'weather_condition': condition.title(),
+                    'temperature': temp,
+                    'precipitation_chance': precipitation
+                })
+
+    # Sort by score (highest first)
+    recommendations.sort(key=lambda x: x['score'], reverse=True)
+
+    return recommendations[:8]  # Return top 8 recommendations
+
+
+# ============================================================================
 # MAPPING FUNCTIONS
 # ============================================================================
 
@@ -1681,8 +1921,8 @@ def render_full_schedule(df, activities_data, show_sensitive):
                                 <p style="margin: 0.5rem 0;"><b>🕐 {activity['time']}</b></p>
                                 <p style="margin: 0.5rem 0;">📍 {activity['location']['name']}</p>
                                 <p style="margin: 0.5rem 0;">📞 {mask_info(activity['location'].get('phone', 'N/A'), show_sensitive)}</p>
-                                <p style="margin: 0.5rem 0;">💰 ${activity['cost']}</p>
-                                <p style="margin: 0.5rem 0; font-style: italic;">{activity['notes']}</p>
+                                <p style="margin: 0.5rem 0;">💰 {"$" + str(activity['cost']) if show_sensitive else "$***"}</p>
+                                <p style="margin: 0.5rem 0; font-style: italic;">{mask_info(activity['notes'], show_sensitive)}</p>
                                 
                                 {f'<p style="margin: 0.5rem 0;"><b>👔 Dress Code:</b> {activity.get("dress_code", "Casual")}</p>' if activity.get('dress_code') else ''}
                                 
@@ -1776,24 +2016,29 @@ def render_explore_activities():
     st.markdown("""
     <div class="info-box info-success">
         <h4 style="margin: 0 0 0.5rem 0;">✨ Discover More to Do in Amelia Island!</h4>
-        <p style="margin: 0;">Browse 30+ optional activities to fill your free time and make the most of your trip. Filter by budget, time, and interests!</p>
+        <p style="margin: 0;">Smart recommendations based on your actual schedule, real weather forecasts, UV index, and time of day!</p>
     </div>
     """, unsafe_allow_html=True)
 
-    # Show free time analysis
-    st.markdown("### 📅 Your Free Time")
+    # Get data for smart analysis
+    _, activities_data = get_ultimate_trip_data()
+    weather_data = get_weather_ultimate()
+    optional_activities = get_optional_activities()
 
-    st.markdown("""
-    <div class="ultimate-card">
-        <div class="card-body">
-            <p style="margin: 0.5rem 0;"><strong>Thursday, Nov 7:</strong> Evening free after arrival (~7pm onwards)</p>
-            <p style="margin: 0.5rem 0;"><strong>Friday, Nov 8:</strong> Morning free before John arrives (~8am-10:30am)</p>
-            <p style="margin: 0.5rem 0;"><strong>Saturday, Nov 9:</strong> Afternoon gap between spa and dinner (~2pm-6pm)</p>
-            <p style="margin: 0.5rem 0;"><strong>Sunday, Nov 10:</strong> All day flexible after beach</p>
-            <p style="margin: 0.5rem 0;"><strong>Monday, Nov 11:</strong> Morning and afternoon before John departs</p>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    # Analyze schedule gaps DYNAMICALLY
+    schedule_gaps = analyze_schedule_gaps(activities_data)
+
+    # Show free time analysis (DYNAMIC)
+    st.markdown("### 📅 Your Free Time (Analyzed from Schedule)")
+
+    if schedule_gaps:
+        gap_html = '<div class="ultimate-card"><div class="card-body">'
+        for gap in schedule_gaps:
+            gap_html += f'<p style="margin: 0.5rem 0;"><strong>{gap["description"]}</strong> - {gap["duration_hours"]}h available</p>'
+        gap_html += '</div></div>'
+        st.markdown(gap_html, unsafe_allow_html=True)
+    else:
+        st.info("Your schedule is fully booked - no gaps detected!")
 
     st.markdown("---")
 
@@ -1862,60 +2107,104 @@ def render_explore_activities():
                         if st.button(f"📞 Call", key=f"call_{category}_{idx}", use_container_width=True):
                             st.info(f"Calling {activity['phone']}...")
 
-    # Smart recommendations
+    # SMART RECOMMENDATIONS - DYNAMIC based on weather, schedule, and conditions
     st.markdown("---")
-    st.markdown("### 💡 Smart Recommendations Based on Your Schedule")
+    st.markdown("### 💡 Smart Recommendations Based on Real Data")
 
     st.markdown("""
-    <div class="info-box" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
-        <h4 style="margin: 0 0 1rem 0;">Suggested Activities by Day:</h4>
-
-        <div style="margin-bottom: 1rem;">
-            <strong>📅 Thursday Evening (Nov 7) - After Arrival:</strong>
-            <ul style="margin: 0.5rem 0;">
-                <li>🍽️ Casual dinner at <strong>Salt Life Food Shack</strong> or <strong>The Surf Restaurant</strong> (at hotel)</li>
-                <li>🌅 Evening beach walk to decompress from travel</li>
-            </ul>
-        </div>
-
-        <div style="margin-bottom: 1rem;">
-            <strong>📅 Friday Morning (Nov 8) - Before John Arrives:</strong>
-            <ul style="margin: 0.5rem 0;">
-                <li>🏖️ Quick beach time or pool relaxation</li>
-                <li>💆 Morning yoga on the beach</li>
-                <li>🚴 Short bike ride to explore</li>
-            </ul>
-        </div>
-
-        <div style="margin-bottom: 1rem;">
-            <strong>📅 Saturday Afternoon (Nov 9) - Between Spa & Birthday Dinner:</strong>
-            <ul style="margin: 0.5rem 0;">
-                <li>🏊 Relax by the pool (perfect post-spa)</li>
-                <li>🛍️ Quick downtown shopping walk</li>
-                <li>📸 Photo time to get ready for birthday dinner</li>
-            </ul>
-        </div>
-
-        <div style="margin-bottom: 1rem;">
-            <strong>📅 Sunday (Nov 10) - Full Flexible Day:</strong>
-            <ul style="margin: 0.5rem 0;">
-                <li>🐴 <strong>Horseback riding on the beach</strong> (must-do experience!)</li>
-                <li>🏛️ Fort Clinch State Park exploration</li>
-                <li>🛍️ Downtown Fernandina Beach shopping & lunch</li>
-                <li>🎨 Art gallery walk if it's First Friday</li>
-            </ul>
-        </div>
-
-        <div style="margin-bottom: 1rem;">
-            <strong>📅 Monday (Nov 11) - Before Departure:</strong>
-            <ul style="margin: 0.5rem 0;">
-                <li>🌅 Sunrise beach walk (beautiful and peaceful)</li>
-                <li>💆 One more spa treatment</li>
-                <li>🍽️ Final amazing brunch at <strong>29 South</strong></li>
-            </ul>
-        </div>
+    <div class="info-box" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+        <h4 style="margin: 0; color: white;">🤖 AI-Powered Suggestions</h4>
+        <p style="margin: 0.5rem 0 0 0; opacity: 0.95;">Activities recommended based on your schedule gaps, real-time weather, UV index, temperature, and time of day</p>
     </div>
     """, unsafe_allow_html=True)
+
+    # Generate smart recommendations for each gap
+    if schedule_gaps:
+        for gap in schedule_gaps:
+            st.markdown(f"#### {gap['description']}")
+
+            # Get weather for this gap
+            gap_forecast = None
+            for forecast in weather_data.get('forecast', []):
+                if forecast['date'] == gap['date']:
+                    gap_forecast = forecast
+                    break
+
+            # Show weather conditions for this time slot
+            if gap_forecast:
+                st.markdown(f"""
+                <div style="background: #f0f9ff; padding: 0.75rem; border-radius: 10px; margin-bottom: 1rem; border-left: 3px solid #4ecdc4;">
+                    <strong>🌤️ Weather Forecast:</strong> {gap_forecast['condition']} |
+                    🌡️ {gap_forecast['high']}°F |
+                    💧 {gap_forecast['precipitation']}% rain |
+                    💨 {gap_forecast['wind']} mph wind
+                </div>
+                """, unsafe_allow_html=True)
+
+            # Get smart recommendations for this gap
+            recommendations = get_smart_recommendations(gap, weather_data, optional_activities)
+
+            if recommendations:
+                st.markdown(f"**Top {len(recommendations)} Recommended Activities:**")
+
+                for i, rec in enumerate(recommendations[:5], 1):  # Show top 5
+                    activity = rec['activity']
+
+                    # Build recommendation card
+                    card_html = f"""
+                    <div class="ultimate-card fade-in" style="margin: 1rem 0; border-left: 4px solid #4ecdc4;">
+                        <div class="card-body">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div style="flex: 1;">
+                                    <h5 style="margin: 0 0 0.5rem 0; color: #ff6b6b;">
+                                        #{i} {activity['name']}
+                                        <span style="background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); color: white; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem; margin-left: 0.5rem;">
+                                            Score: {rec['score']}/100
+                                        </span>
+                                    </h5>
+                                    <p style="margin: 0.5rem 0; color: #636e72; font-size: 0.95rem;">{activity['description']}</p>
+
+                                    <div style="display: flex; gap: 0.75rem; margin: 0.75rem 0; flex-wrap: wrap; font-size: 0.9rem;">
+                                        <span style="background: #f0f9ff; padding: 0.25rem 0.75rem; border-radius: 15px;">💰 {activity['cost_range']}</span>
+                                        <span style="background: #fff5e6; padding: 0.25rem 0.75rem; border-radius: 15px;">⏱️ {activity['duration']}</span>
+                                        <span style="background: #ffe6f0; padding: 0.25rem 0.75rem; border-radius: 15px;">⭐ {activity.get('rating', 'N/A')}</span>
+                                    </div>
+                    """
+
+                    # Add "Why Recommended" reasons
+                    if rec['reasons']:
+                        card_html += '<div style="background: linear-gradient(135deg, #e6f7ff 0%, #d9f7e8 100%); padding: 0.75rem; border-radius: 10px; margin: 0.75rem 0;">'
+                        card_html += '<strong style="color: #27ae60;">✅ Why This Fits:</strong><ul style="margin: 0.25rem 0; padding-left: 1.5rem;">'
+                        for reason in rec['reasons']:
+                            card_html += f'<li style="margin: 0.25rem 0;">{reason}</li>'
+                        card_html += '</ul></div>'
+
+                    # Add warnings if any
+                    if rec['warnings']:
+                        card_html += '<div style="background: #fff4e6; padding: 0.75rem; border-radius: 10px; margin: 0.75rem 0; border-left: 3px solid #f39c12;">'
+                        card_html += '<strong style="color: #d35400;">⚠️ Important Notes:</strong><ul style="margin: 0.25rem 0; padding-left: 1.5rem;">'
+                        for warning in rec['warnings']:
+                            card_html += f'<li style="margin: 0.25rem 0;">{warning}</li>'
+                        card_html += '</ul></div>'
+
+                    # Add pro tip
+                    card_html += f"""
+                                    <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%); padding: 0.75rem; border-radius: 10px; margin: 0.75rem 0; border-left: 3px solid #4ecdc4;">
+                                        <strong>💡 Pro Tip:</strong> {activity['tips']}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    """
+
+                    st.markdown(card_html, unsafe_allow_html=True)
+
+                st.markdown("---")
+            else:
+                st.info(f"No activities match this {gap['duration_hours']}-hour time slot perfectly. Check the full activity list below!")
+    else:
+        st.info("Your schedule is fully booked! Browse activities below to find options for future trips.")
 
     # Additional tips
     st.markdown("---")
@@ -1977,15 +2266,11 @@ def main():
     
     # Render header
     render_ultimate_header()
-    
-    # Check authentication
-    if not check_password_ultimate():
-        st.stop()
-    
-    # Get data
+
+    # Get data (app is OPEN - no password wall!)
     df, activities_data = get_ultimate_trip_data()
     weather_data = get_weather_ultimate()
-    show_sensitive = st.session_state.password_verified
+    show_sensitive = st.session_state.get('password_verified', False)
     
     # Sidebar navigation
     with st.sidebar:
@@ -1995,12 +2280,24 @@ def main():
         </div>
         """, unsafe_allow_html=True)
         
-        # Security status
+        # Security status and login
         if show_sensitive:
             st.success("🔓 Full Access")
+            if st.button("🔒 Lock", use_container_width=True):
+                st.session_state['password_verified'] = False
+                st.rerun()
         else:
-            st.info("🔒 Demo Mode")
-        
+            st.info("🔒 Public View (sensitive data hidden)")
+            with st.expander("🔐 Unlock Full Access"):
+                password_input = st.text_input("Enter password:", type="password", key="unlock_password")
+                if st.button("Unlock", use_container_width=True):
+                    if hashlib.md5(password_input.encode()).hexdigest() == os.getenv('TRIP_PASSWORD_HASH', 'a5be948874610641149611913c4924e5'):
+                        st.session_state['password_verified'] = True
+                        st.success("✅ Access granted!")
+                        st.rerun()
+                    else:
+                        st.error("❌ Incorrect password")
+
         st.markdown("---")
         
         # Navigation
