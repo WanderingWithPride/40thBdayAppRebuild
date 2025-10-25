@@ -1089,29 +1089,114 @@ def mask_info(text, show=False):
 # ============================================================================
 
 @st.cache_data(ttl=1800)
+def get_uv_index():
+    """Get UV index data from OpenWeather"""
+    api_key = os.getenv('OPENWEATHER_API_KEY', '')
+    lat, lon = 30.6074, -81.4493  # Amelia Island
+
+    if api_key:
+        try:
+            # UV Index endpoint (using One Call API 3.0)
+            uv_url = f"https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={lon}&appid={api_key}&exclude=minutely,hourly,alerts"
+            resp = requests.get(uv_url, timeout=5)
+
+            if resp.status_code == 200:
+                data = resp.json()
+                return {
+                    'current': round(data.get('current', {}).get('uvi', 5), 1),
+                    'daily': [{'date': datetime.fromtimestamp(day['dt']).strftime('%Y-%m-%d'),
+                               'uv': round(day.get('uvi', 5), 1)}
+                              for day in data.get('daily', [])[:6]]
+                }
+        except:
+            pass
+
+    # Fallback UV data (moderate levels)
+    from datetime import datetime, timedelta
+    today = datetime.now()
+    return {
+        'current': 5.0,
+        'daily': [{'date': (today + timedelta(days=i)).strftime('%Y-%m-%d'), 'uv': 5.0 + (i % 3)}
+                  for i in range(6)]
+    }
+
+@st.cache_data(ttl=3600)
+def get_tide_data():
+    """Get tide data from NOAA for Fernandina Beach, FL"""
+    station_id = "8720030"  # Fernandina Beach, FL
+
+    try:
+        # Get tide predictions for next 7 days
+        from datetime import datetime, timedelta
+        begin_date = datetime.now().strftime('%Y%m%d')
+        end_date = (datetime.now() + timedelta(days=7)).strftime('%Y%m%d')
+
+        url = f"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?begin_date={begin_date}&end_date={end_date}&station={station_id}&product=predictions&datum=MLLW&time_zone=lst_ldt&units=english&interval=hilo&format=json"
+
+        resp = requests.get(url, timeout=10)
+
+        if resp.status_code == 200:
+            data = resp.json()
+            predictions = data.get('predictions', [])
+
+            # Group by date
+            daily_tides = {}
+            for pred in predictions:
+                date_str = pred['t'].split(' ')[0]
+                if date_str not in daily_tides:
+                    daily_tides[date_str] = {'high': [], 'low': []}
+
+                if pred['type'] == 'H':
+                    daily_tides[date_str]['high'].append({'time': pred['t'].split(' ')[1], 'height': float(pred['v'])})
+                else:
+                    daily_tides[date_str]['low'].append({'time': pred['t'].split(' ')[1], 'height': float(pred['v'])})
+
+            return daily_tides
+    except:
+        pass
+
+    # Fallback tide data
+    return {
+        '2025-11-07': {'high': [{'time': '06:30', 'height': 6.5}, {'time': '19:00', 'height': 6.8}],
+                       'low': [{'time': '00:15', 'height': 0.5}, {'time': '12:45', 'height': 0.3}]},
+        '2025-11-08': {'high': [{'time': '07:15', 'height': 6.6}, {'time': '19:45', 'height': 6.9}],
+                       'low': [{'time': '01:00', 'height': 0.4}, {'time': '13:30', 'height': 0.2}]},
+    }
+
+@st.cache_data(ttl=1800)
 def get_weather_ultimate():
     """Get real weather data with fallback"""
     api_key = os.getenv('OPENWEATHER_API_KEY', '')
     lat, lon = 30.6074, -81.4493  # Amelia Island
-    
+
     if api_key:
         try:
             # Current weather
             current_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={api_key}&units=imperial"
             forecast_url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={api_key}&units=imperial"
-            
+
             current_resp = requests.get(current_url, timeout=5)
             forecast_resp = requests.get(forecast_url, timeout=5)
-            
+
             if current_resp.status_code == 200 and forecast_resp.status_code == 200:
                 current_data = current_resp.json()
                 forecast_data = forecast_resp.json()
-                
+
+                # Get UV data
+                uv_data = get_uv_index()
+
                 # Process forecast
                 daily_forecasts = {}
                 for item in forecast_data['list']:
                     date = item['dt_txt'].split(' ')[0]
                     if date not in daily_forecasts:
+                        # Find UV for this date
+                        uv_for_date = 5.0
+                        for uv_day in uv_data['daily']:
+                            if uv_day['date'] == date:
+                                uv_for_date = uv_day['uv']
+                                break
+
                         daily_forecasts[date] = {
                             'date': date,
                             'high': item['main']['temp_max'],
@@ -1119,12 +1204,13 @@ def get_weather_ultimate():
                             'condition': item['weather'][0]['description'].title(),
                             'precipitation': int(item.get('pop', 0) * 100),
                             'humidity': item['main']['humidity'],
-                            'wind': round(item['wind']['speed'])
+                            'wind': round(item['wind']['speed']),
+                            'uv_index': uv_for_date
                         }
                     else:
                         daily_forecasts[date]['high'] = max(daily_forecasts[date]['high'], item['main']['temp_max'])
                         daily_forecasts[date]['low'] = min(daily_forecasts[date]['low'], item['main']['temp_min'])
-                
+
                 return {
                     "current": {
                         "temperature": round(current_data['main']['temp']),
@@ -1132,7 +1218,8 @@ def get_weather_ultimate():
                         "condition": current_data['weather'][0]['description'].title(),
                         "humidity": current_data['main']['humidity'],
                         "wind_speed": round(current_data['wind']['speed']),
-                        "visibility": round(current_data.get('visibility', 10000) / 1609.34, 1)
+                        "visibility": round(current_data.get('visibility', 10000) / 1609.34, 1),
+                        "uv_index": uv_data['current']
                     },
                     "forecast": list(daily_forecasts.values())[:6],
                     "source": "OpenWeather API (Real Data)"
@@ -1148,15 +1235,16 @@ def get_weather_ultimate():
             "condition": "Partly Cloudy",
             "humidity": 68,
             "wind_speed": 8,
-            "visibility": 10.0
+            "visibility": 10.0,
+            "uv_index": 5.0
         },
         "forecast": [
-            {"date": "2025-11-07", "high": 78, "low": 65, "condition": "Sunny", "precipitation": 0, "humidity": 65, "wind": 7},
-            {"date": "2025-11-08", "high": 75, "low": 62, "condition": "Partly Cloudy", "precipitation": 10, "humidity": 70, "wind": 9},
-            {"date": "2025-11-09", "high": 72, "low": 58, "condition": "Cloudy", "precipitation": 20, "humidity": 75, "wind": 10},
-            {"date": "2025-11-10", "high": 74, "low": 60, "condition": "Sunny", "precipitation": 0, "humidity": 63, "wind": 8},
-            {"date": "2025-11-11", "high": 76, "low": 63, "condition": "Partly Cloudy", "precipitation": 5, "humidity": 68, "wind": 7},
-            {"date": "2025-11-12", "high": 77, "low": 64, "condition": "Sunny", "precipitation": 0, "humidity": 65, "wind": 6}
+            {"date": "2025-11-07", "high": 78, "low": 65, "condition": "Sunny", "precipitation": 0, "humidity": 65, "wind": 7, "uv_index": 6.0},
+            {"date": "2025-11-08", "high": 75, "low": 62, "condition": "Partly Cloudy", "precipitation": 10, "humidity": 70, "wind": 9, "uv_index": 5.5},
+            {"date": "2025-11-09", "high": 72, "low": 58, "condition": "Cloudy", "precipitation": 20, "humidity": 75, "wind": 10, "uv_index": 4.0},
+            {"date": "2025-11-10", "high": 74, "low": 60, "condition": "Sunny", "precipitation": 0, "humidity": 63, "wind": 8, "uv_index": 6.5},
+            {"date": "2025-11-11", "high": 76, "low": 63, "condition": "Partly Cloudy", "precipitation": 5, "humidity": 68, "wind": 7, "uv_index": 5.0},
+            {"date": "2025-11-12", "high": 77, "low": 64, "condition": "Sunny", "precipitation": 0, "humidity": 65, "wind": 6, "uv_index": 6.0}
         ],
         "source": "Sample Data (Set OPENWEATHER_API_KEY for real data)"
     }
@@ -2462,36 +2550,99 @@ def main():
         render_budget(df, show_sensitive)
     
     elif page == "🌤️ Weather":
-        st.markdown('<h2 class="fade-in">🌤️ Weather & Forecast</h2>', unsafe_allow_html=True)
-        
-        current = weather_data['current']
-        st.markdown(f"""
-        <div class="weather-widget">
-            <h2>Current Conditions</h2>
-            <div class="weather-temp">{current['temperature']}°F</div>
-            <p style="font-size: 1.3rem;">{current['condition']}</p>
-            <div style="margin-top: 1rem; opacity: 0.9;">
-                <p>Feels like: {current['feels_like']}°F</p>
-                <p>💧 Humidity: {current['humidity']}%</p>
-                <p>💨 Wind: {current['wind_speed']} mph</p>
-                <p>👁️ Visibility: {current['visibility']} mi</p>
+        st.markdown('<h2 class="fade-in">🌤️ Weather, UV & Tides</h2>', unsafe_allow_html=True)
+
+        # Get tide data
+        tide_data = get_tide_data()
+
+        col1, col2 = st.columns([2, 1])
+
+        with col1:
+            current = weather_data['current']
+            uv_current = current.get('uv_index', 5.0)
+
+            # UV warning level
+            if uv_current < 3:
+                uv_level = "Low"
+                uv_color = "#4caf50"
+            elif uv_current < 6:
+                uv_level = "Moderate"
+                uv_color = "#ff9800"
+            elif uv_current < 8:
+                uv_level = "High"
+                uv_color = "#ff5722"
+            else:
+                uv_level = "Very High"
+                uv_color = "#d32f2f"
+
+            st.markdown(f"""
+            <div class="weather-widget">
+                <h2>Current Conditions</h2>
+                <div class="weather-temp">{current['temperature']}°F</div>
+                <p style="font-size: 1.3rem;">{current['condition']}</p>
+                <div style="margin-top: 1rem; opacity: 0.9;">
+                    <p>Feels like: {current['feels_like']}°F</p>
+                    <p>💧 Humidity: {current['humidity']}%</p>
+                    <p>💨 Wind: {current['wind_speed']} mph</p>
+                    <p>👁️ Visibility: {current['visibility']} mi</p>
+                    <p style="color: {uv_color}; font-weight: bold;">☀️ UV Index: {uv_current} ({uv_level})</p>
+                </div>
             </div>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown("### 📅 6-Day Forecast")
-        
+            """, unsafe_allow_html=True)
+
+        with col2:
+            st.markdown("### 🌊 Today's Tides")
+            today_str = datetime.now().strftime('%Y-%m-%d')
+            today_tides = tide_data.get(today_str, {})
+
+            if today_tides:
+                st.markdown("**High Tides:**")
+                for high in today_tides.get('high', []):
+                    st.markdown(f"- {high['time']}: {high['height']}ft")
+
+                st.markdown("**Low Tides:**")
+                for low in today_tides.get('low', []):
+                    st.markdown(f"- {low['time']}: {low['height']}ft")
+            else:
+                st.info("Tide data unavailable")
+
+        st.markdown("---")
+        st.markdown("### 📅 6-Day Forecast with UV Index")
+
         for day in weather_data['forecast']:
             date_obj = datetime.strptime(day['date'], '%Y-%m-%d')
             emoji = get_weather_emoji(day['condition'])
-            
+            uv = day.get('uv_index', 5.0)
+
+            # UV level for this day
+            if uv < 3:
+                uv_level = "Low"
+                uv_color = "#4caf50"
+            elif uv < 6:
+                uv_level = "Moderate"
+                uv_color = "#ff9800"
+            elif uv < 8:
+                uv_level = "High"
+                uv_color = "#ff5722"
+            else:
+                uv_level = "Very High"
+                uv_color = "#d32f2f"
+
+            # Get tide info for this day
+            day_tides = tide_data.get(day['date'], {})
+            tide_info = ""
+            if day_tides:
+                high_times = [h['time'] for h in day_tides.get('high', [])]
+                tide_info = f"<p style='margin: 0.5rem 0; font-size: 0.85rem;'>🌊 High tides: {', '.join(high_times) if high_times else 'N/A'}</p>"
+
             st.markdown(f"""
             <div class="ultimate-card fade-in">
                 <div class="card-body">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
+                        <div style="flex: 1;">
                             <h4 style="margin: 0;">{date_obj.strftime('%A, %B %d')}</h4>
                             <p style="margin: 0.5rem 0;">{emoji} {day['condition']}</p>
+                            {tide_info}
                         </div>
                         <div style="text-align: right;">
                             <p style="margin: 0; font-size: 1.5rem; font-weight: bold;">
@@ -2499,6 +2650,9 @@ def main():
                             </p>
                             <p style="margin: 0.5rem 0; font-size: 0.9rem;">
                                 💧 {day.get('precipitation', 0)}% • 💨 {day.get('wind', 0)} mph
+                            </p>
+                            <p style="margin: 0.5rem 0; font-size: 0.9rem; color: {uv_color}; font-weight: bold;">
+                                ☀️ UV: {uv} ({uv_level})
                             </p>
                         </div>
                     </div>
