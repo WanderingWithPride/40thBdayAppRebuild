@@ -2245,24 +2245,22 @@ def render_flight_status_widget(flight_number, flight_date, compact=False):
             delay_minutes = status['departure'].get('delay', 0)
             delay_text = f"<p style='margin: 0.5rem 0 0 0; color: #f44336;'><strong>⚠️ Delay:</strong> {delay_minutes} minutes</p>"
 
-        st.markdown(f"""
-        <div class="ultimate-card" style="border-left: 4px solid #2196f3;">
-            <div class="card-body">
-                <h4 style="margin: 0 0 0.5rem 0;">{status.get('status_emoji', '✈️')} Flight {flight_number} - {status.get('status_text', 'Scheduled')}</h4>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.75rem;">
-                    <div>
-                        <strong>🛫 Departure:</strong> {status['departure']['airport']}<br>
-                        <span style="font-size: 0.9rem;">Gate: {status['departure']['gate']} • Terminal: {status['departure']['terminal']}</span>
-                    </div>
-                    <div>
-                        <strong>🛬 Arrival:</strong> {status['arrival']['airport']}<br>
-                        <span style="font-size: 0.9rem;">Gate: {status['arrival']['gate']} • Terminal: {status['arrival']['terminal']}</span>
-                    </div>
-                </div>
-                {delay_text}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f"""<div class="ultimate-card" style="border-left: 4px solid #2196f3;">
+<div class="card-body">
+<h4 style="margin: 0 0 0.5rem 0;">{status.get('status_emoji', '✈️')} Flight {flight_number} - {status.get('status_text', 'Scheduled')}</h4>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.75rem;">
+<div>
+<strong>🛫 Departure:</strong> {status['departure']['airport']}<br>
+<span style="font-size: 0.9rem;">Gate: {status['departure']['gate']} • Terminal: {status['departure']['terminal']}</span>
+</div>
+<div>
+<strong>🛬 Arrival:</strong> {status['arrival']['airport']}<br>
+<span style="font-size: 0.9rem;">Gate: {status['arrival']['gate']} • Terminal: {status['arrival']['terminal']}</span>
+</div>
+</div>
+{delay_text}
+</div>
+</div>""", unsafe_allow_html=True)
 
 
 def render_traffic_widget(origin, destination, label=""):
@@ -2288,27 +2286,25 @@ def render_traffic_widget(origin, destination, label=""):
     if traffic.get('delay_minutes', 0) > 0:
         delay_text = f"<p style='margin: 0.5rem 0 0 0; font-size: 0.85rem;'>+{traffic['delay_minutes']} min delay</p>"
 
-    st.markdown(f"""
-    <div class="ultimate-card" style="border-left: 4px solid {color};">
-        <div class="card-body">
-            <h4 style="margin: 0 0 0.5rem 0;">🚗 {label if label else 'Route Traffic'}</h4>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <p style="margin: 0.25rem 0;">
-                        <strong>Distance:</strong> {traffic['distance']['text']}<br>
-                        <strong>Duration:</strong> {traffic['duration_in_traffic']['text']}
-                    </p>
-                </div>
-                <div style="text-align: right;">
-                    <div style="background: {color}; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-weight: bold;">
-                        {traffic.get('traffic_emoji', '🚗')} {traffic['traffic_level']}
-                    </div>
-                    {delay_text}
-                </div>
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(f"""<div class="ultimate-card" style="border-left: 4px solid {color};">
+<div class="card-body">
+<h4 style="margin: 0 0 0.5rem 0;">🚗 {label if label else 'Route Traffic'}</h4>
+<div style="display: flex; justify-content: space-between; align-items: center;">
+<div>
+<p style="margin: 0.25rem 0;">
+<strong>Distance:</strong> {traffic['distance']['text']}<br>
+<strong>Duration:</strong> {traffic['duration_in_traffic']['text']}
+</p>
+</div>
+<div style="text-align: right;">
+<div style="background: {color}; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-weight: bold;">
+{traffic.get('traffic_emoji', '🚗')} {traffic['traffic_level']}
+</div>
+{delay_text}
+</div>
+</div>
+</div>
+</div>""", unsafe_allow_html=True)
 
 
 # ============================================================================
@@ -5207,18 +5203,16 @@ def render_johns_page(df, activities_data, show_sensitive):
         col1, col2 = st.columns([2, 1])
 
         with col1:
-            st.markdown(f"""
-            <div class="ultimate-card" style="border-left: 4px solid #4caf50; margin-top: 1rem;">
-                <div class="card-body">
-                    <h4 style="margin: 0 0 0.5rem 0;">📍 Arrival Details</h4>
-                    <p style="margin: 0.5rem 0;">
-                        ✈️ <strong>Lands at JAX:</strong> {john_arrival.get('estimated_flight_arrival', '10:40 AM')}<br>
-                        🏨 <strong>Hotel Arrival:</strong> ~{john_arrival.get('estimated_hotel_arrival', '12:00 PM')}<br>
-                        🚗 <strong>Ground Transport:</strong> {john_arrival['notes']}
-                    </p>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(f"""<div class="ultimate-card" style="border-left: 4px solid #4caf50; margin-top: 1rem;">
+<div class="card-body">
+<h4 style="margin: 0 0 0.5rem 0;">📍 Arrival Details</h4>
+<p style="margin: 0.5rem 0;">
+✈️ <strong>Lands at JAX:</strong> {john_arrival.get('estimated_flight_arrival', '10:40 AM')}<br>
+🏨 <strong>Hotel Arrival:</strong> ~{john_arrival.get('estimated_hotel_arrival', '12:00 PM')}<br>
+🚗 <strong>Ground Transport:</strong> {john_arrival['notes']}
+</p>
+</div>
+</div>""", unsafe_allow_html=True)
 
         with col2:
             st.markdown("**📋 Arrival Checklist**")
@@ -5295,9 +5289,11 @@ def render_johns_page(df, activities_data, show_sensitive):
                 # Clean up notes for John's view
                 activity_notes = activity.get('notes', '')
                 if activity['type'] == 'spa':
-                    # Replace confusing language in spa notes
-                    activity_notes = activity_notes.replace('John can pay for this if he wants', 'Michael will be at the spa')
+                    # Replace confusing language in spa notes - remove entire optional phrases
+                    activity_notes = activity_notes.replace('John can pay for this if he wants (OR he can relax at pool/beach while you\'re getting pampered). ', '')
+                    activity_notes = activity_notes.replace('John can pay for this if he wants (OR he can relax at pool/beach). ', '')
                     activity_notes = activity_notes.replace('you\'re getting pampered', 'Michael is getting pampered')
+                    activity_notes = activity_notes.replace('you\'re', 'Michael is')
                     if activity_notes and not activity_notes.endswith('Enjoy your free time!'):
                         activity_notes += ' Enjoy your free time!'
 
