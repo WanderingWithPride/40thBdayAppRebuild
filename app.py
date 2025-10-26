@@ -142,6 +142,18 @@ def init_database():
         )
     ''')
 
+    # Manual TSA wait time updates
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS tsa_manual_updates (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            airport_code TEXT NOT NULL,
+            wait_minutes INTEGER NOT NULL,
+            reported_by TEXT,
+            notes TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
     # Set default preferences if they don't exist
     cursor.execute("SELECT COUNT(*) FROM john_preferences WHERE key = 'avoid_seafood_focused'")
     if cursor.fetchone()[0] == 0:
@@ -275,6 +287,62 @@ def load_john_preferences():
     except Exception as e:
         print(f"Error loading John's preferences: {e}")
         return {}
+
+def save_manual_tsa_update(airport_code, wait_minutes, reported_by="User", notes=""):
+    """Save a manual TSA wait time update"""
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO tsa_manual_updates (airport_code, wait_minutes, reported_by, notes, created_at) VALUES (?, ?, ?, ?, ?)",
+            (airport_code, wait_minutes, reported_by, notes, datetime.now().isoformat())
+        )
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"Error saving manual TSA update: {e}")
+        return False
+
+def get_latest_manual_tsa_update(airport_code, max_age_hours=2):
+    """Get the most recent manual TSA wait time update for an airport
+
+    Args:
+        airport_code: Airport code like "DCA", "JAX"
+        max_age_hours: Only return updates within this many hours (default 2)
+
+    Returns:
+        Dictionary with update info or None if no recent updates
+    """
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+
+        # Calculate cutoff time
+        cutoff = datetime.now() - timedelta(hours=max_age_hours)
+
+        cursor.execute("""
+            SELECT wait_minutes, reported_by, notes, created_at
+            FROM tsa_manual_updates
+            WHERE airport_code = ? AND created_at > ?
+            ORDER BY created_at DESC
+            LIMIT 1
+        """, (airport_code, cutoff.isoformat()))
+
+        row = cursor.fetchone()
+        conn.close()
+
+        if row:
+            return {
+                'wait_minutes': row[0],
+                'reported_by': row[1],
+                'notes': row[2],
+                'created_at': row[3]
+            }
+        return None
+    except Exception as e:
+        print(f"Error loading manual TSA update: {e}")
+        return None
 
 def mark_activity_completed(activity_id):
     """Mark an activity as completed"""
@@ -2214,14 +2282,52 @@ def get_flight_status(flight_number, flight_date):
 
 
 def get_tsa_wait_times(airport_code):
-    """Get TSA security checkpoint wait times using historical data
+    """Get TSA security checkpoint wait times using historical data and manual updates
 
     Args:
         airport_code: e.g., "DCA", "JAX"
 
     Returns:
-        Dictionary with wait time estimates based on historical averages
+        Dictionary with wait time estimates (manual override if available, else historical)
     """
+    # Check for manual updates first (within last 2 hours)
+    manual_update = get_latest_manual_tsa_update(airport_code, max_age_hours=2)
+
+    if manual_update:
+        # Use manual update if available
+        wait_minutes = manual_update['wait_minutes']
+
+        # Determine wait level and recommendations
+        if wait_minutes < 10:
+            wait_level = 'Short'
+            wait_emoji = '🟢'
+            recommendation = 'Arrive 1.5 hours early'
+        elif wait_minutes < 20:
+            wait_level = 'Moderate'
+            wait_emoji = '🟡'
+            recommendation = 'Arrive 2 hours early'
+        else:
+            wait_level = 'Long'
+            wait_emoji = '🔴'
+            recommendation = 'Arrive 2.5 hours early'
+
+        # Calculate how long ago the update was
+        update_time = datetime.fromisoformat(manual_update['created_at'])
+        minutes_ago = int((datetime.now() - update_time).total_seconds() / 60)
+
+        return {
+            'airport': airport_code,
+            'wait_time_minutes': wait_minutes,
+            'wait_level': wait_level,
+            'wait_emoji': wait_emoji,
+            'recommendation': recommendation,
+            'status': 'MANUAL',
+            'message': f'Real-time update from {manual_update["reported_by"]} ({minutes_ago} min ago)',
+            'data_source': 'Manual update (MyTSA app or live report)',
+            'updated_at': manual_update['created_at'],
+            'notes': manual_update.get('notes', '')
+        }
+
     # Airport-specific historical data (from research: iFly.com, official sources)
     # Data source: Historical TSA records and passenger volume analysis
     airport_data = {
@@ -2393,7 +2499,7 @@ def render_traffic_widget(origin, destination, label=""):
 
 
 def render_tsa_wait_widget(airport_code):
-    """Render TSA security wait times widget
+    """Render TSA security wait times widget with manual update capability
 
     Args:
         airport_code: Airport code like "DCA", "JAX"
@@ -2408,6 +2514,12 @@ def render_tsa_wait_widget(airport_code):
     else:
         color = '#f44336'
 
+    # Data source indicator
+    if wait_data.get('status') == 'MANUAL':
+        data_source_badge = f"<span style='background: #2196f3; color: white; padding: 0.25rem 0.5rem; border-radius: 8px; font-size: 0.75rem;'>📱 {wait_data['message']}</span>"
+    else:
+        data_source_badge = f"<span style='background: #9e9e9e; color: white; padding: 0.25rem 0.5rem; border-radius: 8px; font-size: 0.75rem;'>📊 Historical estimate</span>"
+
     st.markdown(f"""<div class="ultimate-card" style="border-left: 4px solid {color};">
 <div class="card-body">
 <h4 style="margin: 0 0 0.5rem 0;">🛂 TSA Security Wait Time - {airport_code}</h4>
@@ -2415,7 +2527,8 @@ def render_tsa_wait_widget(airport_code):
 <div>
 <p style="margin: 0.25rem 0;">
 <strong>Estimated Wait:</strong> ~{wait_data['wait_time_minutes']} minutes<br>
-<strong>Recommendation:</strong> {wait_data['recommendation']}
+<strong>Recommendation:</strong> {wait_data['recommendation']}<br>
+<span style="font-size: 0.85rem; opacity: 0.8;">{data_source_badge}</span>
 </p>
 </div>
 <div style="text-align: right;">
@@ -2426,6 +2539,36 @@ def render_tsa_wait_widget(airport_code):
 </div>
 </div>
 </div>""", unsafe_allow_html=True)
+
+    # Manual update form
+    with st.expander("📱 Update with real-time data from MyTSA app"):
+        st.markdown(f"**Report Current Wait Time for {airport_code}**")
+        st.caption("Check the MyTSA app or ask TSA staff for current wait times. Updates expire after 2 hours.")
+
+        col1, col2 = st.columns([2, 1])
+        with col1:
+            manual_wait = st.number_input(
+                "Wait time (minutes):",
+                min_value=0,
+                max_value=120,
+                value=wait_data['wait_time_minutes'],
+                step=1,
+                key=f"manual_wait_{airport_code}"
+            )
+            manual_notes = st.text_input(
+                "Notes (optional):",
+                placeholder="e.g., 'Checkpoint B is faster'",
+                key=f"manual_notes_{airport_code}"
+            )
+
+        with col2:
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button(f"💾 Save Update", key=f"save_tsa_{airport_code}", use_container_width=True):
+                if save_manual_tsa_update(airport_code, manual_wait, reported_by="Manual Entry", notes=manual_notes):
+                    st.success("✅ Wait time updated!")
+                    st.rerun()
+                else:
+                    st.error("❌ Failed to save update")
 
 
 def calculate_trip_budget(activities_data):
