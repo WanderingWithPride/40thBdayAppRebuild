@@ -414,6 +414,7 @@ TRIP_CONFIG = {
     "destination": "Amelia Island, Florida",
     "start_date": datetime(2025, 11, 7),
     "end_date": datetime(2025, 11, 12),
+    "birthday_date": datetime(2025, 11, 10),  # The big 4-0!
     "timezone": "America/New_York",
     "hotel": {
         "name": "The Ritz-Carlton, Amelia Island",
@@ -3071,7 +3072,7 @@ def render_dashboard_ultimate(df, activities_data, weather_data, show_sensitive)
         """, unsafe_allow_html=True)
     
     with col2:
-        days_until = (datetime(2025, 11, 7) - datetime.now()).days
+        days_until = (TRIP_CONFIG['start_date'] - datetime.now()).days
         st.markdown(f"""
         <div class="metric-card fade-in" style="animation-delay: 0.2s; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
             <div class="metric-value">{max(0, days_until)}</div>
@@ -3807,6 +3808,113 @@ def render_explore_activities():
     weather_data = get_weather_ultimate()
     optional_activities = get_optional_activities()
 
+    # QUICK ADD ACTIVITY - Prominent button at top
+    st.markdown("---")
+    st.markdown("### ⚡ Quick Add to Schedule")
+
+    with st.expander("➕ **Add Custom Activity to Your Schedule**", expanded=False):
+        st.markdown("**Fill out the details below to add any activity to your schedule:**")
+
+        # Create columns for better layout
+        qa_col1, qa_col2 = st.columns([2, 1])
+
+        with qa_col1:
+            qa_activity_name = st.text_input(
+                "Activity Name *",
+                placeholder="e.g., Beach Walk, Lunch at Joe's, Explore Downtown",
+                key="qa_name",
+                help="What do you want to do?"
+            )
+
+            qa_description = st.text_area(
+                "Description (optional)",
+                placeholder="Add details about this activity...",
+                height=80,
+                key="qa_desc"
+            )
+
+        with qa_col2:
+            qa_day = st.selectbox(
+                "Day *",
+                [
+                    f"Friday, Nov 7 - Arrival",
+                    f"Saturday, Nov 8",
+                    f"Sunday, Nov 9 - 🎂 Birthday!",
+                    f"Monday, Nov 10",
+                    f"Tuesday, Nov 11",
+                    f"Wednesday, Nov 12 - Departure"
+                ],
+                key="qa_day"
+            )
+
+            qa_time = st.time_input(
+                "Start Time *",
+                value=None,
+                key="qa_time",
+                help="When does this activity start?"
+            )
+
+        # Second row of columns
+        qa_col3, qa_col4, qa_col5 = st.columns(3)
+
+        with qa_col3:
+            qa_duration = st.text_input(
+                "Duration",
+                value="2 hours",
+                key="qa_duration",
+                help="How long will this take?"
+            )
+
+        with qa_col4:
+            qa_type = st.selectbox(
+                "Type",
+                ["Activity", "Dining", "Beach", "Spa", "Transport", "Shopping", "Relaxation"],
+                key="qa_type"
+            )
+
+        with qa_col5:
+            qa_cost = st.number_input(
+                "Cost ($)",
+                min_value=0,
+                value=0,
+                key="qa_cost"
+            )
+
+        # Add button
+        if st.button("✨ Add to Schedule", use_container_width=True, type="primary", key="qa_submit"):
+            if qa_activity_name and qa_time:
+                # Clean up day string for internal use
+                day_map = {
+                    "Friday, Nov 7 - Arrival": "Friday, Nov 7",
+                    "Saturday, Nov 8": "Saturday, Nov 8",
+                    "Sunday, Nov 9 - 🎂 Birthday!": "Sunday, Nov 9",
+                    "Monday, Nov 10": "Monday, Nov 10",
+                    "Tuesday, Nov 11": "Tuesday, Nov 11",
+                    "Wednesday, Nov 12 - Departure": "Wednesday, Nov 12"
+                }
+                clean_day = day_map.get(qa_day, qa_day.split(" - ")[0])
+
+                success = add_activity_to_schedule(
+                    activity_name=qa_activity_name,
+                    activity_description=qa_description,
+                    selected_day=clean_day,
+                    selected_time=qa_time,
+                    duration=qa_duration,
+                    activity_type=qa_type.lower(),
+                    cost=qa_cost,
+                    location_name=qa_activity_name
+                )
+
+                if success:
+                    st.success(f"✅ Added **{qa_activity_name}** to {clean_day} at {qa_time.strftime('%I:%M %p').lstrip('0')}!")
+                    st.info("💡 View your updated schedule on the **Full Schedule** page!")
+                    st.balloons()
+                    st.rerun()
+                else:
+                    st.error("❌ Failed to add activity. Please try again.")
+            else:
+                st.warning("⚠️ Please fill in the Activity Name and Start Time!")
+
     # Analyze schedule gaps DYNAMICALLY
     schedule_gaps = analyze_schedule_gaps(activities_data)
 
@@ -4478,7 +4586,7 @@ def render_birthday_page():
     """, unsafe_allow_html=True)
 
     # Birthday countdown
-    birthday_date = datetime(2025, 11, 10)
+    birthday_date = TRIP_CONFIG['birthday_date']
     days_until_birthday = (birthday_date - datetime.now()).days
 
     if days_until_birthday > 0:
@@ -5066,7 +5174,7 @@ def main():
         else:
             st.success("✅ All bookings set!")
         
-        days_until = (datetime(2025, 11, 7) - datetime.now()).days
+        days_until = (TRIP_CONFIG['start_date'] - datetime.now()).days
         if days_until > 0:
             st.info(f"🗓️ {days_until} days until trip")
         elif days_until == 0:
