@@ -714,7 +714,7 @@ def get_ultimate_trip_data():
             "category": "Dining",
             "notes": "Quick lunch after airport pickup - either at hotel restaurant or nearby casual spot",
             "what_to_bring": [],
-            "tips": ["The Surf Restaurant at hotel is convenient", "Salt Life Food Shack nearby", "Keep it light before boat tour"],
+            "tips": ["Coast restaurant at hotel is convenient for breakfast/lunch", "Salt Life Food Shack nearby for casual beachfront", "Keep it light before boat tour"],
             "priority": 2
         },
         {
