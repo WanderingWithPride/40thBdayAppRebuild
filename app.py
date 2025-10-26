@@ -5301,7 +5301,7 @@ def render_johns_page(df, activities_data, show_sensitive):
                     if activity_notes and not activity_notes.endswith('Enjoy your free time!'):
                         activity_notes += ' Enjoy your free time!'
 
-                # Build duration text
+                # Build duration text (fixes nested f-string issue)
                 duration_text = ""
                 if activity.get('duration'):
                     duration_text = f"• {activity.get('duration', '')}"
@@ -5328,7 +5328,7 @@ def render_johns_page(df, activities_data, show_sensitive):
             if partner_spa_times:
                 st.markdown("""
                 <div class="info-box info-success">
-                    <strong>💡 Free Time Ideas:</strong> While your partner is at the spa, enjoy the pool, hot tub, beach, or book your own spa treatment below!
+                    <strong>💡 Free Time Ideas:</strong> While Michael is at the spa, enjoy the pool, hot tub, beach, or book your own spa treatment below!
                 </div>
                 """, unsafe_allow_html=True)
 
