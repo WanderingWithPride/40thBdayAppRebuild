@@ -93,6 +93,64 @@ TRIP_CONFIG = {
 }
 
 # ============================================================================
+# HELPER FUNCTIONS - TIME CALCULATIONS
+# ============================================================================
+
+def parse_duration_to_minutes(duration_str):
+    """Parse duration string like '1.5 hours', '2-3 hours', '45min-1 hour' to average minutes"""
+    if not duration_str or duration_str == "N/A":
+        return 60  # Default 1 hour
+
+    duration_str = duration_str.lower().strip()
+
+    # Handle ranges like "2-3 hours" or "1-1.5 hours"
+    if '-' in duration_str:
+        parts = duration_str.split('-')
+        # Get the average of the range
+        try:
+            low = float(re.findall(r'[\d.]+', parts[0])[0])
+            high = float(re.findall(r'[\d.]+', parts[1])[0])
+            avg = (low + high) / 2
+        except:
+            avg = 1.0
+    else:
+        # Single value like "1.5 hours" or "45min"
+        try:
+            avg = float(re.findall(r'[\d.]+', duration_str)[0])
+        except:
+            avg = 1.0
+
+    # Convert to minutes
+    if 'min' in duration_str and 'hour' not in duration_str:
+        return int(avg)  # Already in minutes
+    else:
+        return int(avg * 60)  # Convert hours to minutes
+
+def calculate_end_time(start_time_str, duration_str):
+    """Calculate end time given start time and duration
+
+    Args:
+        start_time_str: Time string like "10:00 AM" or "3:30 PM"
+        duration_str: Duration like "1.5 hours", "2-3 hours", "45min"
+
+    Returns:
+        String like "11:30 AM"
+    """
+    try:
+        # Parse start time
+        start_time = datetime.strptime(start_time_str, "%I:%M %p")
+
+        # Get duration in minutes
+        duration_minutes = parse_duration_to_minutes(duration_str)
+
+        # Calculate end time
+        end_time = start_time + timedelta(minutes=duration_minutes)
+
+        return end_time.strftime("%I:%M %p")
+    except Exception as e:
+        return None
+
+# ============================================================================
 # ENHANCED CSS - ULTIMATE EDITION
 # ============================================================================
 
@@ -702,6 +760,7 @@ def get_ultimate_trip_data():
             "time": "12:00 PM",
             "activity": "Back at Hotel + Lunch",
             "type": "dining",
+            "duration": "1 hour",
             "location": {
                 "name": "The Ritz-Carlton, Amelia Island",
                 "address": "4750 Amelia Island Parkway",
@@ -723,6 +782,7 @@ def get_ultimate_trip_data():
             "time": "3:30 PM",
             "activity": "Backwater Cat Tour",
             "type": "activity",
+            "duration": "2.5 hours",
             "location": {
                 "name": "Dee Dee Bartels Boat Ramp",
                 "address": "Amelia Island, FL",
@@ -744,6 +804,7 @@ def get_ultimate_trip_data():
             "time": "10:00 AM",
             "activity": "Heaven in a Hammock Massage",
             "type": "spa",
+            "duration": "1.5 hours",
             "location": {
                 "name": "Ritz-Carlton Spa",
                 "address": "4750 Amelia Island Parkway",
@@ -767,6 +828,7 @@ def get_ultimate_trip_data():
             "time": "12:00 PM",
             "activity": "HydraFacial Treatment",
             "type": "spa",
+            "duration": "1 hour",
             "location": {
                 "name": "Ritz-Carlton Spa",
                 "address": "4750 Amelia Island Parkway",
@@ -789,6 +851,7 @@ def get_ultimate_trip_data():
             "time": "7:00 PM",
             "activity": "40th Birthday Dinner",
             "type": "dining",
+            "duration": "2.5 hours",
             "location": {
                 "name": "David's Restaurant & Lounge",
                 "address": "802 Ash St, Fernandina Beach, FL 32034",
@@ -812,6 +875,7 @@ def get_ultimate_trip_data():
             "time": "10:00 AM",
             "activity": "Beach Day",
             "type": "beach",
+            "duration": "6 hours",
             "location": {
                 "name": "Main Beach Park",
                 "address": "1600 S Fletcher Ave, Fernandina Beach, FL",
@@ -833,6 +897,7 @@ def get_ultimate_trip_data():
             "time": "6:00 PM",
             "activity": "Casual Dinner",
             "type": "dining",
+            "duration": "1.5 hours",
             "location": {
                 "name": "Timoti's Seafood Shak",
                 "address": "4998 1st Coast Hwy, Amelia Island, FL",
@@ -2302,7 +2367,17 @@ def render_full_schedule(df, activities_data, show_sensitive):
                 
                 for activity in day_activities:
                     status_class = activity['status'].lower()
-                    
+
+                    # Calculate end time
+                    end_time = None
+                    if activity.get('duration'):
+                        end_time = calculate_end_time(activity['time'], activity['duration'])
+
+                    # Format time display
+                    time_display = activity['time']
+                    if end_time:
+                        time_display = f"{activity['time']} - {end_time}"
+
                     st.markdown(f"""
                     <div class="timeline-item {status_class}">
                         <div class="ultimate-card">
@@ -2311,7 +2386,7 @@ def render_full_schedule(df, activities_data, show_sensitive):
                                     <h4 style="margin: 0;">{activity['activity']}</h4>
                                     <span class="status-{status_class}">{activity['status']}</span>
                                 </div>
-                                <p style="margin: 0.5rem 0;"><b>🕐 {activity['time']}</b></p>
+                                <p style="margin: 0.5rem 0;"><b>🕐 {time_display}</b> {f'({activity["duration"]})' if activity.get('duration') else ''}</p>
                                 <p style="margin: 0.5rem 0;">📍 {activity['location']['name']}</p>
                                 <p style="margin: 0.5rem 0;">📞 {mask_info(activity['location'].get('phone', 'N/A'), show_sensitive)}</p>
                                 <p style="margin: 0.5rem 0;">💰 {"$" + str(activity['cost']) if show_sensitive else "$***"}</p>
