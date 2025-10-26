@@ -4876,10 +4876,20 @@ def render_full_schedule(df, activities_data, show_sensitive):
         else:
             header_style = "background: linear-gradient(135deg, #55efc4 0%, #74b9ff 100%); color: white;"
 
+        # Escape weather data if present
+        weather_html = ""
+        if day_weather:
+            import html
+            safe_condition = html.escape(str(day_weather["condition"]))
+            safe_high = html.escape(str(day_weather["high"]))
+            safe_precip = html.escape(str(day_weather["precipitation"]))
+            safe_wind = html.escape(str(day_weather["wind"]))
+            weather_html = f'<p style="margin: 0.5rem 0 0 0; opacity: 0.95; font-size: 1.1rem;">{safe_condition} | 🌡️ {safe_high}°F | 💧 {safe_precip}% rain | 💨 {safe_wind} mph</p>'
+
         st.markdown(f"""
         <div style="{header_style} padding: 1.5rem; border-radius: 12px; margin: 1.5rem 0 1rem 0; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
             <h2 style="margin: 0; color: white;">{'🎂 BIRTHDAY! ' if is_birthday else '📅 '}{date.strftime('%A, %B %d, %Y')}</h2>
-            {f'<p style="margin: 0.5rem 0 0 0; opacity: 0.95; font-size: 1.1rem;">{day_weather["condition"]} | 🌡️ {day_weather["high"]}°F | 💧 {day_weather["precipitation"]}% rain | 💨 {day_weather["wind"]} mph</p>' if day_weather else ''}
+            {weather_html}
         </div>
         """, unsafe_allow_html=True)
 
@@ -4950,8 +4960,15 @@ def render_full_schedule(df, activities_data, show_sensitive):
                         john_status_badge = '<p style="margin: 0.5rem 0;"><span style="background: #ff9800; color: white; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem;">❓ John: Needs to Decide</span></p>'
 
                 # Activity card
-                # Escape notes to prevent HTML breaking
+                # Escape ALL dynamic content to prevent HTML breaking
                 import html
+                safe_activity_name = html.escape(activity['activity'])
+                safe_status = html.escape(activity['status'])
+                safe_time_display = html.escape(time_display)
+                safe_duration = html.escape(activity.get('duration', '')) if activity.get('duration') else ''
+                safe_location = html.escape(activity['location']['name'])
+                safe_phone = html.escape(mask_info(activity['location'].get('phone', 'N/A'), show_sensitive))
+                safe_cost = html.escape("$" + str(activity['cost']) if show_sensitive else "$***")
                 safe_notes = html.escape(mask_info(activity.get('notes', ''), show_sensitive))
                 safe_notes = safe_notes.replace('\n', '<br>')
 
@@ -4960,13 +4977,13 @@ def render_full_schedule(df, activities_data, show_sensitive):
                     <div class="ultimate-card">
                         <div class="card-body">
                             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-                                <h4 style="margin: 0;">{activity['activity']} {custom_badge}</h4>
-                                <span class="status-{status_class}">{activity['status']}</span>
+                                <h4 style="margin: 0;">{safe_activity_name} {custom_badge}</h4>
+                                <span class="status-{status_class}">{safe_status}</span>
                             </div>
-                            <p style="margin: 0.5rem 0;"><b>🕐 {time_display}</b> {f'({activity["duration"]})' if activity.get('duration') else ''}</p>
-                            <p style="margin: 0.5rem 0;">📍 {activity['location']['name']}</p>
-                            <p style="margin: 0.5rem 0;">📞 {mask_info(activity['location'].get('phone', 'N/A'), show_sensitive)}</p>
-                            <p style="margin: 0.5rem 0;">💰 {"$" + str(activity['cost']) if show_sensitive else "$***"}</p>
+                            <p style="margin: 0.5rem 0;"><b>🕐 {safe_time_display}</b> {f'({safe_duration})' if activity.get('duration') else ''}</p>
+                            <p style="margin: 0.5rem 0;">📍 {safe_location}</p>
+                            <p style="margin: 0.5rem 0;">📞 {safe_phone}</p>
+                            <p style="margin: 0.5rem 0;">💰 {safe_cost}</p>
                             <p style="margin: 0.5rem 0; font-style: italic;">{safe_notes}</p>
                             {john_status_badge}
                         </div>
