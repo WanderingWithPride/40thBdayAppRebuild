@@ -5862,6 +5862,16 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
     st.markdown("---")
     st.markdown("### 🍽️ Meal Planning & Coordination")
 
+    # Arrival time context
+    st.markdown("""
+    <div class="info-box" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin-bottom: 1rem;">
+        <h4 style="margin: 0; color: white;">✈️ John's Arrival Timeline</h4>
+        <p style="margin: 0.5rem 0 0 0; opacity: 0.95;"><strong>Saturday, Nov 8:</strong> Flight lands at 10:40 AM • Hotel arrival ~12:00 PM</p>
+        <p style="margin: 0.3rem 0 0 0; opacity: 0.95;">📍 <strong>Arrives in time for:</strong> Saturday Lunch & Dinner</p>
+        <p style="margin: 0.3rem 0 0 0; opacity: 0.85; font-size: 0.9rem;">(Misses Friday dinner & Saturday breakfast)</p>
+    </div>
+    """, unsafe_allow_html=True)
+
     st.markdown("""
     <div class="info-box" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
         <h4 style="margin: 0; color: white;">🎯 Coordinate Meals with John</h4>
@@ -6025,16 +6035,37 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             # No proposal yet - create one
             with st.expander(f"📝 **Propose 3 Options for {meal_slot['label']}**", expanded=True):
                 st.markdown("**Select 3 restaurants to propose to John:**")
-                st.info("💡 Click on each restaurant card to select. Duplicates and already-booked restaurants are filtered out.")
+                meal_type = "breakfast" if "breakfast" in meal_slot['label'].lower() else ("lunch" if "lunch" in meal_slot['label'].lower() else "dinner")
+                st.info(f"💡 Showing {meal_type}-appropriate restaurants only. Click on each card to select. Duplicates and already-booked restaurants are filtered out.")
 
                 # Get already-used restaurants
                 used_restaurants = get_used_restaurants()
 
-                # Filter restaurants by meal type
-                meal_type = "breakfast" if "breakfast" in meal_slot['label'].lower() else ("lunch" if "lunch" in meal_slot['label'].lower() else "dinner")
+                # Define appropriate restaurant categories for each meal type
+                breakfast_categories = ['🥞 Breakfast & Brunch', '☕ Coffee & Cafes', '🥖 Delis & Lunch Spots']
+                lunch_categories = ['🦞 Seafood & Waterfront', '🍕 Italian & Pizza', '🌮 Mexican & Latin',
+                                   '🍜 Asian Cuisine', '🍔 Casual & Comfort Food', '🥖 Delis & Lunch Spots',
+                                   '🏨 Ritz-Carlton Dining']  # Some Ritz options good for lunch
+                dinner_categories = ['🍽️ Fine Dining', '🦞 Seafood & Waterfront', '🍕 Italian & Pizza',
+                                    '🌮 Mexican & Latin', '🍜 Asian Cuisine', '🏨 Ritz-Carlton Dining']
+
+                # Filter restaurants based on meal type and categories
+                meal_appropriate_restaurants = []
+                if meal_type == "breakfast":
+                    for category_name, items in restaurants_dict.items():
+                        if any(cat in category_name for cat in breakfast_categories):
+                            meal_appropriate_restaurants.extend(items)
+                elif meal_type == "lunch":
+                    for category_name, items in restaurants_dict.items():
+                        if any(cat in category_name for cat in lunch_categories):
+                            meal_appropriate_restaurants.extend(items)
+                else:  # dinner
+                    for category_name, items in restaurants_dict.items():
+                        if any(cat in category_name for cat in dinner_categories):
+                            meal_appropriate_restaurants.extend(items)
 
                 # Filter out used restaurants
-                available_restaurants = [r for r in all_restaurants if r['name'] not in used_restaurants]
+                available_restaurants = [r for r in meal_appropriate_restaurants if r['name'] not in used_restaurants]
 
                 if len(available_restaurants) < 3:
                     st.error("⚠️ Not enough unique restaurants available! You may need to cancel some previous proposals or pick different options.")
