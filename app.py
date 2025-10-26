@@ -2344,39 +2344,73 @@ def render_explore_activities():
     for category, items in activities.items():
         with st.expander(f"{category} ({len(items)} options)", expanded=(category == "🍽️ Dining Options")):
             for idx, activity in enumerate(items):
-                st.markdown(f"""
-                <div class="ultimate-card fade-in" style="margin: 1rem 0;">
-                    <div class="card-body">
-                        <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap;">
-                            <div style="flex: 1; min-width: 300px;">
-                                <h4 style="margin: 0 0 0.5rem 0; color: #ff6b6b;">{activity['name']}</h4>
-                                <p style="margin: 0.5rem 0; color: #636e72;">{activity['description']}</p>
-                                <div style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; font-size: 0.95rem;">
-                                    <span style="background: #f0f9ff; padding: 0.25rem 0.75rem; border-radius: 15px;">💰 {activity['cost_range']}</span>
-                                    <span style="background: #fff5e6; padding: 0.25rem 0.75rem; border-radius: 15px;">⏱️ {activity['duration']}</span>
-                                    <span style="background: #ffe6f0; padding: 0.25rem 0.75rem; border-radius: 15px;">⭐ {activity.get('rating', 'N/A')}</span>
-                                </div>
-                                {f'<div style="margin-top: 0.75rem;"><span style="background: #e6f7ff; padding: 0.25rem 0.75rem; border-radius: 15px;">📞 {activity["phone"]}</span></div>' if activity.get('phone') and activity['phone'] != 'N/A' else ''}
-                                <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%); padding: 0.75rem; border-radius: 10px; margin-top: 1rem; border-left: 3px solid #4ecdc4;">
-                                    <strong>💡 Pro Tip:</strong> {activity['tips']}
-                                </div>
-                            </div>
-                        </div>
+                with st.container():
+                    # Activity header
+                    st.markdown(f"""
+                    <div style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+                                padding: 1.5rem;
+                                border-radius: 12px;
+                                border-left: 4px solid #ff6b6b;
+                                margin: 1rem 0;
+                                box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <h4 style="margin: 0; color: #ff6b6b;">{activity['name']}</h4>
+                        <p style="margin: 0.75rem 0; color: #636e72; line-height: 1.6;">{activity['description']}</p>
                     </div>
-                </div>
-                """, unsafe_allow_html=True)
+                    """, unsafe_allow_html=True)
 
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    if st.button(f"⭐ Save", key=f"save_{category}_{idx}", use_container_width=True):
-                        st.success(f"✅ Saved {activity['name']} to your wishlist!")
-                with col2:
-                    if st.button(f"📋 Notes", key=f"note_{category}_{idx}", use_container_width=True):
-                        st.info("💭 Add this to your trip notes!")
-                with col3:
-                    if activity.get('phone') and activity['phone'] != 'N/A' and activity['phone'] != 'Multiple locations':
-                        if st.button(f"📞 Call", key=f"call_{category}_{idx}", use_container_width=True):
-                            st.info(f"Calling {activity['phone']}...")
+                    # Activity details
+                    detail_col1, detail_col2, detail_col3 = st.columns(3)
+                    with detail_col1:
+                        st.markdown(f"**💰 Cost:** {activity['cost_range']}")
+                    with detail_col2:
+                        st.markdown(f"**⏱️ Duration:** {activity['duration']}")
+                    with detail_col3:
+                        st.markdown(f"**⭐ Rating:** {activity.get('rating', 'N/A')}")
+
+                    # Phone number if available
+                    if activity.get('phone') and activity['phone'] != 'N/A':
+                        st.markdown(f"**📞 Phone:** {activity['phone']}")
+
+                    # Booking link if available
+                    if activity.get('booking_url'):
+                        st.markdown(f"**🔗 Book:** [{activity.get('booking_url')}]({activity.get('booking_url')})")
+
+                    # Pro tip
+                    st.info(f"**💡 Pro Tip:** {activity['tips']}")
+
+                    # Interactive controls
+                    with st.expander("📅 Add to Your Schedule"):
+                        add_col1, add_col2, add_col3 = st.columns(3)
+
+                        with add_col1:
+                            selected_day = st.selectbox(
+                                "Select Day",
+                                ["Friday, Nov 7", "Saturday, Nov 8", "Sunday, Nov 9",
+                                 "Monday, Nov 10", "Tuesday, Nov 11", "Wednesday, Nov 12"],
+                                key=f"day_{category}_{idx}"
+                            )
+
+                        with add_col2:
+                            selected_time = st.time_input(
+                                "Start Time",
+                                value=None,
+                                key=f"time_{category}_{idx}"
+                            )
+
+                        with add_col3:
+                            custom_duration = st.text_input(
+                                "Duration",
+                                value=activity['duration'],
+                                key=f"dur_{category}_{idx}"
+                            )
+
+                        if st.button(f"➕ Add to Schedule",
+                                   key=f"add_{category}_{idx}",
+                                   use_container_width=True):
+                            st.success(f"✅ Added {activity['name']} to {selected_day} at {selected_time}")
+                            st.info("💡 Activity added to your trip notes!")
+
+                    st.markdown("---")
 
     # SMART RECOMMENDATIONS - DYNAMIC based on weather, schedule, and conditions
     st.markdown("---")
@@ -2421,55 +2455,89 @@ def render_explore_activities():
                 for i, rec in enumerate(recommendations[:5], 1):  # Show top 5
                     activity = rec['activity']
 
-                    # Build recommendation card
-                    card_html = f"""
-                    <div class="ultimate-card fade-in" style="margin: 1rem 0; border-left: 4px solid #4ecdc4;">
-                        <div class="card-body">
-                            <div style="display: flex; justify-content: space-between; align-items: start;">
-                                <div style="flex: 1;">
-                                    <h5 style="margin: 0 0 0.5rem 0; color: #ff6b6b;">
-                                        #{i} {activity['name']}
-                                        <span style="background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); color: white; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem; margin-left: 0.5rem;">
-                                            Score: {rec['score']}/100
-                                        </span>
-                                    </h5>
-                                    <p style="margin: 0.5rem 0; color: #636e72; font-size: 0.95rem;">{activity['description']}</p>
-
-                                    <div style="display: flex; gap: 0.75rem; margin: 0.75rem 0; flex-wrap: wrap; font-size: 0.9rem;">
-                                        <span style="background: #f0f9ff; padding: 0.25rem 0.75rem; border-radius: 15px;">💰 {activity['cost_range']}</span>
-                                        <span style="background: #fff5e6; padding: 0.25rem 0.75rem; border-radius: 15px;">⏱️ {activity['duration']}</span>
-                                        <span style="background: #ffe6f0; padding: 0.25rem 0.75rem; border-radius: 15px;">⭐ {activity.get('rating', 'N/A')}</span>
-                                    </div>
-                    """
-
-                    # Add "Why Recommended" reasons
-                    if rec['reasons']:
-                        card_html += '<div style="background: linear-gradient(135deg, #e6f7ff 0%, #d9f7e8 100%); padding: 0.75rem; border-radius: 10px; margin: 0.75rem 0;">'
-                        card_html += '<strong style="color: #27ae60;">✅ Why This Fits:</strong><ul style="margin: 0.25rem 0; padding-left: 1.5rem;">'
-                        for reason in rec['reasons']:
-                            card_html += f'<li style="margin: 0.25rem 0;">{reason}</li>'
-                        card_html += '</ul></div>'
-
-                    # Add warnings if any
-                    if rec['warnings']:
-                        card_html += '<div style="background: #fff4e6; padding: 0.75rem; border-radius: 10px; margin: 0.75rem 0; border-left: 3px solid #f39c12;">'
-                        card_html += '<strong style="color: #d35400;">⚠️ Important Notes:</strong><ul style="margin: 0.25rem 0; padding-left: 1.5rem;">'
-                        for warning in rec['warnings']:
-                            card_html += f'<li style="margin: 0.25rem 0;">{warning}</li>'
-                        card_html += '</ul></div>'
-
-                    # Add pro tip
-                    card_html += f"""
-                                    <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%); padding: 0.75rem; border-radius: 10px; margin: 0.75rem 0; border-left: 3px solid #4ecdc4;">
-                                        <strong>💡 Pro Tip:</strong> {activity['tips']}
-                                    </div>
-                                </div>
-                            </div>
+                    # Use Streamlit container for clean card display
+                    with st.container():
+                        # Header with score
+                        st.markdown(f"""
+                        <div style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+                                    padding: 1.5rem;
+                                    border-radius: 12px;
+                                    border-left: 4px solid #4ecdc4;
+                                    margin: 1rem 0;
+                                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <h4 style="margin: 0; color: #ff6b6b;">
+                                #{i} {activity['name']}
+                                <span style="background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+                                            color: white;
+                                            padding: 0.35rem 0.85rem;
+                                            border-radius: 15px;
+                                            font-size: 0.85rem;
+                                            margin-left: 0.5rem;
+                                            font-weight: normal;">
+                                    Score: {rec['score']}/100
+                                </span>
+                            </h4>
+                            <p style="margin: 0.75rem 0; color: #636e72; line-height: 1.6;">{activity['description']}</p>
                         </div>
-                    </div>
-                    """
+                        """, unsafe_allow_html=True)
 
-                    st.markdown(card_html, unsafe_allow_html=True)
+                        # Activity details in columns
+                        col1, col2, col3 = st.columns(3)
+                        with col1:
+                            st.markdown(f"**💰 Cost:** {activity['cost_range']}")
+                        with col2:
+                            st.markdown(f"**⏱️ Duration:** {activity['duration']}")
+                        with col3:
+                            st.markdown(f"**⭐ Rating:** {activity.get('rating', 'N/A')}")
+
+                        # Why This Fits section
+                        if rec['reasons']:
+                            st.success("**✅ Why This Fits:**")
+                            for reason in rec['reasons']:
+                                st.markdown(f"• {reason}")
+
+                        # Warnings section
+                        if rec['warnings']:
+                            st.warning("**⚠️ Important Notes:**")
+                            for warning in rec['warnings']:
+                                st.markdown(f"• {warning}")
+
+                        # Pro tip
+                        st.info(f"**💡 Pro Tip:** {activity['tips']}")
+
+                        # Interactive controls to add to schedule
+                        with st.expander("📅 Add to Your Schedule"):
+                            add_col1, add_col2, add_col3 = st.columns(3)
+
+                            with add_col1:
+                                selected_day = st.selectbox(
+                                    "Select Day",
+                                    ["Friday, Nov 7", "Saturday, Nov 8", "Sunday, Nov 9",
+                                     "Monday, Nov 10", "Tuesday, Nov 11", "Wednesday, Nov 12"],
+                                    key=f"day_select_{gap['description']}_{i}"
+                                )
+
+                            with add_col2:
+                                selected_time = st.time_input(
+                                    "Start Time",
+                                    value=None,
+                                    key=f"time_select_{gap['description']}_{i}"
+                                )
+
+                            with add_col3:
+                                custom_duration = st.text_input(
+                                    "Duration",
+                                    value=activity['duration'],
+                                    key=f"duration_{gap['description']}_{i}"
+                                )
+
+                            if st.button(f"➕ Add {activity['name']} to Schedule",
+                                       key=f"add_{gap['description']}_{i}",
+                                       use_container_width=True):
+                                st.success(f"✅ Added {activity['name']} to {selected_day} at {selected_time} ({custom_duration})")
+                                st.info("💡 This activity has been added to your trip notes. Use the Full Schedule page to see all your plans!")
+
+                        st.markdown("---")
 
                 st.markdown("---")
             else:
