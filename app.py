@@ -5892,9 +5892,9 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
     # Define meal slots - ONLY for days when John is there (Nov 8-11)
     meal_slots = [
         # Friday removed - John not there yet
-        {"id": "sat_breakfast", "label": "Saturday Breakfast (Nov 8)", "date": "2025-11-08", "time": "9:00 AM"},
+        # Saturday breakfast removed - John doesn't arrive until 12:00 PM
         {"id": "sat_lunch", "label": "Saturday Lunch (Nov 8)", "date": "2025-11-08", "time": "12:30 PM"},
-        {"id": "sat_dinner", "label": "Saturday Dinner (Nov 8) - Already Booked", "date": "2025-11-08", "time": "7:00 PM", "locked": True},
+        {"id": "sat_dinner", "label": "Saturday Dinner (Nov 8)", "date": "2025-11-08", "time": "7:00 PM"},
         {"id": "sun_breakfast", "label": "Sunday Breakfast (Nov 9)", "date": "2025-11-09", "time": "9:00 AM"},
         {"id": "sun_lunch", "label": "Sunday Lunch (Nov 9)", "date": "2025-11-09", "time": "12:30 PM"},
         {"id": "sun_dinner", "label": "Sunday Dinner (Nov 9) - 🎂 BIRTHDAY!", "date": "2025-11-09", "time": "7:00 PM", "locked": True},
