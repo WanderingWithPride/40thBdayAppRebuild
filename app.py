@@ -2040,23 +2040,60 @@ def ai_auto_scheduler(target_date_str, existing_activities, weather_data, tide_d
     }
     selected_day = date_to_day.get(target_date_str, day_name)
 
+    # SMART CHECK: Is this an arrival or departure day?
+    is_arrival_day = any('arrival' in a['activity'].lower() or 'arrive' in a['activity'].lower() for a in day_activities)
+    is_departure_day = any('departure' in a['activity'].lower() or 'depart' in a['activity'].lower() or 'leave hotel' in a['activity'].lower() for a in day_activities)
+
+    # Get arrival/departure times to be smart about meal scheduling
+    latest_arrival_time = None
+    earliest_departure_time = None
+
+    if is_arrival_day:
+        for activity in day_activities:
+            if 'arrival' in activity['activity'].lower() or 'arrive' in activity['activity'].lower():
+                try:
+                    arrival_time = datetime.strptime(activity['time'], "%I:%M %p")
+                    if latest_arrival_time is None or arrival_time > latest_arrival_time:
+                        latest_arrival_time = arrival_time
+                except:
+                    pass
+
+    if is_departure_day:
+        for activity in day_activities:
+            if 'departure' in activity['activity'].lower() or 'depart' in activity['activity'].lower() or 'leave' in activity['activity'].lower():
+                try:
+                    departure_time = datetime.strptime(activity['time'], "%I:%M %p")
+                    if earliest_departure_time is None or departure_time < earliest_departure_time:
+                        earliest_departure_time = departure_time
+                except:
+                    pass
+
     recommendations = []
 
     # STEP 1: Schedule breakfast if missing (7:30-9:00 AM)
     has_breakfast = any(a['type'] == 'dining' and datetime.strptime(a['time'], "%I:%M %p").hour < 11 for a in day_activities)
 
-    if not has_breakfast and preferences['include_meals']:
+    # SMART: Don't suggest breakfast if arriving late in the day
+    skip_breakfast = False
+    if is_arrival_day and latest_arrival_time and latest_arrival_time.hour >= 11:
+        skip_breakfast = True
+
+    if not has_breakfast and preferences['include_meals'] and not skip_breakfast:
         breakfast_candidates = [r for r in dining_options if 'breakfast' in r.get('name', '').lower() or 'brunch' in r.get('name', '').lower()]
         if breakfast_candidates:
-            best_breakfast = max(breakfast_candidates, key=lambda x: float(x.get('rating', '0/5').split('/')[0]))
+            # Return TOP 3 options instead of just 1
+            top_breakfasts = sorted(breakfast_candidates, key=lambda x: float(x.get('rating', '0/5').split('/')[0]), reverse=True)[:3]
 
-            recommendations.append({
-                'time': '8:00 AM',
-                'activity': best_breakfast,
-                'type': 'dining',
-                'reason': 'Start your day with highly-rated breakfast',
-                'duration': '45 minutes'
-            })
+            for i, breakfast in enumerate(top_breakfasts):
+                recommendations.append({
+                    'time': '8:00 AM',
+                    'activity': breakfast,
+                    'type': 'dining',
+                    'reason': f'Start your day with highly-rated breakfast (Option {i+1} of {len(top_breakfasts)})',
+                    'duration': '45 minutes',
+                    'alternative_rank': i + 1,
+                    'total_alternatives': len(top_breakfasts)
+                })
 
     # STEP 2: Morning activity (9:00 AM - 12:00 PM)
     morning_slot_filled = any(9 <= datetime.strptime(a['time'], "%I:%M %p").hour < 12 for a in day_activities)
@@ -2085,37 +2122,49 @@ def ai_auto_scheduler(target_date_str, existing_activities, weather_data, tide_d
                 'reasons': score_result['reasons']
             })
 
-        # Get top recommendation
+        # Get TOP 3 recommendations
         if morning_scores:
-            best_morning = max(morning_scores, key=lambda x: x['score'])
-            if best_morning['score'] > 50:  # Only recommend if score is decent
-                recommendations.append({
-                    'time': '10:00 AM',
-                    'activity': best_morning['activity'],
-                    'type': 'activity',
-                    'reason': ', '.join(best_morning['reasons'][:2]),
-                    'duration': best_morning['activity'].get('duration', '2 hours')
-                })
+            top_morning_activities = sorted(morning_scores, key=lambda x: x['score'], reverse=True)[:3]
+
+            for i, morning_activity in enumerate(top_morning_activities):
+                if morning_activity['score'] > 50:  # Only recommend if score is decent
+                    recommendations.append({
+                        'time': '10:00 AM',
+                        'activity': morning_activity['activity'],
+                        'type': 'activity',
+                        'reason': f"{', '.join(morning_activity['reasons'][:2])} (Option {i+1} of {len(top_morning_activities)})",
+                        'duration': morning_activity['activity'].get('duration', '2 hours'),
+                        'alternative_rank': i + 1,
+                        'total_alternatives': len(top_morning_activities)
+                    })
 
     # STEP 3: Lunch (12:00 PM - 2:00 PM)
     has_lunch = any(a['type'] == 'dining' and 11 <= datetime.strptime(a['time'], "%I:%M %p").hour < 16 for a in day_activities)
 
-    if not has_lunch and preferences['include_meals']:
+    # SMART: Don't suggest lunch if departing early
+    skip_lunch = False
+    if is_departure_day and earliest_departure_time and earliest_departure_time.hour <= 12:
+        skip_lunch = True
+
+    if not has_lunch and preferences['include_meals'] and not skip_lunch:
         lunch_candidates = [r for r in dining_options if 'casual' in r.get('description', '').lower() or 'lunch' in r.get('description', '').lower()]
         if not lunch_candidates:
             lunch_candidates = dining_options[:10]
 
         if lunch_candidates:
-            # Score by rating and cost
-            best_lunch = max(lunch_candidates, key=lambda x: float(x.get('rating', '0/5').split('/')[0]))
+            # Return TOP 3 options
+            top_lunches = sorted(lunch_candidates, key=lambda x: float(x.get('rating', '0/5').split('/')[0]), reverse=True)[:3]
 
-            recommendations.append({
-                'time': '12:30 PM',
-                'activity': best_lunch,
-                'type': 'dining',
-                'reason': 'Refuel with a great lunch spot',
-                'duration': '1 hour'
-            })
+            for i, lunch in enumerate(top_lunches):
+                recommendations.append({
+                    'time': '12:30 PM',
+                    'activity': lunch,
+                    'type': 'dining',
+                    'reason': f'Refuel with a great lunch spot (Option {i+1} of {len(top_lunches)})',
+                    'duration': '1 hour',
+                    'alternative_rank': i + 1,
+                    'total_alternatives': len(top_lunches)
+                })
 
     # STEP 4: Afternoon activity (2:00 PM - 5:00 PM)
     afternoon_slot_filled = any(14 <= datetime.strptime(a['time'], "%I:%M %p").hour < 17 for a in day_activities)
@@ -2143,36 +2192,49 @@ def ai_auto_scheduler(target_date_str, existing_activities, weather_data, tide_d
                 'reasons': score_result['reasons']
             })
 
+        # Get TOP 3 recommendations
         if afternoon_scores:
-            best_afternoon = max(afternoon_scores, key=lambda x: x['score'])
-            if best_afternoon['score'] > 50:
-                recommendations.append({
-                    'time': '3:00 PM',
-                    'activity': best_afternoon['activity'],
-                    'type': 'activity',
-                    'reason': ', '.join(best_afternoon['reasons'][:2]),
-                    'duration': best_afternoon['activity'].get('duration', '2 hours')
-                })
+            top_afternoon_activities = sorted(afternoon_scores, key=lambda x: x['score'], reverse=True)[:3]
+
+            for i, afternoon_activity in enumerate(top_afternoon_activities):
+                if afternoon_activity['score'] > 50:
+                    recommendations.append({
+                        'time': '3:00 PM',
+                        'activity': afternoon_activity['activity'],
+                        'type': 'activity',
+                        'reason': f"{', '.join(afternoon_activity['reasons'][:2])} (Option {i+1} of {len(top_afternoon_activities)})",
+                        'duration': afternoon_activity['activity'].get('duration', '2 hours'),
+                        'alternative_rank': i + 1,
+                        'total_alternatives': len(top_afternoon_activities)
+                    })
 
     # STEP 5: Dinner (6:00 PM - 8:00 PM)
     has_dinner = any(a['type'] == 'dining' and datetime.strptime(a['time'], "%I:%M %p").hour >= 16 for a in day_activities)
 
-    if not has_dinner and preferences['include_meals']:
+    # SMART: Don't suggest dinner if it's arrival day late arrival
+    skip_dinner = False
+    if is_arrival_day and latest_arrival_time and latest_arrival_time.hour >= 19:  # 7 PM or later
+        skip_dinner = True
+
+    if not has_dinner and preferences['include_meals'] and not skip_dinner:
         dinner_candidates = [r for r in dining_options if 'fine' in r.get('description', '').lower() or 'dinner' in r.get('description', '').lower()]
         if not dinner_candidates:
             dinner_candidates = dining_options[:10]
 
         if dinner_candidates:
-            # Prefer highly-rated restaurants for dinner
-            best_dinner = max(dinner_candidates, key=lambda x: float(x.get('rating', '0/5').split('/')[0]))
+            # Return TOP 3 options
+            top_dinners = sorted(dinner_candidates, key=lambda x: float(x.get('rating', '0/5').split('/')[0]), reverse=True)[:3]
 
-            recommendations.append({
-                'time': '6:30 PM',
-                'activity': best_dinner,
-                'type': 'dining',
-                'reason': 'End the day with an amazing dinner',
-                'duration': '1.5 hours'
-            })
+            for i, dinner in enumerate(top_dinners):
+                recommendations.append({
+                    'time': '6:30 PM',
+                    'activity': dinner,
+                    'type': 'dining',
+                    'reason': f'End the day with an amazing dinner (Option {i+1} of {len(top_dinners)})',
+                    'duration': '1.5 hours',
+                    'alternative_rank': i + 1,
+                    'total_alternatives': len(top_dinners)
+                })
 
     return recommendations
 
