@@ -68,6 +68,8 @@ if 'completed_activities' not in st.session_state:
     st.session_state.completed_activities = []
 if 'notes' not in st.session_state:
     st.session_state.notes = []
+if 'custom_activities' not in st.session_state:
+    st.session_state.custom_activities = []
 
 # ============================================================================
 # TRIP CONFIGURATION
@@ -91,6 +93,64 @@ TRIP_CONFIG = {
         "checkout": "2025-11-12 11:00"
     }
 }
+
+# ============================================================================
+# HELPER FUNCTIONS - TIME CALCULATIONS
+# ============================================================================
+
+def parse_duration_to_minutes(duration_str):
+    """Parse duration string like '1.5 hours', '2-3 hours', '45min-1 hour' to average minutes"""
+    if not duration_str or duration_str == "N/A":
+        return 60  # Default 1 hour
+
+    duration_str = duration_str.lower().strip()
+
+    # Handle ranges like "2-3 hours" or "1-1.5 hours"
+    if '-' in duration_str:
+        parts = duration_str.split('-')
+        # Get the average of the range
+        try:
+            low = float(re.findall(r'[\d.]+', parts[0])[0])
+            high = float(re.findall(r'[\d.]+', parts[1])[0])
+            avg = (low + high) / 2
+        except:
+            avg = 1.0
+    else:
+        # Single value like "1.5 hours" or "45min"
+        try:
+            avg = float(re.findall(r'[\d.]+', duration_str)[0])
+        except:
+            avg = 1.0
+
+    # Convert to minutes
+    if 'min' in duration_str and 'hour' not in duration_str:
+        return int(avg)  # Already in minutes
+    else:
+        return int(avg * 60)  # Convert hours to minutes
+
+def calculate_end_time(start_time_str, duration_str):
+    """Calculate end time given start time and duration
+
+    Args:
+        start_time_str: Time string like "10:00 AM" or "3:30 PM"
+        duration_str: Duration like "1.5 hours", "2-3 hours", "45min"
+
+    Returns:
+        String like "11:30 AM"
+    """
+    try:
+        # Parse start time
+        start_time = datetime.strptime(start_time_str, "%I:%M %p")
+
+        # Get duration in minutes
+        duration_minutes = parse_duration_to_minutes(duration_str)
+
+        # Calculate end time
+        end_time = start_time + timedelta(minutes=duration_minutes)
+
+        return end_time.strftime("%I:%M %p")
+    except Exception as e:
+        return None
 
 # ============================================================================
 # ENHANCED CSS - ULTIMATE EDITION
@@ -653,7 +713,7 @@ def get_ultimate_trip_data():
         {
             "id": "arr001",
             "date": "2025-11-07",
-            "time": "18:01",
+            "time": "6:01 PM",
             "activity": "Arrival at Jacksonville",
             "type": "transport",
             "location": {
@@ -675,33 +735,34 @@ def get_ultimate_trip_data():
         {
             "id": "arr002",
             "date": "2025-11-08",
-            "time": "10:40",
-            "activity": "John Arrives at JAX",
+            "time": "12:00 PM",
+            "activity": "John Arrives at Hotel",
             "type": "transport",
             "location": {
-                "name": "Jacksonville International Airport (JAX)",
-                "address": "2400 Yankee Clipper Dr, Jacksonville, FL 32218",
-                "lat": 30.4941,
-                "lon": -81.6879,
-                "phone": "904-741-4902"
+                "name": "The Ritz-Carlton, Amelia Island",
+                "address": "4750 Amelia Island Parkway",
+                "lat": 30.6074,
+                "lon": -81.4493,
+                "phone": "904-277-1100"
             },
             "status": "Confirmed",
             "cost": 0,
             "category": "Transport",
-            "notes": "AA1585 from DCA - Flight lands 10:40am. Plan realistic timeline: 15min deplaning + 10min baggage + 10min to curb = pickup ~11:15am. Then 45min drive to hotel = arrive ~12:00pm",
+            "notes": "AA1585 from DCA - Flight lands 10:40am, arrives at hotel ~12:00pm. He's getting himself to hotel (rental car/Uber).",
             "flight_number": "AA1585",
             "what_to_bring": ["Track flight on FlightAware", "Phone charged for coordination"],
-            "tips": ["Leave hotel by 10:00am to arrive on time", "Text when boarding/landing", "Account for traffic on A1A", "Plan lunch after arrival at hotel"],
-            "estimated_pickup_time": "11:15",
-            "estimated_hotel_arrival": "12:00",
+            "tips": ["Text when he lands and when leaving airport", "He should account for 45min drive from JAX to hotel", "Meet him at hotel lobby"],
+            "estimated_flight_arrival": "10:40 AM",
+            "estimated_hotel_arrival": "12:00 PM",
             "priority": 3
         },
         {
             "id": "arr002b",
             "date": "2025-11-08",
-            "time": "12:00",
+            "time": "12:00 PM",
             "activity": "Back at Hotel + Lunch",
             "type": "dining",
+            "duration": "1 hour",
             "location": {
                 "name": "The Ritz-Carlton, Amelia Island",
                 "address": "4750 Amelia Island Parkway",
@@ -720,9 +781,10 @@ def get_ultimate_trip_data():
         {
             "id": "act001",
             "date": "2025-11-08",
-            "time": "15:30",
+            "time": "3:30 PM",
             "activity": "Backwater Cat Tour",
             "type": "activity",
+            "duration": "2.5 hours",
             "location": {
                 "name": "Dee Dee Bartels Boat Ramp",
                 "address": "Amelia Island, FL",
@@ -741,9 +803,10 @@ def get_ultimate_trip_data():
         {
             "id": "spa001",
             "date": "2025-11-09",
-            "time": "10:00",
+            "time": "10:00 AM",
             "activity": "Heaven in a Hammock Massage",
             "type": "spa",
+            "duration": "1.5 hours",
             "location": {
                 "name": "Ritz-Carlton Spa",
                 "address": "4750 Amelia Island Parkway",
@@ -764,9 +827,10 @@ def get_ultimate_trip_data():
         {
             "id": "spa002",
             "date": "2025-11-09",
-            "time": "12:00",
+            "time": "12:00 PM",
             "activity": "HydraFacial Treatment",
             "type": "spa",
+            "duration": "1 hour",
             "location": {
                 "name": "Ritz-Carlton Spa",
                 "address": "4750 Amelia Island Parkway",
@@ -786,9 +850,10 @@ def get_ultimate_trip_data():
         {
             "id": "din001",
             "date": "2025-11-09",
-            "time": "19:00",
+            "time": "7:00 PM",
             "activity": "40th Birthday Dinner",
             "type": "dining",
+            "duration": "2.5 hours",
             "location": {
                 "name": "David's Restaurant & Lounge",
                 "address": "802 Ash St, Fernandina Beach, FL 32034",
@@ -809,9 +874,10 @@ def get_ultimate_trip_data():
         {
             "id": "bch001",
             "date": "2025-11-10",
-            "time": "10:00",
+            "time": "10:00 AM",
             "activity": "Beach Day",
             "type": "beach",
+            "duration": "6 hours",
             "location": {
                 "name": "Main Beach Park",
                 "address": "1600 S Fletcher Ave, Fernandina Beach, FL",
@@ -830,9 +896,10 @@ def get_ultimate_trip_data():
         {
             "id": "din002",
             "date": "2025-11-10",
-            "time": "18:00",
+            "time": "6:00 PM",
             "activity": "Casual Dinner",
             "type": "dining",
+            "duration": "1.5 hours",
             "location": {
                 "name": "Timoti's Seafood Shak",
                 "address": "4998 1st Coast Hwy, Amelia Island, FL",
@@ -853,8 +920,8 @@ def get_ultimate_trip_data():
         {
             "id": "dep001",
             "date": "2025-11-11",
-            "time": "11:05",
-            "activity": "John Departs",
+            "time": "8:20 AM",
+            "activity": "Drop John at Airport",
             "type": "transport",
             "location": {
                 "name": "Jacksonville International Airport (JAX)",
@@ -866,17 +933,18 @@ def get_ultimate_trip_data():
             "status": "Confirmed",
             "cost": 65,
             "category": "Transport",
-            "notes": "AA1586 to DCA - Arrive 2 hours early (9:05 AM)",
+            "notes": "AA1586 to DCA departs 11:05 AM. Leave hotel 8:20am (45min drive) to arrive by 9:05am (2 hours before flight).",
             "flight_number": "AA1586",
             "what_to_bring": ["ID", "Boarding pass"],
-            "tips": ["Check traffic before leaving", "Allow 45 min drive"],
+            "tips": ["Check traffic before leaving", "Allow 45 min drive", "Arrive 2 hours early for domestic flight"],
+            "flight_departure_time": "11:05 AM",
             "priority": 3
         },
         {
             "id": "dep002",
             "date": "2025-11-12",
-            "time": "14:39",
-            "activity": "Your Departure",
+            "time": "12:30 PM",
+            "activity": "Leave Hotel for Airport",
             "type": "transport",
             "location": {
                 "name": "Jacksonville International Airport (JAX)",
@@ -888,14 +956,19 @@ def get_ultimate_trip_data():
             "status": "Confirmed",
             "cost": 0,
             "category": "Transport",
-            "notes": "AA5590 - Return home with amazing memories!",
+            "notes": "AA5590 departs 2:39 PM. Checkout by 11am, leave hotel by 12:30pm (45min drive + 2hr early arrival buffer).",
             "flight_number": "AA5590",
             "what_to_bring": ["All belongings", "Souvenirs", "Photos", "Memories!"],
-            "tips": ["Hotel checkout 11 AM", "Leave by 12:30 PM", "Double-check room for items"],
+            "tips": ["Hotel checkout 11 AM", "Leave by 12:30 PM", "Double-check room for items", "Return home with amazing memories!"],
+            "flight_departure_time": "2:39 PM",
             "priority": 3
         }
     ]
-    
+
+    # Merge with custom activities from session state
+    if 'custom_activities' in st.session_state and st.session_state.custom_activities:
+        activities = activities + st.session_state.custom_activities
+
     df = pd.DataFrame(activities)
     df['date'] = pd.to_datetime(df['date'])
     return df, activities
@@ -1304,14 +1377,13 @@ def get_uv_index():
                   for i in range(6)]
     }
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=3600)  # Cache for 1 hour
 def get_tide_data():
-    """Get tide data from NOAA for Fernandina Beach, FL"""
+    """Get live tide data from NOAA for Fernandina Beach, FL (Station 8720030)"""
     station_id = "8720030"  # Fernandina Beach, FL
 
     try:
         # Get tide predictions for next 7 days
-        from datetime import datetime, timedelta
         begin_date = datetime.now().strftime('%Y%m%d')
         end_date = (datetime.now() + timedelta(days=7)).strftime('%Y%m%d')
 
@@ -1326,26 +1398,783 @@ def get_tide_data():
             # Group by date
             daily_tides = {}
             for pred in predictions:
-                date_str = pred['t'].split(' ')[0]
+                datetime_str = pred['t']  # Format: "2025-11-07 06:30"
+                date_str = datetime_str.split(' ')[0]
+                time_24hr = datetime_str.split(' ')[1]
+
+                # Convert 24hr time to 12hr format
+                try:
+                    time_obj = datetime.strptime(time_24hr, '%H:%M')
+                    time_12hr = time_obj.strftime('%I:%M %p').lstrip('0')
+                except:
+                    time_12hr = time_24hr  # Fallback to original if conversion fails
+
                 if date_str not in daily_tides:
                     daily_tides[date_str] = {'high': [], 'low': []}
 
+                tide_info = {
+                    'time': time_12hr,
+                    'time_24hr': time_24hr,
+                    'height': float(pred['v'])
+                }
+
                 if pred['type'] == 'H':
-                    daily_tides[date_str]['high'].append({'time': pred['t'].split(' ')[1], 'height': float(pred['v'])})
+                    daily_tides[date_str]['high'].append(tide_info)
                 else:
-                    daily_tides[date_str]['low'].append({'time': pred['t'].split(' ')[1], 'height': float(pred['v'])})
+                    daily_tides[date_str]['low'].append(tide_info)
 
             return daily_tides
+    except Exception as e:
+        # Log error but don't crash
+        print(f"Tide API error: {e}")
+        pass
+
+    # Fallback tide data (in case API is down)
+    return {
+        '2025-11-07': {
+            'high': [{'time': '6:30 AM', 'time_24hr': '06:30', 'height': 6.5},
+                     {'time': '7:00 PM', 'time_24hr': '19:00', 'height': 6.8}],
+            'low': [{'time': '12:15 AM', 'time_24hr': '00:15', 'height': 0.5},
+                    {'time': '12:45 PM', 'time_24hr': '12:45', 'height': 0.3}]
+        },
+        '2025-11-08': {
+            'high': [{'time': '7:15 AM', 'time_24hr': '07:15', 'height': 6.6},
+                     {'time': '7:45 PM', 'time_24hr': '19:45', 'height': 6.9}],
+            'low': [{'time': '1:00 AM', 'time_24hr': '01:00', 'height': 0.4},
+                    {'time': '1:30 PM', 'time_24hr': '13:30', 'height': 0.2}]
+        },
+        '2025-11-09': {
+            'high': [{'time': '8:00 AM', 'time_24hr': '08:00', 'height': 6.7},
+                     {'time': '8:30 PM', 'time_24hr': '20:30', 'height': 7.0}],
+            'low': [{'time': '1:45 AM', 'time_24hr': '01:45', 'height': 0.3},
+                    {'time': '2:15 PM', 'time_24hr': '14:15', 'height': 0.1}]
+        },
+        '2025-11-10': {
+            'high': [{'time': '8:45 AM', 'time_24hr': '08:45', 'height': 6.8},
+                     {'time': '9:15 PM', 'time_24hr': '21:15', 'height': 7.1}],
+            'low': [{'time': '2:30 AM', 'time_24hr': '02:30', 'height': 0.2},
+                    {'time': '3:00 PM', 'time_24hr': '15:00', 'height': 0.0}]
+        },
+    }
+
+def get_tide_recommendation(activity_start_time, activity_type, date_str, tide_data):
+    """Get tide-based recommendation for an activity
+
+    Args:
+        activity_start_time: "10:00 AM"
+        activity_type: "beach", "activity", etc.
+        date_str: "2025-11-10"
+        tide_data: Dictionary from get_tide_data()
+
+    Returns:
+        Dictionary with tide info and recommendations
+    """
+    if date_str not in tide_data:
+        return None
+
+    day_tides = tide_data[date_str]
+
+    # Determine if it's a water/beach activity
+    water_activities = ['beach', 'water', 'surf', 'swim', 'kayak', 'boat', 'fish']
+    is_water_activity = any(word in activity_type.lower() for word in water_activities)
+
+    if not is_water_activity:
+        return None
+
+    # Get nearest high and low tides
+    high_tides = day_tides.get('high', [])
+    low_tides = day_tides.get('low', [])
+
+    result = {
+        'high_tides': high_tides,
+        'low_tides': low_tides,
+        'recommendation': '',
+        'best_time': ''
+    }
+
+    # Create recommendations based on activity type
+    if 'beach' in activity_type.lower() or 'swim' in activity_type.lower():
+        if high_tides:
+            result['recommendation'] = "🌊 Best for swimming during high tide"
+            result['best_time'] = f"High tide: {high_tides[0]['time']} ({high_tides[0]['height']}ft)"
+        if low_tides:
+            result['recommendation'] += "\n🐚 Best for shell hunting during low tide"
+
+    elif 'surf' in activity_type.lower():
+        if high_tides:
+            result['recommendation'] = "🏄 Better waves during high tide"
+            result['best_time'] = f"High tide: {high_tides[0]['time']}"
+
+    return result
+
+# ============================================================================
+# STEP 3-12: SMART INTELLIGENCE FUNCTIONS
+# ============================================================================
+
+def detect_meal_gaps(activities_data):
+    """Detect missing meals (breakfast, lunch, dinner) for each day
+
+    Returns:
+        List of missing meals with suggested times
+    """
+    from collections import defaultdict
+
+    # Group activities by date
+    days = defaultdict(list)
+    for activity in activities_data:
+        date_str = activity['date']
+        days[date_str].append(activity)
+
+    missing_meals = []
+
+    for date_str, day_activities in sorted(days.items()):
+        date_obj = pd.to_datetime(date_str)
+        day_name = date_obj.strftime('%A, %B %d')
+
+        # Check for meals
+        meals_found = {
+            'breakfast': False,
+            'lunch': False,
+            'dinner': False
+        }
+
+        for activity in day_activities:
+            activity_lower = activity['activity'].lower()
+            time_str = activity['time']
+
+            # Try to parse time
+            try:
+                time_obj = datetime.strptime(time_str, "%I:%M %p")
+                hour = time_obj.hour
+
+                # Classify by time and activity type
+                if activity['type'] == 'dining' or 'lunch' in activity_lower or 'breakfast' in activity_lower or 'dinner' in activity_lower:
+                    if 6 <= hour < 11:
+                        meals_found['breakfast'] = True
+                    elif 11 <= hour < 16:
+                        meals_found['lunch'] = True
+                    elif 16 <= hour < 23:
+                        meals_found['dinner'] = True
+            except:
+                pass
+
+        # Report missing meals
+        if not meals_found['breakfast']:
+            missing_meals.append({
+                'date': date_str,
+                'day_name': day_name,
+                'meal_type': 'breakfast',
+                'suggested_time': '8:00 AM',
+                'priority': 'medium'
+            })
+
+        if not meals_found['lunch']:
+            missing_meals.append({
+                'date': date_str,
+                'day_name': day_name,
+                'meal_type': 'lunch',
+                'suggested_time': '12:30 PM',
+                'priority': 'high'
+            })
+
+        if not meals_found['dinner']:
+            missing_meals.append({
+                'date': date_str,
+                'day_name': day_name,
+                'meal_type': 'dinner',
+                'suggested_time': '6:30 PM',
+                'priority': 'high'
+            })
+
+    return missing_meals
+
+def detect_conflicts(activities_data):
+    """Detect scheduling conflicts (overlaps, tight timings, impossible logistics)
+
+    Returns:
+        List of conflicts with severity and recommendations
+    """
+    conflicts = []
+
+    # Sort activities by date and time
+    sorted_activities = sorted(activities_data, key=lambda x: (x['date'], x.get('time', '12:00 PM')))
+
+    for i in range(len(sorted_activities) - 1):
+        current = sorted_activities[i]
+        next_act = sorted_activities[i + 1]
+
+        # Only check same-day activities
+        if current['date'] != next_act['date']:
+            continue
+
+        try:
+            # Get end time of current activity
+            if current.get('duration'):
+                current_end = calculate_end_time(current['time'], current['duration'])
+                if not current_end:
+                    continue
+
+                current_end_obj = datetime.strptime(current_end, "%I:%M %p")
+                next_start_obj = datetime.strptime(next_act['time'], "%I:%M %p")
+
+                # Calculate gap in minutes
+                gap_minutes = (next_start_obj - current_end_obj).total_seconds() / 60
+
+                if gap_minutes < 0:
+                    # OVERLAP!
+                    conflicts.append({
+                        'type': 'overlap',
+                        'severity': 'critical',
+                        'date': current['date'],
+                        'activity1': current['activity'],
+                        'activity2': next_act['activity'],
+                        'end_time': current_end,
+                        'start_time': next_act['time'],
+                        'message': f"🔴 OVERLAP: {current['activity']} ends {current_end}, but {next_act['activity']} starts {next_act['time']}",
+                        'suggestion': f"Reschedule {next_act['activity']} to start after {current_end}"
+                    })
+                elif gap_minutes < 15:
+                    # TOO TIGHT
+                    conflicts.append({
+                        'type': 'tight_timing',
+                        'severity': 'warning',
+                        'date': current['date'],
+                        'activity1': current['activity'],
+                        'activity2': next_act['activity'],
+                        'gap_minutes': int(gap_minutes),
+                        'message': f"🟡 TIGHT: Only {int(gap_minutes)} min between {current['activity']} and {next_act['activity']}",
+                        'suggestion': f"Consider adding 15-30 min buffer"
+                    })
+                elif gap_minutes > 240:  # More than 4 hours
+                    # LARGE GAP - opportunity!
+                    conflicts.append({
+                        'type': 'large_gap',
+                        'severity': 'info',
+                        'date': current['date'],
+                        'gap_start': current_end,
+                        'gap_end': next_act['time'],
+                        'gap_hours': round(gap_minutes / 60, 1),
+                        'message': f"💡 FREE TIME: {round(gap_minutes/60, 1)} hours between {current_end} and {next_act['time']}",
+                        'suggestion': f"Perfect time to add an activity!"
+                    })
+        except Exception as e:
+            pass
+
+    return conflicts
+
+def score_activity_for_slot(activity, time_slot_start, date_str, weather_data, tide_data, recent_activities):
+    """Score how well an activity fits a specific time slot (0-100)
+
+    Multi-factor scoring based on:
+    - Weather compatibility (30 points)
+    - Time slot fit (25 points)
+    - Location proximity (20 points)
+    - Energy level balance (10 points)
+    - Budget (10 points)
+    - Variety (5 points)
+    """
+    score = 0
+    reasons = []
+    warnings = []
+
+    # Get activity details
+    activity_type = activity.get('type', '')
+    duration = activity.get('duration', '1 hour')
+    cost_str = activity.get('cost_range', '$0')
+
+    # Parse cost (rough estimate)
+    try:
+        cost = int(re.findall(r'\d+', cost_str.split('-')[0])[0])
+    except:
+        cost = 20
+
+    # FACTOR 1: Weather Match (30 points)
+    weather_score = 15  # Default moderate score
+    outdoor_activities = ['beach', 'hiking', 'kayak', 'horse', 'bike', 'walk', 'tour', 'boat']
+    indoor_activities = ['spa', 'museum', 'shopping', 'dining', 'cooking', 'wine']
+
+    is_outdoor = any(word in activity['name'].lower() or word in activity.get('description', '').lower()
+                     for word in outdoor_activities)
+    is_indoor = any(word in activity['name'].lower() or word in activity.get('description', '').lower()
+                    for word in indoor_activities)
+
+    # Check weather for this date
+    if weather_data and 'forecast' in weather_data:
+        for forecast in weather_data['forecast']:
+            if forecast['date'] == date_str:
+                condition = forecast.get('condition', '').lower()
+                temp = forecast.get('high', 75)
+                rain_chance = forecast.get('precipitation', 0)
+
+                if is_outdoor:
+                    if rain_chance > 70:
+                        weather_score = 5
+                        warnings.append(f"⚠️ {rain_chance}% rain chance - consider indoor alternative")
+                    elif rain_chance < 30 and 'sun' in condition:
+                        weather_score = 30
+                        reasons.append(f"☀️ Perfect weather ({condition}, {temp}°F)")
+                    elif rain_chance < 30:
+                        weather_score = 25
+                        reasons.append(f"✅ Good weather ({temp}°F, {rain_chance}% rain)")
+
+                elif is_indoor:
+                    weather_score = 25  # Indoor always works
+                    if rain_chance > 50:
+                        reasons.append(f"☔ Great indoor choice (rainy day)")
+                break
+
+    score += weather_score
+
+    # FACTOR 2: Duration Fit (25 points)
+    duration_minutes = parse_duration_to_minutes(duration)
+    # Assume we want activities that fit well
+    if 60 <= duration_minutes <= 180:  # 1-3 hours is ideal
+        score += 25
+        reasons.append(f"⏱️ Perfect duration ({duration})")
+    elif duration_minutes < 60:
+        score += 20
+    elif duration_minutes > 180:
+        score += 15
+        warnings.append(f"⏱️ Long activity ({duration}) - plan accordingly")
+
+    # FACTOR 3: Cost (10 points)
+    if cost == 0:
+        score += 10
+        reasons.append("💰 FREE activity!")
+    elif cost < 30:
+        score += 8
+    elif cost < 100:
+        score += 5
+    else:
+        score += 3
+
+    # FACTOR 4: Rating (10 points)
+    rating_str = activity.get('rating', '0/5')
+    try:
+        rating = float(rating_str.split('/')[0])
+        score += int(rating * 2)  # 5.0 rating = 10 points
+        if rating >= 4.7:
+            reasons.append(f"⭐ Highly rated ({rating}/5)")
     except:
         pass
 
-    # Fallback tide data
+    # FACTOR 5: Tide match for beach activities (bonus 10 points)
+    if 'beach' in activity_type.lower() or 'beach' in activity['name'].lower():
+        tide_rec = get_tide_recommendation(time_slot_start, 'beach', date_str, tide_data)
+        if tide_rec:
+            score += 10
+            reasons.append(tide_rec.get('best_time', ''))
+
+    # Cap at 100
+    score = min(100, score)
+
     return {
-        '2025-11-07': {'high': [{'time': '06:30', 'height': 6.5}, {'time': '19:00', 'height': 6.8}],
-                       'low': [{'time': '00:15', 'height': 0.5}, {'time': '12:45', 'height': 0.3}]},
-        '2025-11-08': {'high': [{'time': '07:15', 'height': 6.6}, {'time': '19:45', 'height': 6.9}],
-                       'low': [{'time': '01:00', 'height': 0.4}, {'time': '13:30', 'height': 0.2}]},
+        'score': score,
+        'reasons': reasons,
+        'warnings': warnings
     }
+
+def add_activity_to_schedule(activity_name, activity_description, selected_day, selected_time, duration, activity_type='activity', cost=0, location_name='TBD'):
+    """Add a custom activity to the user's schedule
+
+    Args:
+        activity_name: Name of the activity
+        activity_description: Description text
+        selected_day: Day string like "Friday, Nov 7"
+        selected_time: Time object or string like "10:00 AM"
+        duration: Duration string like "2 hours"
+        activity_type: Type category (activity, dining, etc.)
+        cost: Estimated cost
+        location_name: Location name
+
+    Returns:
+        True if added successfully, False otherwise
+    """
+    # Convert day name to date
+    day_to_date = {
+        "Friday, Nov 7": "2025-11-07",
+        "Saturday, Nov 8": "2025-11-08",
+        "Sunday, Nov 9": "2025-11-09",
+        "Monday, Nov 10": "2025-11-10",
+        "Tuesday, Nov 11": "2025-11-11",
+        "Wednesday, Nov 12": "2025-11-12"
+    }
+
+    date_str = day_to_date.get(selected_day)
+    if not date_str:
+        return False
+
+    # Convert time to string if it's a time object
+    if hasattr(selected_time, 'strftime'):
+        time_str = selected_time.strftime("%I:%M %p").lstrip('0')
+    else:
+        time_str = selected_time
+
+    # Generate unique ID
+    import uuid
+    activity_id = f"custom_{uuid.uuid4().hex[:8]}"
+
+    # Create activity object
+    new_activity = {
+        "id": activity_id,
+        "date": date_str,
+        "time": time_str,
+        "activity": activity_name,
+        "type": activity_type,
+        "duration": duration,
+        "location": {
+            "name": location_name,
+            "address": "TBD",
+            "lat": 30.6074,  # Default to Amelia Island
+            "lon": -81.4493,
+            "phone": "N/A"
+        },
+        "status": "Custom",
+        "cost": cost,
+        "category": activity_type.capitalize(),
+        "notes": activity_description,
+        "what_to_bring": [],
+        "tips": [],
+        "priority": 2,
+        "is_custom": True
+    }
+
+    # Add to session state
+    if 'custom_activities' not in st.session_state:
+        st.session_state.custom_activities = []
+
+    st.session_state.custom_activities.append(new_activity)
+
+    return True
+
+def auto_fill_meals(meal_gaps, weather_data):
+    """Automatically fill missing meals with smart restaurant recommendations
+
+    Args:
+        meal_gaps: List of missing meal gaps from detect_meal_gaps()
+        weather_data: Weather data for smart recommendations
+
+    Returns:
+        List of activities that were added
+    """
+    # Get dining options
+    optional_activities = get_optional_activities()
+    dining_options = optional_activities.get('🍽️ Fine Dining', []) + \
+                     optional_activities.get('🍽️ Casual Dining', []) + \
+                     optional_activities.get('🥞 Breakfast & Brunch', [])
+
+    added_activities = []
+
+    for gap in meal_gaps:
+        # Find best restaurant for this meal
+        meal_type = gap['meal_type']
+        date_str = gap['date']
+        suggested_time = gap['suggested_time']
+
+        # Filter restaurants by meal type
+        if meal_type == 'breakfast':
+            candidates = [r for r in dining_options if 'breakfast' in r.get('name', '').lower() or 'brunch' in r.get('name', '').lower()]
+            if not candidates:
+                candidates = [r for r in dining_options if 'cafe' in r.get('name', '').lower() or 'coffee' in r.get('name', '').lower()]
+        elif meal_type == 'lunch':
+            candidates = [r for r in dining_options if 'casual' in r.get('description', '').lower() or 'lunch' in r.get('description', '').lower()]
+            if not candidates:
+                candidates = dining_options[:10]  # First 10 as fallback
+        elif meal_type == 'dinner':
+            candidates = [r for r in dining_options if 'dinner' in r.get('description', '').lower() or 'fine' in r.get('description', '').lower()]
+            if not candidates:
+                candidates = dining_options[:10]
+
+        if not candidates:
+            candidates = dining_options
+
+        # Score each candidate
+        best_restaurant = None
+        best_score = 0
+
+        for restaurant in candidates:
+            score = 0
+
+            # Rating score (40 points)
+            rating_str = restaurant.get('rating', '0/5')
+            try:
+                rating = float(rating_str.split('/')[0])
+                score += int(rating * 8)  # 5.0 = 40 points
+            except:
+                pass
+
+            # Cost appropriateness (30 points)
+            cost_str = restaurant.get('cost_range', '$0')
+            try:
+                cost = int(re.findall(r'\d+', cost_str.split('-')[0])[0])
+                if meal_type == 'breakfast' and cost < 20:
+                    score += 30
+                elif meal_type == 'lunch' and cost < 40:
+                    score += 30
+                elif meal_type == 'dinner' and cost >= 40:
+                    score += 30
+                else:
+                    score += 15
+            except:
+                score += 15
+
+            # Weather appropriateness (30 points)
+            if weather_data and 'forecast' in weather_data:
+                for forecast in weather_data['forecast']:
+                    if forecast['date'] == date_str:
+                        rain_chance = forecast.get('precipitation', 0)
+                        # Indoor restaurants better in rain
+                        if rain_chance > 50:
+                            score += 30
+                        else:
+                            # Outdoor seating nice in good weather
+                            if 'outdoor' in restaurant.get('description', '').lower() or 'patio' in restaurant.get('description', '').lower():
+                                score += 30
+                            else:
+                                score += 20
+                        break
+
+            if score > best_score:
+                best_score = score
+                best_restaurant = restaurant
+
+        # Add the meal to schedule
+        if best_restaurant:
+            # Convert day name
+            day_to_date = {
+                "2025-11-07": "Friday, Nov 7",
+                "2025-11-08": "Saturday, Nov 8",
+                "2025-11-09": "Sunday, Nov 9",
+                "2025-11-10": "Monday, Nov 10",
+                "2025-11-11": "Tuesday, Nov 11",
+                "2025-11-12": "Wednesday, Nov 12"
+            }
+
+            selected_day = day_to_date.get(date_str)
+
+            # Extract cost
+            cost = 0
+            cost_str = best_restaurant.get('cost_range', '$0')
+            try:
+                cost = int(re.findall(r'\d+', cost_str.split('-')[0])[0])
+            except:
+                cost = 0
+
+            # Determine duration based on meal type
+            duration = "1 hour"
+            if meal_type == 'breakfast':
+                duration = "45 minutes"
+            elif meal_type == 'dinner':
+                duration = "1.5 hours"
+
+            # Add to schedule
+            success = add_activity_to_schedule(
+                activity_name=f"{meal_type.title()} at {best_restaurant['name']}",
+                activity_description=best_restaurant.get('description', ''),
+                selected_day=selected_day,
+                selected_time=suggested_time,
+                duration=duration,
+                activity_type='dining',
+                cost=cost,
+                location_name=best_restaurant.get('name', 'TBD')
+            )
+
+            if success:
+                added_activities.append({
+                    'meal_type': meal_type,
+                    'restaurant': best_restaurant['name'],
+                    'day': gap['day_name'],
+                    'time': suggested_time
+                })
+
+    return added_activities
+
+def ai_auto_scheduler(target_date_str, existing_activities, weather_data, tide_data, preferences=None):
+    """AI-powered automatic schedule generator for a specific day
+
+    Args:
+        target_date_str: Date string like "2025-11-08"
+        existing_activities: Current scheduled activities
+        weather_data: Weather forecast data
+        tide_data: Tide data
+        preferences: Dict with user preferences (budget, activity_types, etc.)
+
+    Returns:
+        List of recommended activities for the day with optimal timing
+    """
+    if preferences is None:
+        preferences = {
+            'budget_per_day': 200,
+            'max_activities': 3,
+            'include_meals': True,
+            'activity_types': ['beach', 'dining', 'activity', 'spa'],
+            'energy_balance': True
+        }
+
+    # Get all optional activities
+    optional_activities = get_optional_activities()
+    all_activities = []
+    for category, items in optional_activities.items():
+        all_activities.extend(items)
+
+    # Get dining options
+    dining_options = optional_activities.get('🍽️ Fine Dining', []) + \
+                     optional_activities.get('🍽️ Casual Dining', []) + \
+                     optional_activities.get('🥞 Breakfast & Brunch', [])
+
+    # Check what's already scheduled for this day
+    day_activities = [a for a in existing_activities if a['date'] == target_date_str]
+
+    # Convert date string to day name
+    date_obj = pd.to_datetime(target_date_str)
+    day_name = date_obj.strftime('%A, %B %d')
+
+    # Day name mapping
+    date_to_day = {
+        "2025-11-07": "Friday, Nov 7",
+        "2025-11-08": "Saturday, Nov 8",
+        "2025-11-09": "Sunday, Nov 9",
+        "2025-11-10": "Monday, Nov 10",
+        "2025-11-11": "Tuesday, Nov 11",
+        "2025-11-12": "Wednesday, Nov 12"
+    }
+    selected_day = date_to_day.get(target_date_str, day_name)
+
+    recommendations = []
+
+    # STEP 1: Schedule breakfast if missing (7:30-9:00 AM)
+    has_breakfast = any(a['type'] == 'dining' and datetime.strptime(a['time'], "%I:%M %p").hour < 11 for a in day_activities)
+
+    if not has_breakfast and preferences['include_meals']:
+        breakfast_candidates = [r for r in dining_options if 'breakfast' in r.get('name', '').lower() or 'brunch' in r.get('name', '').lower()]
+        if breakfast_candidates:
+            best_breakfast = max(breakfast_candidates, key=lambda x: float(x.get('rating', '0/5').split('/')[0]))
+
+            recommendations.append({
+                'time': '8:00 AM',
+                'activity': best_breakfast,
+                'type': 'dining',
+                'reason': 'Start your day with highly-rated breakfast',
+                'duration': '45 minutes'
+            })
+
+    # STEP 2: Morning activity (9:00 AM - 12:00 PM)
+    morning_slot_filled = any(9 <= datetime.strptime(a['time'], "%I:%M %p").hour < 12 for a in day_activities)
+
+    if not morning_slot_filled:
+        # Score activities for morning slot
+        morning_scores = []
+
+        for activity in all_activities:
+            score_result = score_activity_for_slot(
+                activity,
+                '10:00 AM',
+                target_date_str,
+                weather_data,
+                tide_data,
+                day_activities
+            )
+
+            # Boost outdoor activities in morning
+            if any(word in activity.get('name', '').lower() for word in ['beach', 'kayak', 'bike', 'walk', 'boat']):
+                score_result['score'] += 15
+
+            morning_scores.append({
+                'activity': activity,
+                'score': score_result['score'],
+                'reasons': score_result['reasons']
+            })
+
+        # Get top recommendation
+        if morning_scores:
+            best_morning = max(morning_scores, key=lambda x: x['score'])
+            if best_morning['score'] > 50:  # Only recommend if score is decent
+                recommendations.append({
+                    'time': '10:00 AM',
+                    'activity': best_morning['activity'],
+                    'type': 'activity',
+                    'reason': ', '.join(best_morning['reasons'][:2]),
+                    'duration': best_morning['activity'].get('duration', '2 hours')
+                })
+
+    # STEP 3: Lunch (12:00 PM - 2:00 PM)
+    has_lunch = any(a['type'] == 'dining' and 11 <= datetime.strptime(a['time'], "%I:%M %p").hour < 16 for a in day_activities)
+
+    if not has_lunch and preferences['include_meals']:
+        lunch_candidates = [r for r in dining_options if 'casual' in r.get('description', '').lower() or 'lunch' in r.get('description', '').lower()]
+        if not lunch_candidates:
+            lunch_candidates = dining_options[:10]
+
+        if lunch_candidates:
+            # Score by rating and cost
+            best_lunch = max(lunch_candidates, key=lambda x: float(x.get('rating', '0/5').split('/')[0]))
+
+            recommendations.append({
+                'time': '12:30 PM',
+                'activity': best_lunch,
+                'type': 'dining',
+                'reason': 'Refuel with a great lunch spot',
+                'duration': '1 hour'
+            })
+
+    # STEP 4: Afternoon activity (2:00 PM - 5:00 PM)
+    afternoon_slot_filled = any(14 <= datetime.strptime(a['time'], "%I:%M %p").hour < 17 for a in day_activities)
+
+    if not afternoon_slot_filled:
+        afternoon_scores = []
+
+        for activity in all_activities:
+            score_result = score_activity_for_slot(
+                activity,
+                '3:00 PM',
+                target_date_str,
+                weather_data,
+                tide_data,
+                day_activities + [r for r in recommendations]
+            )
+
+            # Boost relaxing activities in afternoon
+            if any(word in activity.get('name', '').lower() for word in ['spa', 'massage', 'wine', 'museum']):
+                score_result['score'] += 10
+
+            afternoon_scores.append({
+                'activity': activity,
+                'score': score_result['score'],
+                'reasons': score_result['reasons']
+            })
+
+        if afternoon_scores:
+            best_afternoon = max(afternoon_scores, key=lambda x: x['score'])
+            if best_afternoon['score'] > 50:
+                recommendations.append({
+                    'time': '3:00 PM',
+                    'activity': best_afternoon['activity'],
+                    'type': 'activity',
+                    'reason': ', '.join(best_afternoon['reasons'][:2]),
+                    'duration': best_afternoon['activity'].get('duration', '2 hours')
+                })
+
+    # STEP 5: Dinner (6:00 PM - 8:00 PM)
+    has_dinner = any(a['type'] == 'dining' and datetime.strptime(a['time'], "%I:%M %p").hour >= 16 for a in day_activities)
+
+    if not has_dinner and preferences['include_meals']:
+        dinner_candidates = [r for r in dining_options if 'fine' in r.get('description', '').lower() or 'dinner' in r.get('description', '').lower()]
+        if not dinner_candidates:
+            dinner_candidates = dining_options[:10]
+
+        if dinner_candidates:
+            # Prefer highly-rated restaurants for dinner
+            best_dinner = max(dinner_candidates, key=lambda x: float(x.get('rating', '0/5').split('/')[0]))
+
+            recommendations.append({
+                'time': '6:30 PM',
+                'activity': best_dinner,
+                'type': 'dining',
+                'reason': 'End the day with an amazing dinner',
+                'duration': '1.5 hours'
+            })
+
+    return recommendations
 
 @st.cache_data(ttl=1800)
 def get_weather_ultimate():
@@ -2269,81 +3098,208 @@ def render_packing_list():
 
 
 def render_full_schedule(df, activities_data, show_sensitive):
-    """Complete trip schedule"""
+    """Complete trip schedule - Visual timeline showing all days at once"""
     st.markdown('<h2 class="fade-in">🗓️ Complete Trip Schedule</h2>', unsafe_allow_html=True)
-    
-    dates = df['date'].dt.date.unique()
-    dates = sorted(dates)
-    
-    # Create tabs for each day
-    date_tabs = st.tabs([f"📅 {date.strftime('%a %m/%d')}" for date in dates])
-    
-    for idx, date in enumerate(dates):
-        with date_tabs[idx]:
-            day_activities = [a for a in activities_data if pd.to_datetime(a['date']).date() == date]
-            day_activities.sort(key=lambda x: x['time'])
-            
-            st.markdown(f"### {date.strftime('%A, %B %d, %Y')}")
-            
-            # Check if birthday
-            if date.month == 11 and date.day == 9:
-                st.markdown("""
-                <div class="birthday-special">
-                    <h2 style="margin: 0;">🎂 BIRTHDAY DAY! 🎉</h2>
-                    <p style="font-size: 1.2rem; margin: 0.5rem 0 0 0;">Your special 40th celebration!</p>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            # Timeline
-            if day_activities:
-                st.markdown('<div class="timeline">', unsafe_allow_html=True)
-                
-                for activity in day_activities:
-                    status_class = activity['status'].lower()
-                    
-                    st.markdown(f"""
-                    <div class="timeline-item {status_class}">
-                        <div class="ultimate-card">
-                            <div class="card-body">
-                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-                                    <h4 style="margin: 0;">{activity['activity']}</h4>
-                                    <span class="status-{status_class}">{activity['status']}</span>
-                                </div>
-                                <p style="margin: 0.5rem 0;"><b>🕐 {activity['time']}</b></p>
-                                <p style="margin: 0.5rem 0;">📍 {activity['location']['name']}</p>
-                                <p style="margin: 0.5rem 0;">📞 {mask_info(activity['location'].get('phone', 'N/A'), show_sensitive)}</p>
-                                <p style="margin: 0.5rem 0;">💰 {"$" + str(activity['cost']) if show_sensitive else "$***"}</p>
-                                <p style="margin: 0.5rem 0; font-style: italic;">{mask_info(activity['notes'], show_sensitive)}</p>
+
+    # Get intelligence data
+    weather_data = get_weather_ultimate()
+    tide_data = get_tide_data()
+    meal_gaps = detect_meal_gaps(activities_data)
+    conflicts = detect_conflicts(activities_data)
+
+    # Show trip overview
+    st.markdown("""
+    <div class="info-box" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+        <h4 style="margin: 0; color: white;">🤖 AI-Powered Schedule Intelligence</h4>
+        <p style="margin: 0.5rem 0 0 0; opacity: 0.95;">Your complete trip at a glance with smart insights</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Summary metrics
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("📅 Total Days", len(df['date'].dt.date.unique()))
+    with col2:
+        st.metric("🎯 Activities", len(activities_data))
+    with col3:
+        custom_count = len([a for a in activities_data if a.get('is_custom', False)])
+        st.metric("➕ Custom Added", custom_count)
+    with col4:
+        urgent_count = len([a for a in activities_data if a.get('status') == 'URGENT'])
+        st.metric("🚨 Urgent", urgent_count)
+
+    # Show conflicts and meal gaps
+    if conflicts or meal_gaps:
+        st.markdown("---")
+        st.markdown("### 🚨 Schedule Alerts")
+
+        alert_col1, alert_col2 = st.columns(2)
+
+        with alert_col1:
+            if conflicts:
+                critical_conflicts = [c for c in conflicts if c['severity'] == 'critical']
+                warning_conflicts = [c for c in conflicts if c['severity'] == 'warning']
+
+                if critical_conflicts:
+                    st.error(f"**🔴 {len(critical_conflicts)} Critical Conflicts**")
+                    for conflict in critical_conflicts[:3]:  # Show first 3
+                        st.markdown(f"• {conflict['message']}")
+
+                if warning_conflicts:
+                    st.warning(f"**🟡 {len(warning_conflicts)} Timing Warnings**")
+                    for conflict in warning_conflicts[:3]:
+                        st.markdown(f"• {conflict['message']}")
+            else:
+                st.success("✅ No scheduling conflicts detected!")
+
+        with alert_col2:
+            if meal_gaps:
+                st.warning(f"**🍽️ {len(meal_gaps)} Missing Meals**")
+                for gap in meal_gaps[:5]:  # Show first 5
+                    st.markdown(f"• {gap['day_name']}: {gap['meal_type'].title()} at {gap['suggested_time']}")
+
+                # Auto-fill button
+                if st.button("🤖 Auto-Fill All Missing Meals", use_container_width=True, type="primary"):
+                    with st.spinner("🍽️ AI selecting best restaurants for missing meals..."):
+                        added = auto_fill_meals(meal_gaps, weather_data)
+
+                        if added:
+                            st.success(f"✅ Added {len(added)} meals to your schedule!")
+                            st.balloons()
+
+                            # Show what was added
+                            for meal in added:
+                                st.markdown(f"• **{meal['meal_type'].title()}** on {meal['day']} at {meal['time']}: {meal['restaurant']}")
+
+                            st.info("💡 Scroll down to see your updated schedule with new meals!")
+                            st.rerun()
+                        else:
+                            st.error("❌ Failed to add meals. Please try adding manually.")
+            else:
+                st.success("✅ All meals scheduled!")
+
+    st.markdown("---")
+
+    # Get all dates and sort
+    dates = sorted(df['date'].dt.date.unique())
+
+    # NO TABS - Show all days in one scrollable view
+    for date in dates:
+        # Day header with weather
+        day_activities = [a for a in activities_data if pd.to_datetime(a['date']).date() == date]
+        day_activities.sort(key=lambda x: x['time'])
+
+        # Check if birthday
+        is_birthday = date.month == 11 and date.day == 9
+
+        # Get weather for this day
+        date_str = date.strftime('%Y-%m-%d')
+        day_weather = None
+        for forecast in weather_data.get('forecast', []):
+            if forecast['date'] == date_str:
+                day_weather = forecast
+                break
+
+        # Day header card
+        if is_birthday:
+            header_style = "background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%); color: white;"
+        elif day_weather and day_weather.get('precipitation', 0) > 50:
+            header_style = "background: linear-gradient(135deg, #74b9ff 0%, #a29bfe 100%); color: white;"
+        else:
+            header_style = "background: linear-gradient(135deg, #55efc4 0%, #74b9ff 100%); color: white;"
+
+        st.markdown(f"""
+        <div style="{header_style} padding: 1.5rem; border-radius: 12px; margin: 1.5rem 0 1rem 0; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+            <h2 style="margin: 0; color: white;">{'🎂 BIRTHDAY! ' if is_birthday else '📅 '}{date.strftime('%A, %B %d, %Y')}</h2>
+            {f'<p style="margin: 0.5rem 0 0 0; opacity: 0.95; font-size: 1.1rem;">{day_weather["condition"]} | 🌡️ {day_weather["high"]}°F | 💧 {day_weather["precipitation"]}% rain | 💨 {day_weather["wind"]} mph</p>' if day_weather else ''}
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Timeline
+        if day_activities:
+            for idx, activity in enumerate(day_activities):
+                status_class = activity['status'].lower()
+
+                # Calculate end time
+                end_time = None
+                if activity.get('duration'):
+                    end_time = calculate_end_time(activity['time'], activity['duration'])
+
+                # Format time display
+                time_display = activity['time']
+                if end_time:
+                    time_display = f"{activity['time']} - {end_time}"
+
+                # Check for gap before this activity
+                if idx > 0:
+                    prev_activity = day_activities[idx - 1]
+                    if prev_activity.get('duration'):
+                        prev_end_time = calculate_end_time(prev_activity['time'], prev_activity['duration'])
+                        if prev_end_time:
+                            try:
+                                prev_end_obj = datetime.strptime(prev_end_time, "%I:%M %p")
+                                curr_start_obj = datetime.strptime(activity['time'], "%I:%M %p")
+                                gap_minutes = (curr_start_obj - prev_end_obj).total_seconds() / 60
+
+                                if gap_minutes > 60:  # More than 1 hour gap
+                                    st.markdown(f"""
+                                    <div style="background: #f0f9ff; border-left: 4px solid #4ecdc4; padding: 1rem; margin: 0.5rem 0; border-radius: 8px;">
+                                        <p style="margin: 0; color: #636e72;">💡 <strong>Free Time:</strong> {round(gap_minutes/60, 1)}h gap ({prev_end_time} - {activity['time']})</p>
+                                    </div>
+                                    """, unsafe_allow_html=True)
+                            except:
+                                pass
+
+                # Custom activity badge
+                custom_badge = ""
+                if activity.get('is_custom', False):
+                    custom_badge = '<span style="background: #74b9ff; color: white; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem; margin-left: 0.5rem;">➕ Custom</span>'
+
+                # Activity card
+                st.markdown(f"""
+                <div class="timeline-item {status_class}" style="margin: 1rem 0;">
+                    <div class="ultimate-card">
+                        <div class="card-body">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                                <h4 style="margin: 0;">{activity['activity']} {custom_badge}</h4>
+                                <span class="status-{status_class}">{activity['status']}</span>
                             </div>
+                            <p style="margin: 0.5rem 0;"><b>🕐 {time_display}</b> {f'({activity["duration"]})' if activity.get('duration') else ''}</p>
+                            <p style="margin: 0.5rem 0;">📍 {activity['location']['name']}</p>
+                            <p style="margin: 0.5rem 0;">📞 {mask_info(activity['location'].get('phone', 'N/A'), show_sensitive)}</p>
+                            <p style="margin: 0.5rem 0;">💰 {"$" + str(activity['cost']) if show_sensitive else "$***"}</p>
+                            <p style="margin: 0.5rem 0; font-style: italic;">{mask_info(activity['notes'], show_sensitive)}</p>
                         </div>
                     </div>
-                    """, unsafe_allow_html=True)
+                </div>
+                """, unsafe_allow_html=True)
 
-                    # Display additional details (dress code, what to bring, tips) below the card
-                    if activity.get('dress_code'):
-                        st.markdown(f"**👔 Dress Code:** {activity['dress_code']}")
+                # Display additional details (dress code, what to bring, tips) below the card
+                if activity.get('dress_code'):
+                    st.markdown(f"**👔 Dress Code:** {activity['dress_code']}")
 
-                    if activity.get('what_to_bring'):
-                        st.markdown("**🎒 What to Bring:**")
-                        items = activity['what_to_bring']
-                        if isinstance(items, list):
-                            for item in items:
-                                st.markdown(f"- {item}")
-                        else:
-                            st.markdown(f"- {items}")
+                if activity.get('what_to_bring'):
+                    st.markdown("**🎒 What to Bring:**")
+                    items = activity['what_to_bring']
+                    if isinstance(items, list):
+                        for item in items:
+                            st.markdown(f"- {item}")
+                    else:
+                        st.markdown(f"- {items}")
 
-                    if activity.get('tips'):
-                        tips = activity['tips']
-                        if isinstance(tips, list):
-                            st.markdown("**💡 Tips:**")
-                            for tip in tips:
-                                st.markdown(f"- {tip}")
-                        elif isinstance(tips, str):
-                            st.info(f"💡 **Tip:** {tips}")
-                
-                st.markdown('</div>', unsafe_allow_html=True)
-            else:
-                st.info("No scheduled activities - free day!")
+                if activity.get('tips'):
+                    tips = activity['tips']
+                    if isinstance(tips, list):
+                        st.markdown("**💡 Tips:**")
+                        for tip in tips:
+                            st.markdown(f"- {tip}")
+                    elif isinstance(tips, str):
+                        st.info(f"💡 **Tip:** {tips}")
+
+        else:
+            st.info("No scheduled activities - free day!")
+
+        st.markdown("---")
 
 def render_budget(df, show_sensitive):
     """Budget tracker"""
@@ -2445,6 +3401,168 @@ def render_explore_activities():
 
     st.markdown("---")
 
+    # AI AUTO-SCHEDULER - Generate complete day schedules
+    st.markdown("### 🤖 AI Auto-Scheduler")
+
+    st.markdown("""
+    <div class="info-box" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+        <h4 style="margin: 0; color: white;">🚀 Let AI Build Your Perfect Day</h4>
+        <p style="margin: 0.5rem 0 0 0; opacity: 0.95;">Select a day and let our AI generate a complete optimized schedule with breakfast, activities, lunch, and dinner!</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    auto_col1, auto_col2 = st.columns([2, 1])
+
+    with auto_col1:
+        selected_date_for_ai = st.selectbox(
+            "📅 Select Day to Auto-Fill",
+            ["2025-11-07", "2025-11-08", "2025-11-09", "2025-11-10", "2025-11-11", "2025-11-12"],
+            format_func=lambda x: {
+                "2025-11-07": "Friday, Nov 7 - Arrival Day",
+                "2025-11-08": "Saturday, Nov 8",
+                "2025-11-09": "Sunday, Nov 9 - 🎂 BIRTHDAY!",
+                "2025-11-10": "Monday, Nov 10",
+                "2025-11-11": "Tuesday, Nov 11",
+                "2025-11-12": "Wednesday, Nov 12 - Departure Day"
+            }.get(x, x)
+        )
+
+    with auto_col2:
+        if st.button("✨ Generate AI Schedule", use_container_width=True, type="primary"):
+            with st.spinner("🤖 AI analyzing weather, tides, ratings, and generating optimal schedule..."):
+                tide_data = get_tide_data()
+
+                # Generate schedule
+                recommendations = ai_auto_scheduler(
+                    selected_date_for_ai,
+                    activities_data,
+                    weather_data,
+                    tide_data
+                )
+
+                if recommendations:
+                    st.success(f"✅ Generated {len(recommendations)} activity recommendations!")
+
+                    # Show recommendations and allow adding
+                    st.markdown("#### 🎯 AI Recommendations:")
+
+                    for rec in recommendations:
+                        activity = rec['activity']
+
+                        # Activity card
+                        st.markdown(f"""
+                        <div style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+                                    padding: 1.5rem;
+                                    border-radius: 12px;
+                                    border-left: 4px solid #f5576c;
+                                    margin: 1rem 0;
+                                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <h4 style="margin: 0; color: #f5576c;">⏰ {rec['time']} - {activity['name']}</h4>
+                            <p style="margin: 0.75rem 0; color: #636e72; line-height: 1.6;">{activity.get('description', '')}</p>
+                            <p style="margin: 0.5rem 0; font-style: italic; color: #2ecc71;">✨ {rec['reason']}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+
+                        # Quick details
+                        detail_col1, detail_col2, detail_col3 = st.columns(3)
+                        with detail_col1:
+                            st.markdown(f"**💰 Cost:** {activity.get('cost_range', 'N/A')}")
+                        with detail_col2:
+                            st.markdown(f"**⏱️ Duration:** {rec['duration']}")
+                        with detail_col3:
+                            st.markdown(f"**⭐ Rating:** {activity.get('rating', 'N/A')}")
+
+                        # Add button for this recommendation
+                        if st.button(f"➕ Add to Schedule", key=f"ai_add_{selected_date_for_ai}_{rec['time']}_{activity['name']}", use_container_width=True):
+                            # Determine activity type
+                            activity_type = rec['type']
+
+                            # Extract cost
+                            cost = 0
+                            cost_str = activity.get('cost_range', '$0')
+                            try:
+                                cost = int(re.findall(r'\d+', cost_str.split('-')[0])[0])
+                            except:
+                                cost = 0
+
+                            # Day mapping
+                            date_to_day = {
+                                "2025-11-07": "Friday, Nov 7",
+                                "2025-11-08": "Saturday, Nov 8",
+                                "2025-11-09": "Sunday, Nov 9",
+                                "2025-11-10": "Monday, Nov 10",
+                                "2025-11-11": "Tuesday, Nov 11",
+                                "2025-11-12": "Wednesday, Nov 12"
+                            }
+                            selected_day = date_to_day.get(selected_date_for_ai)
+
+                            # Add to schedule
+                            success = add_activity_to_schedule(
+                                activity_name=activity['name'],
+                                activity_description=activity.get('description', ''),
+                                selected_day=selected_day,
+                                selected_time=rec['time'],
+                                duration=rec['duration'],
+                                activity_type=activity_type,
+                                cost=cost,
+                                location_name=activity.get('name', 'TBD')
+                            )
+
+                            if success:
+                                st.success(f"✅ Added {activity['name']} to schedule!")
+                                st.balloons()
+                                st.rerun()
+
+                        st.markdown("---")
+
+                    # Add all button
+                    if st.button("➕ Add All AI Recommendations", use_container_width=True, type="secondary"):
+                        added_count = 0
+
+                        for rec in recommendations:
+                            activity = rec['activity']
+                            activity_type = rec['type']
+
+                            cost = 0
+                            cost_str = activity.get('cost_range', '$0')
+                            try:
+                                cost = int(re.findall(r'\d+', cost_str.split('-')[0])[0])
+                            except:
+                                cost = 0
+
+                            date_to_day = {
+                                "2025-11-07": "Friday, Nov 7",
+                                "2025-11-08": "Saturday, Nov 8",
+                                "2025-11-09": "Sunday, Nov 9",
+                                "2025-11-10": "Monday, Nov 10",
+                                "2025-11-11": "Tuesday, Nov 11",
+                                "2025-11-12": "Wednesday, Nov 12"
+                            }
+                            selected_day = date_to_day.get(selected_date_for_ai)
+
+                            success = add_activity_to_schedule(
+                                activity_name=activity['name'],
+                                activity_description=activity.get('description', ''),
+                                selected_day=selected_day,
+                                selected_time=rec['time'],
+                                duration=rec['duration'],
+                                activity_type=activity_type,
+                                cost=cost,
+                                location_name=activity.get('name', 'TBD')
+                            )
+
+                            if success:
+                                added_count += 1
+
+                        if added_count > 0:
+                            st.success(f"✅ Added all {added_count} recommendations to your schedule!")
+                            st.balloons()
+                            st.rerun()
+                else:
+                    st.info("This day already has a full schedule! AI auto-scheduler skipped.")
+
+    st.markdown("---")
+
     # Filter options
     st.markdown("### 🔍 Filter Activities")
 
@@ -2539,8 +3657,44 @@ def render_explore_activities():
                         if st.button(f"➕ Add to Schedule",
                                    key=f"add_{category}_{idx}",
                                    use_container_width=True):
-                            st.success(f"✅ Added {activity['name']} to {selected_day} at {selected_time}")
-                            st.info("💡 Activity added to your trip notes!")
+                            if selected_time:
+                                # Determine activity type from category
+                                activity_type = 'activity'
+                                if '🍽️' in category or 'Dining' in category:
+                                    activity_type = 'dining'
+                                elif '🏖️' in category or 'Beach' in category:
+                                    activity_type = 'beach'
+                                elif '💆' in category or 'Spa' in category:
+                                    activity_type = 'spa'
+
+                                # Extract cost for tracking
+                                cost = 0
+                                cost_str = activity.get('cost_range', '$0')
+                                try:
+                                    cost = int(re.findall(r'\d+', cost_str.split('-')[0])[0])
+                                except:
+                                    cost = 0
+
+                                # Add to schedule
+                                success = add_activity_to_schedule(
+                                    activity_name=activity['name'],
+                                    activity_description=activity.get('description', ''),
+                                    selected_day=selected_day,
+                                    selected_time=selected_time,
+                                    duration=custom_duration,
+                                    activity_type=activity_type,
+                                    cost=cost,
+                                    location_name=activity.get('name', 'TBD')
+                                )
+
+                                if success:
+                                    st.success(f"✅ Added {activity['name']} to {selected_day} at {selected_time}!")
+                                    st.info("💡 View your updated schedule on the Full Schedule page!")
+                                    st.balloons()
+                                else:
+                                    st.error("❌ Failed to add activity. Please try again.")
+                            else:
+                                st.warning("⚠️ Please select a time first!")
 
                     st.markdown("---")
 
@@ -2666,8 +3820,44 @@ def render_explore_activities():
                             if st.button(f"➕ Add {activity['name']} to Schedule",
                                        key=f"add_{gap['description']}_{i}",
                                        use_container_width=True):
-                                st.success(f"✅ Added {activity['name']} to {selected_day} at {selected_time} ({custom_duration})")
-                                st.info("💡 This activity has been added to your trip notes. Use the Full Schedule page to see all your plans!")
+                                if selected_time:
+                                    # Extract cost for tracking
+                                    cost = 0
+                                    cost_str = activity.get('cost_range', '$0')
+                                    try:
+                                        cost = int(re.findall(r'\d+', cost_str.split('-')[0])[0])
+                                    except:
+                                        cost = 0
+
+                                    # Determine activity type
+                                    activity_type = 'activity'
+                                    if 'dining' in activity.get('name', '').lower() or 'restaurant' in activity.get('name', '').lower():
+                                        activity_type = 'dining'
+                                    elif 'beach' in activity.get('name', '').lower():
+                                        activity_type = 'beach'
+                                    elif 'spa' in activity.get('name', '').lower() or 'massage' in activity.get('name', '').lower():
+                                        activity_type = 'spa'
+
+                                    # Add to schedule
+                                    success = add_activity_to_schedule(
+                                        activity_name=activity['name'],
+                                        activity_description=activity.get('description', ''),
+                                        selected_day=selected_day,
+                                        selected_time=selected_time,
+                                        duration=custom_duration,
+                                        activity_type=activity_type,
+                                        cost=cost,
+                                        location_name=activity.get('name', 'TBD')
+                                    )
+
+                                    if success:
+                                        st.success(f"✅ Added {activity['name']} to {selected_day} at {selected_time}!")
+                                        st.info("💡 View your updated schedule on the Full Schedule page!")
+                                        st.balloons()
+                                    else:
+                                        st.error("❌ Failed to add activity. Please try again.")
+                                else:
+                                    st.warning("⚠️ Please select a time first!")
 
                         st.markdown("---")
 
