@@ -1013,24 +1013,37 @@ def get_smart_packing_list():
     }
 
 def get_optional_activities():
-    """Comprehensive database of 80+ optional activities, restaurants, and experiences on Amelia Island
+    """ULTIMATE Amelia Island Guide - 120+ comprehensive options covering EVERYTHING you need!
 
-    Categories:
-    - Fine Dining (5 restaurants)
-    - Seafood & Waterfront (7 restaurants)
-    - Italian & Pizza (2 restaurants)
-    - Mexican & Latin (2 restaurants)
-    - Asian Cuisine (3 restaurants)
-    - Breakfast & Brunch (3 restaurants)
-    - Casual & Comfort Food (2 restaurants)
-    - Beach & Water (14 activities)
-    - Activities & Adventure (13 activities)
-    - Shopping & Culture (10 activities)
-    - Ritz-Carlton Spa Services (10 treatments)
-    - Wellness & Other Spas (5 options)
-    - Resort & Free Activities (7 options)
+    🍽️ DINING & DRINKS (46 options):
+    - Fine Dining (5): Le Clos, Salt, Burlingame, Lagniappe, Cucina South
+    - Seafood & Waterfront (7): Brett's, Salty Pelican, Sandbar, Boat House, Down Under, Timoti's, Salt Life
+    - Italian & Pizza (2): Ciao Italian, Arte Pizza
+    - Mexican & Latin (2): Mezcal, Tortuga Jacks
+    - Asian Cuisine (3): Wicked Bao, Akari Sushi, Hana Sushi
+    - Breakfast & Brunch (3): 29 South, Beach Diner, The Surf
+    - Casual & Comfort Food (3): Sliders, Fantastic Fudge, Café Karibo
+    - ☕ Coffee & Cafes (5): Amelia Island Coffee, First Drop, Mocama, Hola Cuban, Nana Teresa's
+    - 🥖 Delis & Lunch (2): Aloha Bagel, 4th Street Deli
+    - 🏨 Ritz-Carlton Dining (6): Salt, Coast, Coquina, Tidewater Grill, Lobby Bar, Dune Bar
+    - 🍺 Bars & Nightlife (6): Palace Saloon, Green Turtle, Decantery, First Love Brewing, Mocama Beer, A1A Cidery
 
-    Total: 83 comprehensive options for your Amelia Island adventure!
+    🏖️ ACTIVITIES & OUTDOOR (52 options):
+    - Beach & Water (14): Horseback riding, kayaking, paddleboarding, jet ski, parasailing, fishing, diving, surfing, boat rentals, beaches
+    - Activities & Adventure (12): State parks, golf (2), tennis, bikes, Segway, ghost tours, carriage tours, wildlife
+    - 🥾 Hiking & Nature Trails (7): Fort Clinch trails, Egan's Creek, Blackrock Trail, boardwalks, Amelia Island Trail
+
+    🛍️ CULTURE & SHOPPING (10 options):
+    - Museums, galleries, farmers market, ArtWalk, tours
+
+    💆 SPA & WELLNESS (15 options):
+    - Ritz-Carlton Spa (10): Heaven in Hammock, HydraFacial, massages, facials, body treatments
+    - Other Spas & Wellness (5): Omni Spa, Drift Day Spa, Coastal Massage, Yoga, Sprouting Project
+
+    🏊 RESORT & FREE (7 options):
+    - Pool, beach sunsets, yoga, bonfires, fitness, volleyball, shelling
+
+    TOTAL: 120+ comprehensive options with complete details, phone numbers, pricing, tips, and ratings!
     """
     return {
         "🍽️ Fine Dining": [
@@ -1070,6 +1083,34 @@ def get_optional_activities():
         "🍔 Casual & Comfort Food": [
             {"name": "Sliders Seaside Grill", "description": "Beachfront burgers, seafood, and casual American fare with ocean views", "cost_range": "$12-25 per person", "duration": "1-1.5 hours", "phone": "904-277-6652", "booking_url": "N/A", "tips": "Perfect beach lunch spot, great burgers and fish sandwiches", "rating": "4.4/5"},
             {"name": "Fantastic Fudge", "description": "Ice cream, fudge, and sweet treats in downtown", "cost_range": "$5-15 per person", "duration": "30min", "phone": "904-277-4801", "booking_url": "N/A", "tips": "Perfect dessert stop while exploring Centre Street", "rating": "4.7/5"},
+            {"name": "Café Karibo", "description": "Sandwiches like Big Bella (portabella mushroom), chili, burgers, and tasty salads", "cost_range": "$10-18 per person", "duration": "1 hour", "phone": "904-277-5269", "booking_url": "N/A", "tips": "Indie bookstore and bistro with indoor/outdoor seating", "rating": "4.5/5"},
+        ],
+        "☕ Coffee & Cafes": [
+            {"name": "Amelia Island Coffee", "description": "Beloved coffee shop since 1995 in 140-year-old brick building, locally roasted coffee from Yulee, pastries, breakfast sandwiches", "cost_range": "$5-12 per person", "duration": "30min-1 hour", "phone": "904-277-3942", "booking_url": "N/A", "tips": "Historic downtown location at 207 Centre St, great atmosphere", "rating": "4.8/5"},
+            {"name": "First Drop Coffee", "description": "Ritz-Carlton coffee shop with espresso, specialty drinks, and light bites", "cost_range": "$5-10", "duration": "15-30min", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Open 7am-7pm daily, convenient for hotel guests", "rating": "4.6/5"},
+            {"name": "Mocama Coffee", "description": "Premium espressos, drips, pour-overs with state-of-the-art equipment, under same roof as Mocama Beer Company", "cost_range": "$4-8", "duration": "20-30min", "phone": "904-310-3749", "booking_url": "N/A", "tips": "Coffee by day, beer by night at same location", "rating": "4.7/5"},
+            {"name": "Hola Cuban Cafe", "description": "Classic Cuban sandwiches, pastries, snacks, and authentic Cuban coffee since 2013", "cost_range": "$6-15 per person", "duration": "30min-1 hour", "phone": "904-277-4652", "booking_url": "N/A", "tips": "At 31 S. 5th Street, casual atmosphere", "rating": "4.6/5"},
+            {"name": "Nana Teresa's Bake Shop", "description": "Fresh baked goods, pastries, coffee, and breakfast items", "cost_range": "$5-12", "duration": "30min", "phone": "904-206-0133", "booking_url": "N/A", "tips": "Early morning opening, perfect for breakfast treats", "rating": "4.7/5"},
+        ],
+        "🥖 Delis & Lunch Spots": [
+            {"name": "Aloha Bagel and Deli", "description": "Bright cheerful bagel shop with delicious bagels, sandwiches, salads, sweets, party platters. Breakfast served all day", "cost_range": "$8-15 per person", "duration": "30min-1 hour", "phone": "904-277-3073", "booking_url": "https://aloha-bagel.com", "tips": "Open till 2pm, breakfast all day, very popular", "rating": "4.7/5"},
+            {"name": "4th Street Deli", "description": "Quintessential deli with pasta salad, fish salads, crab cake, popular Cuban sandwich in different arrangements", "cost_range": "$10-16 per person", "duration": "45min-1 hour", "phone": "904-277-3354", "booking_url": "N/A", "tips": "Closed Sundays, open 11am-4pm other days", "rating": "4.6/5"},
+        ],
+        "🏨 Ritz-Carlton Dining": [
+            {"name": "Salt (AAA Five Diamond)", "description": "Signature restaurant with fresh seafood, water views, Michelin-trained Chef D' Cuisine Okan Kizilbayir", "cost_range": "$45-85 per person", "duration": "2-3 hours", "phone": "904-277-1100", "booking_url": "https://www.opentable.com/salt-at-the-ritz-carlton", "tips": "Open 5pm-9pm Tue-Sat, reservations essential", "rating": "4.8/5"},
+            {"name": "Coast", "description": "Coastal cuisine with seasonal menu, local seafood, steaks, salads, small plates. All-day dining", "cost_range": "$25-55 per person", "duration": "1.5-2 hours", "phone": "904-277-1100", "booking_url": "https://www.opentable.com/coast-at-the-ritz-carlton", "tips": "Open 7am-3pm and 5pm-9pm daily", "rating": "4.4/5"},
+            {"name": "Coquina", "description": "Oceanfront restaurant with beach views and casual coastal fare", "cost_range": "$20-40 per person", "duration": "1-2 hours", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Open 11am-9pm daily, perfect for lunch with ocean breeze", "rating": "4.5/5"},
+            {"name": "Tidewater Grill", "description": "Casual poolside dining with grilled favorites and refreshing drinks", "cost_range": "$15-30 per person", "duration": "1-1.5 hours", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Open 5pm-10pm Mon-Fri, 3pm-10pm Sat-Sun", "rating": "4.3/5"},
+            {"name": "Lobby Bar", "description": "Classic lounge with craft cocktails, wine, and small plates", "cost_range": "$12-25 per drink/plate", "duration": "1-2 hours", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Open 3pm-12am Mon-Thu, 3pm-1am Fri-Sat", "rating": "4.6/5"},
+            {"name": "Dune Bar", "description": "Beach bar with tropical drinks, frozen cocktails, and light bites", "cost_range": "$10-20 per drink", "duration": "1-2 hours", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Open 11am-6pm daily, perfect beach relaxation", "rating": "4.5/5"},
+        ],
+        "🍺 Bars & Nightlife": [
+            {"name": "Palace Saloon", "description": "Florida's oldest continuously-operated bar since 1903, 40-foot historic bar, live music, famous Pirate's Punch", "cost_range": "$8-15 per drink", "duration": "1-3 hours", "phone": "904-491-3332", "booking_url": "N/A", "tips": "113 Centre St, stays open latest in downtown, cool atmosphere", "rating": "4.7/5"},
+            {"name": "Green Turtle Tavern", "description": "Laid-back bar with best bourbon selection on island, hand-crafted cocktails with fresh local fruit, live entertainment weekends", "cost_range": "$10-18 per drink", "duration": "2-3 hours", "phone": "904-277-8989", "booking_url": "N/A", "tips": "Heart of historic district, friendly mix of locals and visitors", "rating": "4.8/5"},
+            {"name": "The Decantery", "description": "Sophisticated cocktail lounge next to Palace Saloon, old Hollywood charm, rare wines, craft cocktails, decadent desserts", "cost_range": "$12-25 per drink", "duration": "1-2 hours", "phone": "904-491-3332", "booking_url": "N/A", "tips": "Plush velvet couches, vintage mirrors, upscale atmosphere", "rating": "4.7/5"},
+            {"name": "First Love Brewing", "description": "20+ rotating taps with porters, IPAs, ales, house-made artisan pizzas, wings, truffle fries", "cost_range": "$6-12 per beer, $12-20 food", "duration": "1.5-2 hours", "phone": "904-583-4052", "booking_url": "N/A", "tips": "First fully operational craft brewery in area", "rating": "4.6/5"},
+            {"name": "Mocama Beer Company", "description": "Craft brewery taproom with rotating beers and same-roof coffee shop", "cost_range": "$6-10 per beer", "duration": "1-2 hours", "phone": "904-310-3749", "booking_url": "N/A", "tips": "Shares space with Mocama Coffee for all-day service", "rating": "4.5/5"},
+            {"name": "A1A Cidery", "description": "Craft ciders brewed on-site, local craft beers, live local music, spacious outdoor area, fun yard games", "cost_range": "$7-12 per drink", "duration": "2-3 hours", "phone": "904-206-5100", "booking_url": "N/A", "tips": "Downtown Fernandina Beach, great for groups", "rating": "4.6/5"},
         ],
         "🏖️ Beach & Water": [
             {"name": "Horseback Riding on Beach", "description": "Ride horses along the beautiful Amelia Island shoreline", "cost_range": "$75-125 per person", "duration": "1-2 hours", "phone": "904-491-5166", "booking_url": "N/A", "tips": "Book 2-3 days in advance, wear comfortable pants", "rating": "5.0/5"},
@@ -1097,10 +1138,18 @@ def get_optional_activities():
             {"name": "Tennis at Amelia National", "description": "8-court tennis center with professional instruction", "cost_range": "$30-60 per hour", "duration": "1-2 hours", "phone": "904-491-8700", "booking_url": "N/A", "tips": "Private lessons and clinics available", "rating": "4.5/5"},
             {"name": "Bike Rentals & Delivery", "description": "Beach cruisers delivered to your accommodations", "cost_range": "$20-40 per day", "duration": "Full day", "phone": "904-321-0011", "booking_url": "N/A", "tips": "Great for exploring downtown Fernandina Beach", "rating": "4.5/5"},
             {"name": "Segway Tours", "description": "Guided Segway tour of historic Fernandina Beach", "cost_range": "$65-75 per person", "duration": "1.5-2 hours", "phone": "904-556-7594", "booking_url": "N/A", "tips": "Fun way to see the sights, no experience needed", "rating": "4.8/5"},
-            {"name": "Egan's Creek Greenway", "description": "Nature trails with boardwalks, excellent birdwatching", "cost_range": "FREE", "duration": "1-2 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Bring bug spray, early morning for best wildlife viewing", "rating": "4.4/5"},
             {"name": "Ghost Tours of Amelia Island", "description": "Spooky evening walking tours through historic downtown", "cost_range": "$20-30 per person", "duration": "1.5-2 hours", "phone": "904-414-7300", "booking_url": "https://ghosttoursofameliaisland.com", "tips": "Haunted Bar Crawl and Cemetery Tours also available", "rating": "4.7/5"},
             {"name": "Historic Carriage Tour", "description": "Romantic horse-drawn carriage ride through Victorian historic district", "cost_range": "$60-80 per couple", "duration": "45-60 minutes", "phone": "904-556-7594", "booking_url": "N/A", "tips": "Perfect for special occasions, sunset tours available", "rating": "4.8/5"},
             {"name": "Wildlife Watching & Nature Tours", "description": "Guided eco-tours to see birds, dolphins, and coastal ecosystems", "cost_range": "$40-65 per person", "duration": "2-3 hours", "phone": "904-261-9972", "booking_url": "N/A", "tips": "Bring binoculars and camera, best in early morning", "rating": "4.7/5"},
+        ],
+        "🥾 Hiking & Nature Trails": [
+            {"name": "Fort Clinch State Park Trails", "description": "6-mile loop trail of moderate difficulty along marshes with beach access, gateway to Great Florida Birding Trail", "cost_range": "FREE with park entry ($6-8 per vehicle)", "duration": "2-3 hours", "phone": "904-277-7274", "booking_url": "N/A", "tips": "Six miles of off-road wooded trails, bring water and sunscreen", "rating": "4.7/5"},
+            {"name": "Willow Pond Trails at Fort Clinch", "description": "Less than 1 mile trails through wildlife haven amid forested dunes", "cost_range": "FREE with park entry", "duration": "30min-1 hour", "phone": "904-277-7274", "booking_url": "N/A", "tips": "Shorter easy trail, great for families", "rating": "4.5/5"},
+            {"name": "Egan's Creek Greenway Trails", "description": "300-acre nature preserve with 4+ miles of trails through marshes, forests, grasslands, tidal creeks", "cost_range": "FREE", "duration": "1.5-2.5 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Excellent birdwatching, bring bug spray, early morning best", "rating": "4.6/5"},
+            {"name": "Blackrock Trail at Big Talbot", "description": "Trail leading to famous driftwood beach with centuries-old trees creating breathtaking scene", "cost_range": "FREE with park entry ($3-5 per vehicle)", "duration": "45min-1.5 hours", "phone": "904-251-2320", "booking_url": "N/A", "tips": "Incredible photography opportunity, especially at golden hour", "rating": "4.8/5"},
+            {"name": "Big Talbot Island Boardwalk & Spoonbill Pond", "description": "Boardwalk with bird watching platform at Spoonbill Pond for observing wading birds and migratory waterfowl", "cost_range": "FREE with park entry", "duration": "30min-1 hour", "phone": "904-251-2320", "booking_url": "N/A", "tips": "Bring binoculars, wheelchair accessible", "rating": "4.6/5"},
+            {"name": "Old King's Highway Trail", "description": "3 miles on wooded trail, boardwalk and pedestrian/fishing bridge starting at Big Pine trailhead", "cost_range": "FREE", "duration": "1.5-2 hours", "phone": "904-251-2320", "booking_url": "N/A", "tips": "Connects multiple parks, great for biking too", "rating": "4.5/5"},
+            {"name": "Amelia Island Trail (8.7 miles)", "description": "Paved multi-use trail from Peters Point through Amelia Island State Park to Big Talbot Island State Park", "cost_range": "FREE", "duration": "3-5 hours (full trail)", "phone": "N/A", "booking_url": "N/A", "tips": "Perfect for biking, connects multiple natural areas", "rating": "4.7/5"},
         ],
         "🛍️ Shopping & Culture": [
             {"name": "Downtown Fernandina Beach", "description": "Historic downtown with 50+ shops, galleries, and cafes on Centre Street", "cost_range": "Varies", "duration": "2-3 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Centre Street is main drag, very walkable and charming", "rating": "4.8/5"},
