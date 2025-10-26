@@ -1077,10 +1077,12 @@ def get_ultimate_trip_data():
             "aadvantage_number": "Y36****",
             "departure_time": "3:51 PM",
             "arrival_time": "6:01 PM",
+            "estimated_flight_arrival": "6:01 PM",
+            "estimated_hotel_arrival": "8:00 PM",
             "duration": "2h 10m",
             "checked_bags": "2 free bags",
             "what_to_bring": ["ID", "Boarding pass", "Phone charger", "Snacks for flight"],
-            "tips": ["Arrive 2 hours early", "TSA PreCheck available", "Download AA app", "Check in 24 hours early via AA app", "Business class includes complimentary meals"],
+            "tips": ["Arrive 2 hours early", "TSA PreCheck available", "Download AA app", "Check in 24 hours early via AA app", "Business class includes complimentary meals", "Allow ~2 hours for baggage claim, rental car, and 45 min drive to hotel"],
             "priority": 3
         },
         {
@@ -5296,8 +5298,13 @@ def render_johns_page(df, activities_data, show_sensitive):
                     # Replace confusing language in spa notes
                     activity_notes = activity_notes.replace('John can pay for this if he wants', 'Michael will be at the spa')
                     activity_notes = activity_notes.replace('you\'re getting pampered', 'Michael is getting pampered')
-                    if not activity_notes.endswith('Enjoy your free time!'):
-                        activity_notes += ' This is your free time to relax!'
+                    if activity_notes and not activity_notes.endswith('Enjoy your free time!'):
+                        activity_notes += ' Enjoy your free time!'
+
+                # Build duration text (fixes nested f-string issue)
+                duration_text = ""
+                if activity.get('duration'):
+                    duration_text = f"• {activity.get('duration', '')}"
 
                 st.markdown(f"""
                 <div class="ultimate-card" style="border-left: 4px solid {border_color}; margin-bottom: 1rem;">
@@ -5305,7 +5312,7 @@ def render_johns_page(df, activities_data, show_sensitive):
                         <div style="display: flex; justify-content: space-between; align-items: start;">
                             <div style="flex: 1;">
                                 <h4 style="margin: 0 0 0.5rem 0;">{activity_name}</h4>
-                                <p style="margin: 0.25rem 0;"><strong>⏰ {activity['time']}</strong> {f"• {activity.get('duration', '')}" if activity.get('duration') else ""}</p>
+                                <p style="margin: 0.25rem 0;"><strong>⏰ {activity['time']}</strong> {duration_text}</p>
                                 <p style="margin: 0.25rem 0;">📍 {activity['location']['name']}</p>
                                 <p style="margin: 0.5rem 0; font-style: italic; font-size: 0.9rem;">{activity_notes}</p>
                             </div>
