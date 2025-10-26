@@ -4783,6 +4783,49 @@ def render_full_schedule(df, activities_data, show_sensitive):
     for date in dates:
         # Day header with weather
         day_activities = [a for a in activities_data if pd.to_datetime(a['date']).date() == date]
+
+        # Add confirmed meals to the day's activities
+        date_str = date.strftime('%Y-%m-%d')
+        meal_slots = [
+            {"id": "fri_dinner", "date": "2025-11-07", "time": "7:00 PM"},
+            {"id": "sat_breakfast", "date": "2025-11-08", "time": "9:00 AM"},
+            {"id": "sat_lunch", "date": "2025-11-08", "time": "12:30 PM"},
+            {"id": "sun_breakfast", "date": "2025-11-09", "time": "9:00 AM"},
+            {"id": "sun_lunch", "date": "2025-11-09", "time": "12:30 PM"},
+            {"id": "mon_breakfast", "date": "2025-11-10", "time": "9:00 AM"},
+            {"id": "mon_lunch", "date": "2025-11-10", "time": "12:30 PM"},
+            {"id": "mon_dinner", "date": "2025-11-10", "time": "7:00 PM"},
+            {"id": "tue_breakfast", "date": "2025-11-11", "time": "8:00 AM"},
+        ]
+
+        for meal_slot in meal_slots:
+            if meal_slot['date'] == date_str:
+                proposal = get_meal_proposal(meal_slot['id'])
+                if proposal and proposal['status'] == 'confirmed':
+                    final_idx = proposal.get('final_choice')
+                    if final_idx is not None and final_idx < len(proposal['restaurant_options']):
+                        final_restaurant = proposal['restaurant_options'][final_idx]
+                        rest_details = get_restaurant_details().get(final_restaurant['name'], {})
+
+                        # Create a meal activity
+                        meal_activity = {
+                            'id': f"meal_{meal_slot['id']}",
+                            'date': date_str,
+                            'time': meal_slot['time'],
+                            'activity': f"🍽️ {final_restaurant['name']}",
+                            'description': final_restaurant.get('description', ''),
+                            'type': 'dining',
+                            'category': 'Dining',
+                            'duration': final_restaurant.get('duration', '1-2 hours'),
+                            'cost': final_restaurant.get('cost_range', 'N/A'),
+                            'status': 'confirmed',
+                            'notes': f"Dress Code: {rest_details.get('dress_code', 'Casual')}\nPhone: {final_restaurant.get('phone', 'N/A')}\nBooking: {final_restaurant.get('booking_url', 'N/A')}\nMenu: {rest_details.get('menu_url', 'N/A')}",
+                            'location': {'name': final_restaurant['name'], 'address': ''},
+                            'is_meal': True,
+                            'booking_url': final_restaurant.get('booking_url', '')
+                        }
+                        day_activities.append(meal_activity)
+
         day_activities.sort(key=lambda x: x['time'])
 
         # Check if birthday
@@ -5730,6 +5773,181 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
     st.markdown("### 🌤️ Weather Forecast")
     st.info("Average: 75°F • Partly cloudy • Perfect beach weather!")
 
+    # ============ MEAL PLANNING SECTION ============
+    st.markdown("---")
+    st.markdown("### 🍽️ Meal Planning & Coordination")
+
+    st.markdown("""
+    <div class="info-box" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+        <h4 style="margin: 0; color: white;">🎯 Coordinate Meals with John</h4>
+        <p style="margin: 0.5rem 0 0 0; opacity: 0.95;">Propose 3 restaurant options for each meal. John can vote on what works for him, then finalize and add to calendar with all details!</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Get all dining restaurants
+    restaurants_dict = get_optional_activities()
+    restaurant_details = get_restaurant_details()
+
+    # Flatten all restaurant options
+    all_restaurants = []
+    for category_name, items in restaurants_dict.items():
+        if any(word in category_name.lower() for word in ['dining', 'fine dining', 'seafood', 'italian', 'mexican', 'asian', 'breakfast', 'casual', 'coffee', 'ritz-carlton dining', 'bars']):
+            all_restaurants.extend(items)
+
+    # Define meal slots
+    meal_slots = [
+        {"id": "fri_dinner", "label": "Friday Dinner (Nov 7)", "date": "2025-11-07", "time": "7:00 PM"},
+        {"id": "sat_breakfast", "label": "Saturday Breakfast (Nov 8)", "date": "2025-11-08", "time": "9:00 AM"},
+        {"id": "sat_lunch", "label": "Saturday Lunch (Nov 8)", "date": "2025-11-08", "time": "12:30 PM"},
+        {"id": "sat_dinner", "label": "Saturday Dinner (Nov 8) - Already Booked", "date": "2025-11-08", "time": "7:00 PM", "locked": True},
+        {"id": "sun_breakfast", "label": "Sunday Breakfast (Nov 9)", "date": "2025-11-09", "time": "9:00 AM"},
+        {"id": "sun_lunch", "label": "Sunday Lunch (Nov 9)", "date": "2025-11-09", "time": "12:30 PM"},
+        {"id": "sun_dinner", "label": "Sunday Dinner (Nov 9) - 🎂 BIRTHDAY!", "date": "2025-11-09", "time": "7:00 PM", "locked": True},
+        {"id": "mon_breakfast", "label": "Monday Breakfast (Nov 10)", "date": "2025-11-10", "time": "9:00 AM"},
+        {"id": "mon_lunch", "label": "Monday Lunch (Nov 10)", "date": "2025-11-10", "time": "12:30 PM"},
+        {"id": "mon_dinner", "label": "Monday Dinner (Nov 10)", "date": "2025-11-10", "time": "7:00 PM"},
+        {"id": "tue_breakfast", "label": "Tuesday Breakfast (Nov 11)", "date": "2025-11-11", "time": "8:00 AM"},
+    ]
+
+    for meal_slot in meal_slots:
+        if meal_slot.get("locked"):
+            st.info(f"✅ **{meal_slot['label']}** - Already planned!")
+            continue
+
+        st.markdown(f"#### {meal_slot['label']}")
+
+        # Get existing proposal
+        proposal = get_meal_proposal(meal_slot['id'])
+
+        if proposal and proposal['status'] == 'confirmed':
+            # Meal is confirmed - show final choice
+            final_idx = proposal.get('final_choice')
+            if final_idx is not None and final_idx < len(proposal['restaurant_options']):
+                final_restaurant = proposal['restaurant_options'][final_idx]
+                rest_details = restaurant_details.get(final_restaurant['name'], {})
+
+                st.success(f"✅ **CONFIRMED:** {final_restaurant['name']}")
+                st.markdown(f"""
+                <div class="ultimate-card" style="border-left: 4px solid #4caf50;">
+                    <div class="card-body">
+                        <p><strong>📍 Restaurant:</strong> {final_restaurant['name']}</p>
+                        <p><strong>💰 Cost:</strong> {final_restaurant.get('cost_range', 'N/A')}</p>
+                        <p><strong>👔 Dress Code:</strong> {rest_details.get('dress_code', 'Casual')}</p>
+                        <p><strong>📞 Phone:</strong> {final_restaurant.get('phone', 'N/A')}</p>
+                        <p><strong>🔗 Booking:</strong> {final_restaurant.get('booking_url', 'N/A')}</p>
+                        <p><strong>🍽️ Menu:</strong> {rest_details.get('menu_url', 'N/A')}</p>
+                        <p><strong>⏰ Time:</strong> {meal_slot['time']}</p>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                if st.button(f"🔄 Change {meal_slot['label']}", key=f"change_{meal_slot['id']}"):
+                    # Reset to proposal stage
+                    conn = sqlite3.connect(DB_FILE)
+                    cursor = conn.cursor()
+                    cursor.execute("UPDATE meal_proposals SET status = 'proposed', final_choice = NULL WHERE meal_id = ?", (meal_slot['id'],))
+                    conn.commit()
+                    conn.close()
+                    st.rerun()
+
+        elif proposal and proposal['status'] == 'voted':
+            # John has voted - show his choice
+            options = proposal['restaurant_options']
+            john_vote = proposal['john_vote']
+
+            st.info(f"🗳️ **John has voted!** Choice: {john_vote}")
+
+            for idx, restaurant in enumerate(options):
+                rest_details = restaurant_details.get(restaurant['name'], {})
+                is_johns_choice = (str(idx) == str(john_vote))
+
+                border_color = "#4caf50" if is_johns_choice else "#ddd"
+                st.markdown(f"""
+                <div class="ultimate-card" style="border-left: 4px solid {border_color};">
+                    <div class="card-body">
+                        <h4 style="margin: 0;">{'✅ ' if is_johns_choice else ''}Option {idx + 1}: {restaurant['name']}</h4>
+                        <p style="margin: 0.5rem 0;"><strong>💰</strong> {restaurant.get('cost_range', 'N/A')} | <strong>👔</strong> {rest_details.get('dress_code', 'Casual')}</p>
+                        <p style="margin: 0.5rem 0;"><strong>📞</strong> {restaurant.get('phone', 'N/A')}</p>
+                        <p style="margin: 0.5rem 0;"><strong>🔗 Booking:</strong> {restaurant.get('booking_url', 'Call to book')}</p>
+                        <p style="margin: 0.5rem 0;"><strong>🍽️ Menu:</strong> {rest_details.get('menu_url', 'N/A')}</p>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+            if john_vote == "none":
+                st.warning("❌ John said none of these work. Pick 3 new options!")
+                if st.button(f"Pick New Options for {meal_slot['label']}", key=f"repick_{meal_slot['id']}"):
+                    conn = sqlite3.connect(DB_FILE)
+                    cursor = conn.cursor()
+                    cursor.execute("DELETE FROM meal_proposals WHERE meal_id = ?", (meal_slot['id'],))
+                    conn.commit()
+                    conn.close()
+                    st.rerun()
+            else:
+                # Confirm button
+                if st.button(f"✅ Confirm & Add to Calendar", key=f"confirm_{meal_slot['id']}", type="primary"):
+                    finalize_meal_choice(meal_slot['id'], int(john_vote))
+                    st.success("Meal confirmed and added to calendar!")
+                    st.rerun()
+
+        elif proposal and proposal['status'] == 'proposed':
+            # Waiting for John's vote
+            st.warning("⏳ **Waiting for John to vote...**")
+
+            options = proposal['restaurant_options']
+            for idx, restaurant in enumerate(options):
+                rest_details = restaurant_details.get(restaurant['name'], {})
+                st.markdown(f"""
+                <div class="ultimate-card">
+                    <div class="card-body">
+                        <h4 style="margin: 0;">Option {idx + 1}: {restaurant['name']}</h4>
+                        <p style="margin: 0.5rem 0;"><strong>💰</strong> {restaurant.get('cost_range', 'N/A')} | <strong>👔</strong> {rest_details.get('dress_code', 'Casual')}</p>
+                        <p style="margin: 0.5rem 0;"><strong>📞</strong> {restaurant.get('phone', 'N/A')}</p>
+                        <p style="margin: 0.5rem 0;"><strong>🔗</strong> {restaurant.get('booking_url', 'Call to book')}</p>
+                        <p style="margin: 0.5rem 0;"><strong>🍽️ Menu:</strong> {rest_details.get('menu_url', 'N/A')}</p>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+            if st.button(f"Cancel Proposal for {meal_slot['label']}", key=f"cancel_{meal_slot['id']}"):
+                conn = sqlite3.connect(DB_FILE)
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM meal_proposals WHERE meal_id = ?", (meal_slot['id'],))
+                conn.commit()
+                conn.close()
+                st.rerun()
+
+        else:
+            # No proposal yet - create one
+            with st.expander(f"📝 **Propose 3 Options for {meal_slot['label']}**"):
+                st.markdown("**Select 3 restaurants to propose:**")
+
+                # Filter restaurants by meal type
+                meal_type = "breakfast" if "breakfast" in meal_slot['label'].lower() else ("lunch" if "lunch" in meal_slot['label'].lower() else "dinner")
+
+                restaurant_names = [r['name'] for r in all_restaurants]
+
+                option1 = st.selectbox(f"Option 1", restaurant_names, key=f"{meal_slot['id']}_opt1")
+                option2 = st.selectbox(f"Option 2", restaurant_names, key=f"{meal_slot['id']}_opt2")
+                option3 = st.selectbox(f"Option 3", restaurant_names, key=f"{meal_slot['id']}_opt3")
+
+                if st.button(f"Send Proposal to John", key=f"propose_{meal_slot['id']}", type="primary"):
+                    # Get full restaurant data
+                    selected_restaurants = []
+                    for name in [option1, option2, option3]:
+                        rest = next((r for r in all_restaurants if r['name'] == name), None)
+                        if rest:
+                            selected_restaurants.append(rest)
+
+                    if len(selected_restaurants) == 3:
+                        save_meal_proposal(meal_slot['id'], selected_restaurants)
+                        st.success(f"✅ Proposal sent! John will see these options on his page.")
+                        st.rerun()
+                    else:
+                        st.error("Please select 3 different restaurants")
+
+        st.markdown("---")
+
 
 # ============================================================================
 # JOHN'S PAGE
@@ -6187,6 +6405,104 @@ def render_johns_page(df, activities_data, show_sensitive):
             </div>
         </div>
         """, unsafe_allow_html=True)
+
+    # ============ MEAL VOTING SECTION ============
+    st.markdown("---")
+    st.markdown("### 🍽️ Vote on Meal Options")
+
+    st.markdown("""
+    <div class="info-box" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+        <h4 style="margin: 0; color: white;">🗳️ Your Input Needed!</h4>
+        <p style="margin: 0.5rem 0 0 0; opacity: 0.95;">Michael has proposed restaurant options for meals. Vote on which ones work for you!</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Get all meal proposals
+    meal_slots = [
+        {"id": "fri_dinner", "label": "Friday Dinner (Nov 7)"},
+        {"id": "sat_breakfast", "label": "Saturday Breakfast (Nov 8)"},
+        {"id": "sat_lunch", "label": "Saturday Lunch (Nov 8)"},
+        {"id": "sun_breakfast", "label": "Sunday Breakfast (Nov 9)"},
+        {"id": "sun_lunch", "label": "Sunday Lunch (Nov 9)"},
+        {"id": "mon_breakfast", "label": "Monday Breakfast (Nov 10)"},
+        {"id": "mon_lunch", "label": "Monday Lunch (Nov 10)"},
+        {"id": "mon_dinner", "label": "Monday Dinner (Nov 10)"},
+        {"id": "tue_breakfast", "label": "Tuesday Breakfast (Nov 11)"},
+    ]
+
+    restaurant_details = get_restaurant_details()
+    has_proposals = False
+
+    for meal_slot in meal_slots:
+        proposal = get_meal_proposal(meal_slot['id'])
+
+        if proposal and proposal['status'] == 'proposed':
+            has_proposals = True
+            st.markdown(f"#### {meal_slot['label']}")
+            st.markdown("**Michael proposed these 3 options. Which works for you?**")
+
+            options = proposal['restaurant_options']
+
+            # Display options
+            for idx, restaurant in enumerate(options):
+                rest_details = restaurant_details.get(restaurant['name'], {})
+                st.markdown(f"""
+                <div class="ultimate-card">
+                    <div class="card-body">
+                        <h4 style="margin: 0 0 0.5rem 0;">Option {idx + 1}: {restaurant['name']}</h4>
+                        <p style="margin: 0.25rem 0;"><strong>📝 Description:</strong> {restaurant.get('description', 'N/A')}</p>
+                        <p style="margin: 0.25rem 0;"><strong>💰 Cost:</strong> {restaurant.get('cost_range', 'N/A')}</p>
+                        <p style="margin: 0.25rem 0;"><strong>👔 Dress Code:</strong> {rest_details.get('dress_code', 'Casual')}</p>
+                        <p style="margin: 0.25rem 0;"><strong>📞 Phone:</strong> {restaurant.get('phone', 'N/A')}</p>
+                        <p style="margin: 0.25rem 0;"><strong>🔗 Menu/Website:</strong> {rest_details.get('menu_url', 'N/A')}</p>
+                        <p style="margin: 0.25rem 0;"><strong>💡 Tip:</strong> {restaurant.get('tips', 'N/A')}</p>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+            # Voting buttons
+            st.markdown("**Cast Your Vote:**")
+            col1, col2, col3, col4 = st.columns(4)
+
+            with col1:
+                if st.button(f"✅ Option 1", key=f"vote_{meal_slot['id']}_0", use_container_width=True, type="primary"):
+                    save_john_meal_vote(meal_slot['id'], "0")
+                    st.success("Vote recorded!")
+                    st.rerun()
+
+            with col2:
+                if st.button(f"✅ Option 2", key=f"vote_{meal_slot['id']}_1", use_container_width=True, type="primary"):
+                    save_john_meal_vote(meal_slot['id'], "1")
+                    st.success("Vote recorded!")
+                    st.rerun()
+
+            with col3:
+                if st.button(f"✅ Option 3", key=f"vote_{meal_slot['id']}_2", use_container_width=True, type="primary"):
+                    save_john_meal_vote(meal_slot['id'], "2")
+                    st.success("Vote recorded!")
+                    st.rerun()
+
+            with col4:
+                if st.button(f"❌ None Work", key=f"vote_{meal_slot['id']}_none", use_container_width=True):
+                    save_john_meal_vote(meal_slot['id'], "none")
+                    st.info("Michael will pick new options.")
+                    st.rerun()
+
+            st.markdown("---")
+
+        elif proposal and proposal['status'] == 'voted':
+            # Already voted
+            st.success(f"✅ **{meal_slot['label']}** - You voted! Waiting for Michael to confirm.")
+
+        elif proposal and proposal['status'] == 'confirmed':
+            # Confirmed
+            final_idx = proposal.get('final_choice')
+            if final_idx is not None:
+                final_restaurant = proposal['restaurant_options'][final_idx]
+                st.success(f"✅ **{meal_slot['label']}** - Confirmed: {final_restaurant['name']}")
+
+    if not has_proposals:
+        st.info("👀 No meal proposals yet. Michael will add options soon!")
 
     # Final tips
     st.markdown("---")
