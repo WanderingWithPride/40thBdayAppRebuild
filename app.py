@@ -3992,49 +3992,41 @@ def render_johns_page(df, activities_data, show_sensitive):
     </div>
     """, unsafe_allow_html=True)
 
-    # John's activities
-    johns_activities = [a for a in activities_data if 'john' in a['activity'].lower() or a['date'] >= '2025-11-08']
+    # Categorize ALL activities during John's stay
+    johns_confirmed = []  # Already booked
+    shared_activities_to_opt_in = []  # Your activities John can join
 
-    st.markdown("### 📅 Your Schedule")
-
-    # Categorize activities
-    included_activities = []
-    optional_activities_john = []
-
-    for activity in johns_activities:
-        # Activities John is definitely in
+    for activity in activities_data:
         if activity['date'] >= '2025-11-08' and activity['date'] <= '2025-11-11':
-            if activity['type'] in ['transport', 'dining'] and activity['id'] != 'arr002':
-                included_activities.append(activity)
-            elif activity['id'] in ['act001', 'bch001', 'din002']:  # Shared activities
-                included_activities.append(activity)
-            elif activity['id'] == 'arr002':
-                included_activities.append(activity)
+            # John's confirmed activities
+            if activity['id'] == 'arr002':  # His arrival
+                johns_confirmed.append(activity)
+            elif activity['id'] in ['act001', 'bch001', 'din002']:  # Already shared
+                johns_confirmed.append(activity)
 
-    # Optional spa services for John
-    spa_options = [
-        {"name": "Aromatherapy Massage", "cost": "$185-245", "duration": "50-80 min"},
-        {"name": "Hot Stone Massage", "cost": "$205", "duration": "80 min"},
-        {"name": "Gentleman's Facial", "cost": "$165", "duration": "50 min"},
-        {"name": "Mani-Pedi", "cost": "$125", "duration": "90 min"},
-        {"name": "Body Scrub & Wrap", "cost": "$175-225", "duration": "50-80 min"},
-    ]
+            # Your activities John might want to join
+            elif activity['id'] in ['spa001', 'spa002', 'din001']:  # Spa day & birthday dinner
+                shared_activities_to_opt_in.append(activity)
 
-    # Display John's confirmed activities
-    st.markdown("#### ✅ Included in Your Trip")
+    # SECTION 1: John's Confirmed Activities
+    st.markdown("### ✅ Included in Your Trip")
 
-    for activity in sorted(included_activities, key=lambda x: x['date'] + x['time']):
+    for activity in sorted(johns_confirmed, key=lambda x: x['date'] + x['time']):
         date_obj = pd.to_datetime(activity['date'])
 
-        paid_by = ""
+        # Clean badge rendering
+        badge_html = ""
         if activity['id'] == 'arr002':
-            paid_by = "<span style='background: #e8f5e9; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem;'>✈️ Your Flight</span>"
-        elif activity['id'] in ['act001', 'bch001']:
-            paid_by = "<span style='background: #fff9c4; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem;'>💝 Shared Activity</span>"
+            badge_html = '<span style="background: #e8f5e9; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem; display: inline-block; margin-top: 0.5rem;">✈️ Your Flight</span>'
+        elif activity['id'] in ['act001', 'bch001', 'din002']:
+            badge_html = '<span style="background: #fff9c4; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem; display: inline-block; margin-top: 0.5rem;">💝 Shared Activity</span>'
 
-        cost_display = f"${activity['cost']}" if show_sensitive and activity['cost'] > 0 else ""
-        if not show_sensitive and activity['cost'] > 0:
-            cost_display = "$***"
+        # Build cost display properly
+        cost_html = ""
+        if show_sensitive and activity['cost'] > 0:
+            cost_html = f'<p style="margin: 0.25rem 0;">💰 ${activity["cost"]}</p>'
+        elif activity['cost'] > 0:
+            cost_html = '<p style="margin: 0.25rem 0;">💰 $***</p>'
 
         st.markdown(f"""
         <div class="ultimate-card fade-in">
@@ -4042,16 +4034,73 @@ def render_johns_page(df, activities_data, show_sensitive):
                 <h4 style="margin: 0 0 0.5rem 0;">{activity['activity']}</h4>
                 <p style="margin: 0.25rem 0;"><strong>📅 {date_obj.strftime('%A, %B %d')} at {activity['time']}</strong></p>
                 <p style="margin: 0.25rem 0;">📍 {activity['location']['name']}</p>
-                {f"<p style='margin: 0.25rem 0;'>💰 {cost_display}</p>" if cost_display else ""}
+                {cost_html}
                 <p style="margin: 0.5rem 0; font-style: italic;">{activity['notes']}</p>
-                {paid_by}
+                {badge_html}
             </div>
         </div>
         """, unsafe_allow_html=True)
 
-    # Optional spa services John can opt into
+    # SECTION 2: Shared Activities You're Planning (John can opt in)
+    st.markdown("---")
+    st.markdown("### 💝 Shared Activities You Can Join")
+
+    st.markdown("""
+    <div class="info-box" style="background: linear-gradient(135deg, #fff9c4 0%, #ffe082 100%);">
+        <p style="margin: 0;"><strong>ℹ️ Info:</strong> These are activities being planned. Click "I'm In!" if you want to join!</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    if shared_activities_to_opt_in:
+        for activity in sorted(shared_activities_to_opt_in, key=lambda x: x['date'] + x['time']):
+            date_obj = pd.to_datetime(activity['date'])
+
+            # Build cost display
+            cost_html = ""
+            if show_sensitive and activity['cost'] > 0:
+                cost_html = f'<p style="margin: 0.25rem 0;">💰 ${activity["cost"]}</p>'
+            elif activity['cost'] > 0:
+                cost_html = '<p style="margin: 0.25rem 0;">💰 $***</p>'
+
+            st.markdown(f"""
+            <div class="ultimate-card" style="border-left: 4px solid #ffc107;">
+                <div class="card-body">
+                    <h4 style="margin: 0 0 0.5rem 0;">{activity['activity']}</h4>
+                    <p style="margin: 0.25rem 0;"><strong>📅 {date_obj.strftime('%A, %B %d')} at {activity['time']}</strong></p>
+                    <p style="margin: 0.25rem 0;">📍 {activity['location']['name']}</p>
+                    {cost_html}
+                    <p style="margin: 0.5rem 0; font-style: italic;">{activity['notes']}</p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # Opt-in buttons
+            col1, col2, col3 = st.columns([2, 1, 1])
+            with col1:
+                st.markdown(f"**Would you like to join this activity?**")
+            with col2:
+                if st.button("✅ I'm In!", key=f"optin_{activity['id']}", use_container_width=True):
+                    st.success(f"Great! Added you to {activity['activity']}")
+                    st.balloons()
+            with col3:
+                if st.button("❌ Skip", key=f"optout_{activity['id']}", use_container_width=True):
+                    st.info("No problem!")
+
+            st.markdown("---")
+    else:
+        st.info("No shared activities available yet. Check back later!")
+
+    # SECTION 3: Optional Spa Services (John pays)
     st.markdown("---")
     st.markdown("### 💆 Optional Spa Services (You Pay)")
+
+    spa_options = [
+        {"name": "Aromatherapy Massage", "cost": "$185-245", "duration": "50-80 min"},
+        {"name": "Hot Stone Massage", "cost": "$205", "duration": "80 min"},
+        {"name": "Gentleman's Facial", "cost": "$165", "duration": "50 min"},
+        {"name": "Mani-Pedi", "cost": "$125", "duration": "90 min"},
+        {"name": "Body Scrub & Wrap", "cost": "$175-225", "duration": "50-80 min"},
+    ]
 
     st.markdown("""
     <div class="info-box" style="background: linear-gradient(135deg, #e3f2fd 0%, #e1f5fe 100%);">
