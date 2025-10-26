@@ -6165,18 +6165,28 @@ def render_johns_page(df, activities_data, show_sensitive):
                 if activity.get('duration'):
                     duration_text = f"• {activity.get('duration', '')}"
 
+                # Escape HTML to prevent broken rendering
+                import html
+                safe_activity_name = html.escape(activity_name)
+                safe_time = html.escape(activity['time'])
+                safe_duration_text = html.escape(duration_text)
+                safe_location = html.escape(activity['location']['name'])
+                safe_notes = html.escape(activity_notes)
+                safe_notes = safe_notes.replace('\n', '<br>')
+                safe_activity_note = html.escape(activity_note)
+
                 st.markdown(f"""
                 <div class="ultimate-card" style="border-left: 4px solid {border_color}; margin-bottom: 1rem;">
                     <div class="card-body">
                         <div style="display: flex; justify-content: space-between; align-items: start;">
                             <div style="flex: 1;">
-                                <h4 style="margin: 0 0 0.5rem 0;">{activity_name}</h4>
-                                <p style="margin: 0.25rem 0;"><strong>⏰ {activity['time']}</strong> {duration_text}</p>
-                                <p style="margin: 0.25rem 0;">📍 {activity['location']['name']}</p>
-                                <p style="margin: 0.5rem 0; font-style: italic; font-size: 0.9rem;">{activity_notes}</p>
+                                <h4 style="margin: 0 0 0.5rem 0;">{safe_activity_name}</h4>
+                                <p style="margin: 0.25rem 0;"><strong>⏰ {safe_time}</strong> {safe_duration_text}</p>
+                                <p style="margin: 0.25rem 0;">📍 {safe_location}</p>
+                                <p style="margin: 0.5rem 0; font-style: italic; font-size: 0.9rem;">{safe_notes}</p>
                             </div>
                             <div style="margin-left: 1rem;">
-                                <span style="background: {border_color}; color: white; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem; white-space: nowrap;">{activity_note}</span>
+                                <span style="background: {border_color}; color: white; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem; white-space: nowrap;">{safe_activity_note}</span>
                             </div>
                         </div>
                     </div>
