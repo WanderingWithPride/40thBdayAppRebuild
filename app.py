@@ -4644,6 +4644,9 @@ def render_full_schedule(df, activities_data, show_sensitive):
 
     st.markdown("---")
 
+    # Load John's preferences for opt-in status
+    john_prefs = load_john_preferences()
+
     # Get all dates and sort
     dates = sorted(df['date'].dt.date.unique())
 
@@ -4719,6 +4722,29 @@ def render_full_schedule(df, activities_data, show_sensitive):
                 if activity.get('is_custom', False):
                     custom_badge = '<span style="background: #74b9ff; color: white; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem; margin-left: 0.5rem;">➕ Custom</span>'
 
+                # Check John's opt-in status for this activity
+                activity_id = activity.get('id', '')
+                john_status_badge = ""
+
+                if activity_id == 'act001':  # Backwater Cat Tour
+                    pref_key = f"activity_opt_in_{activity_id}"
+                    status = john_prefs.get(pref_key, "not_decided")
+                    if status == "interested":
+                        john_status_badge = '<p style="margin: 0.5rem 0;"><span style="background: #4caf50; color: white; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem;">👥 John: ✅ Opted In</span></p>'
+                    elif status == "not_interested":
+                        john_status_badge = '<p style="margin: 0.5rem 0;"><span style="background: #f44336; color: white; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem;">👤 John: ❌ Not Interested</span></p>'
+                    else:
+                        john_status_badge = '<p style="margin: 0.5rem 0;"><span style="background: #ff9800; color: white; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem;">❓ John: Needs to Decide</span></p>'
+                elif activity_id in ['spa002', 'spa003']:  # Solo spa treatments
+                    pref_key = f"spa_opt_in_{activity_id}"
+                    status = john_prefs.get(pref_key, "not_decided")
+                    if status == "interested":
+                        john_status_badge = '<p style="margin: 0.5rem 0;"><span style="background: #4caf50; color: white; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem;">💆 John: ✅ Wants This Too</span></p>'
+                    elif status == "not_interested":
+                        john_status_badge = '<p style="margin: 0.5rem 0;"><span style="background: #9e9e9e; color: white; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem;">💆 John: Not interested</span></p>'
+                    else:
+                        john_status_badge = '<p style="margin: 0.5rem 0;"><span style="background: #ff9800; color: white; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem;">❓ John: Needs to Decide</span></p>'
+
                 # Activity card
                 st.markdown(f"""
                 <div class="timeline-item {status_class}" style="margin: 1rem 0;">
@@ -4733,6 +4759,7 @@ def render_full_schedule(df, activities_data, show_sensitive):
                             <p style="margin: 0.5rem 0;">📞 {mask_info(activity['location'].get('phone', 'N/A'), show_sensitive)}</p>
                             <p style="margin: 0.5rem 0;">💰 {"$" + str(activity['cost']) if show_sensitive else "$***"}</p>
                             <p style="margin: 0.5rem 0; font-style: italic;">{mask_info(activity['notes'], show_sensitive)}</p>
+                            {john_status_badge}
                         </div>
                     </div>
                 </div>
@@ -5787,110 +5814,49 @@ def render_johns_page(df, activities_data, show_sensitive):
                 </div>
                 """, unsafe_allow_html=True)
 
+                # Add opt-in buttons for activities that need John's decision
+                needs_optin = False
+                pref_key = ""
+
+                # Check if this activity needs opt-in
+                if activity_id == 'act001':  # Backwater Cat Tour
+                    needs_optin = True
+                    pref_key = f"activity_opt_in_{activity_id}"
+                elif activity_id in ['spa002', 'spa003'] and activity['type'] == 'spa':  # Solo spa treatments
+                    needs_optin = True
+                    pref_key = f"spa_opt_in_{activity_id}"
+
+                if needs_optin:
+                    current_status = john_prefs.get(pref_key, "not_decided")
+
+                    col1, col2, col3 = st.columns([1, 1, 2])
+                    with col1:
+                        if st.button(f"✅ Count Me In!", key=f"optin_{activity_id}_{date_str}", use_container_width=True):
+                            save_john_preference(pref_key, "interested")
+                            st.success("You're in!")
+                            st.rerun()
+
+                    with col2:
+                        if st.button(f"❌ Not for Me", key=f"optout_{activity_id}_{date_str}", use_container_width=True):
+                            save_john_preference(pref_key, "not_interested")
+                            st.info("Got it!")
+                            st.rerun()
+
+                    with col3:
+                        if current_status == "interested":
+                            st.success("✅ **You're In!** - Michael will see this")
+                        elif current_status == "not_interested":
+                            st.info("❌ **Not Interested** - Michael will see this")
+                        else:
+                            st.warning("❓ **Please decide** - Michael needs to know")
+
             # Show free time suggestion if partner has spa
             if partner_spa_times:
                 st.markdown("""
                 <div class="info-box info-success">
-                    <strong>💡 Free Time Ideas:</strong> While Michael is at the spa, enjoy the pool, hot tub, beach, or book your own spa treatment below!
+                    <strong>💡 Free Time Ideas:</strong> While Michael is at the spa, enjoy the pool, hot tub, beach, or book your own spa treatment!
                 </div>
                 """, unsafe_allow_html=True)
-
-    # ============ OPTIONAL SERVICES & ACTIVITIES FOR JOHN ============
-    st.markdown("---")
-    st.markdown("### 🎯 Optional Services & Activities")
-    st.markdown("These are spa treatments and shared activities you can opt into. Each person pays their own share.")
-
-    # Load John's preferences
-    john_prefs = load_john_preferences()
-
-    # Get shared activities that need opt-in (like Backwater Cat Tour)
-    shared_activities_needing_optin = [a for a in johns_activities if a.get('id') == 'act001']  # Backwater Cat Tour
-
-    # Show shared activities first
-    if shared_activities_needing_optin:
-        st.markdown("#### 🚤 Shared Activities (Each Pays Own Share)")
-        for activity in shared_activities_needing_optin:
-            activity_id = activity.get('id', '')
-            pref_key = f"activity_opt_in_{activity_id}"
-            current_status = john_prefs.get(pref_key, "not_decided")
-
-            col1, col2 = st.columns([3, 1])
-            with col1:
-                st.markdown(f"""
-                <div class="ultimate-card" style="margin-bottom: 1rem; border-left: 4px solid #2196f3;">
-                    <div class="card-body">
-                        <h4 style="margin: 0 0 0.5rem 0;">{activity['activity']}</h4>
-                        <p style="margin: 0.25rem 0;"><strong>⏰</strong> {activity['time']} • {activity.get('duration', 'N/A')}</p>
-                        <p style="margin: 0.25rem 0;"><strong>💰</strong> ${activity.get('cost', 'TBD')} per person (you pay your half)</p>
-                        <p style="margin: 0.25rem 0;"><strong>📍</strong> {activity['location'].get('name', 'N/A')}</p>
-                        <p style="margin: 0.25rem 0;"><strong>📞</strong> {activity['location'].get('phone', 'N/A')}</p>
-                        <p style="margin: 0.5rem 0; font-style: italic; font-size: 0.9rem;">{activity.get('notes', '')}</p>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-
-            with col2:
-                st.markdown("<br>", unsafe_allow_html=True)
-                if st.button(f"✅ Count Me In!", key=f"opt_in_{activity_id}", use_container_width=True):
-                    save_john_preference(pref_key, "interested")
-                    st.success("Great! You're in!")
-                    st.rerun()
-
-                if st.button(f"❌ Not for Me", key=f"opt_out_{activity_id}", use_container_width=True):
-                    save_john_preference(pref_key, "not_interested")
-                    st.info("Noted!")
-                    st.rerun()
-
-                # Show current status
-                if current_status == "interested":
-                    st.markdown("✅ **You're In!**")
-                elif current_status == "not_interested":
-                    st.markdown("❌ **Not interested**")
-                else:
-                    st.markdown("❓ **Decide later**")
-
-    # Get Michael's solo spa treatments
-    st.markdown("#### 💆 Optional Spa Services (During Michael's Spa Time)")
-    michaels_solo_spa = [a for a in johns_activities if a['type'] == 'spa' and 'Couples' not in a.get('activity', '')]
-
-    if michaels_solo_spa:
-        for spa_activity in michaels_solo_spa:
-            spa_id = spa_activity.get('id', '')
-            pref_key = f"spa_opt_in_{spa_id}"
-            current_status = john_prefs.get(pref_key, "not_decided")
-
-            col1, col2 = st.columns([3, 1])
-            with col1:
-                st.markdown(f"""
-                <div class="ultimate-card" style="margin-bottom: 1rem;">
-                    <div class="card-body">
-                        <h4 style="margin: 0 0 0.5rem 0;">{spa_activity['activity'].replace('(for you)', '').replace('(For You)', '').strip()}</h4>
-                        <p style="margin: 0.25rem 0;"><strong>⏰</strong> {spa_activity['time']} • {spa_activity.get('duration', 'N/A')}</p>
-                        <p style="margin: 0.25rem 0;"><strong>💰</strong> ${spa_activity.get('cost', 'TBD')} (at your own expense)</p>
-                        <p style="margin: 0.25rem 0;"><strong>📞</strong> {spa_activity['location'].get('phone', '904-277-1087')}</p>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-
-            with col2:
-                st.markdown("<br>", unsafe_allow_html=True)
-                if st.button(f"✅ I'm Interested", key=f"opt_in_{spa_id}", use_container_width=True):
-                    save_john_preference(pref_key, "interested")
-                    st.success("Marked as interested!")
-                    st.rerun()
-
-                if st.button(f"❌ Not for Me", key=f"opt_out_{spa_id}", use_container_width=True):
-                    save_john_preference(pref_key, "not_interested")
-                    st.info("Marked as not interested")
-                    st.rerun()
-
-                # Show current status
-                if current_status == "interested":
-                    st.markdown("✅ **Interested**")
-                elif current_status == "not_interested":
-                    st.markdown("❌ **Not interested**")
-                else:
-                    st.markdown("❓ **Not decided**")
 
     # ============ THINGS TO DO (FREE TIME) ============
     st.markdown("---")
