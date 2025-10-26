@@ -148,26 +148,34 @@ def init_database():
 # Database helper functions
 def save_custom_activity(activity_dict):
     """Save a custom activity to database"""
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    activity_id = activity_dict.get('id', f"custom_{datetime.now().timestamp()}")
-    activity_dict['id'] = activity_id
-    cursor.execute(
-        "INSERT OR REPLACE INTO custom_activities (id, data) VALUES (?, ?)",
-        (activity_id, json.dumps(activity_dict))
-    )
-    conn.commit()
-    conn.close()
-    return activity_id
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        activity_id = activity_dict.get('id', f"custom_{datetime.now().timestamp()}")
+        activity_dict['id'] = activity_id
+        cursor.execute(
+            "INSERT OR REPLACE INTO custom_activities (id, data) VALUES (?, ?)",
+            (activity_id, json.dumps(activity_dict))
+        )
+        conn.commit()
+        conn.close()
+        return activity_id
+    except Exception as e:
+        print(f"Error saving custom activity: {e}")
+        return None
 
 def load_custom_activities():
     """Load all custom activities from database"""
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("SELECT data FROM custom_activities")
-    activities = [json.loads(row[0]) for row in cursor.fetchall()]
-    conn.close()
-    return activities
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute("SELECT data FROM custom_activities")
+        activities = [json.loads(row[0]) for row in cursor.fetchall()]
+        conn.close()
+        return activities
+    except Exception as e:
+        print(f"Error loading custom activities: {e}")
+        return []
 
 def delete_custom_activity(activity_id):
     """Delete a custom activity"""
@@ -190,12 +198,16 @@ def save_packing_progress(item_id, packed):
 
 def load_packing_progress():
     """Load packing list progress"""
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("SELECT item_id, packed FROM packing_progress")
-    progress = {row[0]: bool(row[1]) for row in cursor.fetchall()}
-    conn.close()
-    return progress
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute("SELECT item_id, packed FROM packing_progress")
+        progress = {row[0]: bool(row[1]) for row in cursor.fetchall()}
+        conn.close()
+        return progress
+    except Exception as e:
+        print(f"Error loading packing progress: {e}")
+        return {}
 
 def save_note(date, content, note_type='note'):
     """Save a note or memory"""
@@ -210,15 +222,19 @@ def save_note(date, content, note_type='note'):
 
 def load_notes(date=None):
     """Load notes, optionally filtered by date"""
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    if date:
-        cursor.execute("SELECT id, date, content, type, created_at FROM notes WHERE date = ? ORDER BY created_at DESC", (date,))
-    else:
-        cursor.execute("SELECT id, date, content, type, created_at FROM notes ORDER BY created_at DESC")
-    notes = [{"id": row[0], "date": row[1], "content": row[2], "type": row[3], "created_at": row[4]} for row in cursor.fetchall()]
-    conn.close()
-    return notes
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        if date:
+            cursor.execute("SELECT id, date, content, type, created_at FROM notes WHERE date = ? ORDER BY created_at DESC", (date,))
+        else:
+            cursor.execute("SELECT id, date, content, type, created_at FROM notes ORDER BY created_at DESC")
+        notes = [{"id": row[0], "date": row[1], "content": row[2], "type": row[3], "created_at": row[4]} for row in cursor.fetchall()]
+        conn.close()
+        return notes
+    except Exception as e:
+        print(f"Error loading notes: {e}")
+        return []
 
 def delete_note(note_id):
     """Delete a note"""
@@ -241,12 +257,16 @@ def save_john_preference(key, value):
 
 def load_john_preferences():
     """Load all of John's preferences"""
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("SELECT key, value FROM john_preferences")
-    prefs = {row[0]: row[1] for row in cursor.fetchall()}
-    conn.close()
-    return prefs
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute("SELECT key, value FROM john_preferences")
+        prefs = {row[0]: row[1] for row in cursor.fetchall()}
+        conn.close()
+        return prefs
+    except Exception as e:
+        print(f"Error loading John's preferences: {e}")
+        return {}
 
 def mark_activity_completed(activity_id):
     """Mark an activity as completed"""
@@ -261,12 +281,16 @@ def mark_activity_completed(activity_id):
 
 def load_completed_activities():
     """Load all completed activity IDs"""
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("SELECT activity_id FROM completed_activities")
-    completed = [row[0] for row in cursor.fetchall()]
-    conn.close()
-    return completed
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute("SELECT activity_id FROM completed_activities")
+        completed = [row[0] for row in cursor.fetchall()]
+        conn.close()
+        return completed
+    except Exception as e:
+        print(f"Error loading completed activities: {e}")
+        return []
 
 def save_photo(filename, photo_bytes, caption, date):
     """Save a photo to database"""
@@ -283,24 +307,28 @@ def save_photo(filename, photo_bytes, caption, date):
 
 def load_photos(date=None):
     """Load photos, optionally filtered by date"""
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    if date:
-        cursor.execute("SELECT id, filename, photo_data, caption, date, uploaded_at FROM photos WHERE date = ? ORDER BY uploaded_at DESC", (date,))
-    else:
-        cursor.execute("SELECT id, filename, photo_data, caption, date, uploaded_at FROM photos ORDER BY uploaded_at DESC")
-    photos = []
-    for row in cursor.fetchall():
-        photos.append({
-            "id": row[0],
-            "filename": row[1],
-            "photo_data": row[2],
-            "caption": row[3],
-            "date": row[4],
-            "uploaded_at": row[5]
-        })
-    conn.close()
-    return photos
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        if date:
+            cursor.execute("SELECT id, filename, photo_data, caption, date, uploaded_at FROM photos WHERE date = ? ORDER BY uploaded_at DESC", (date,))
+        else:
+            cursor.execute("SELECT id, filename, photo_data, caption, date, uploaded_at FROM photos ORDER BY uploaded_at DESC")
+        photos = []
+        for row in cursor.fetchall():
+            photos.append({
+                "id": row[0],
+                "filename": row[1],
+                "photo_data": row[2],
+                "caption": row[3],
+                "date": row[4],
+                "uploaded_at": row[5]
+            })
+        conn.close()
+        return photos
+    except Exception as e:
+        print(f"Error loading photos: {e}")
+        return []
 
 def delete_photo(photo_id):
     """Delete a photo"""
@@ -323,24 +351,28 @@ def add_notification(title, message, notif_type='info'):
 
 def load_notifications(include_dismissed=False):
     """Load notifications"""
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    if include_dismissed:
-        cursor.execute("SELECT id, title, message, type, created_at, dismissed FROM notifications ORDER BY created_at DESC")
-    else:
-        cursor.execute("SELECT id, title, message, type, created_at, dismissed FROM notifications WHERE dismissed = 0 ORDER BY created_at DESC")
-    notifications = []
-    for row in cursor.fetchall():
-        notifications.append({
-            "id": row[0],
-            "title": row[1],
-            "message": row[2],
-            "type": row[3],
-            "created_at": row[4],
-            "dismissed": bool(row[5])
-        })
-    conn.close()
-    return notifications
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        if include_dismissed:
+            cursor.execute("SELECT id, title, message, type, created_at, dismissed FROM notifications ORDER BY created_at DESC")
+        else:
+            cursor.execute("SELECT id, title, message, type, created_at, dismissed FROM notifications WHERE dismissed = 0 ORDER BY created_at DESC")
+        notifications = []
+        for row in cursor.fetchall():
+            notifications.append({
+                "id": row[0],
+                "title": row[1],
+                "message": row[2],
+                "type": row[3],
+                "created_at": row[4],
+                "dismissed": bool(row[5])
+            })
+        conn.close()
+        return notifications
+    except Exception as e:
+        print(f"Error loading notifications: {e}")
+        return []
 
 def dismiss_notification(notif_id):
     """Dismiss a notification"""
@@ -3368,9 +3400,15 @@ def render_packing_list():
     
     packing_data = get_smart_packing_list()
 
-    # Summary stats - count packed items from database
+    # Summary stats - count packed items from packing list only (not birthday/bucket items)
     total_items = sum(len(items) for items in packing_data.values())
-    checked_items = sum(1 for key, value in st.session_state.packing_list.items() if value)
+
+    # Only count items that belong to packing list categories (exclude birthday_, bucket_ prefixes)
+    packing_category_prefixes = [cat.split()[0] for cat in packing_data.keys()]  # Extract emoji prefixes
+    checked_items = sum(
+        1 for key, value in st.session_state.packing_list.items()
+        if value and any(key.startswith(prefix) or key.startswith(f"{prefix}_") for prefix in packing_data.keys())
+    )
     progress = (checked_items / total_items * 100) if total_items > 0 else 0
     
     col1, col2, col3 = st.columns(3)
@@ -4719,21 +4757,43 @@ def render_memories_page():
 
             if uploaded_files and st.button("💾 Save Photos", type="primary", use_container_width=True):
                 saved_count = 0
+                failed_count = 0
+                MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB limit
+
                 for uploaded_file in uploaded_files:
-                    photo_bytes = uploaded_file.read()
-                    photo_id = save_photo(
-                        uploaded_file.name,
-                        photo_bytes,
-                        photo_caption,
-                        photo_date.strftime('%Y-%m-%d')
-                    )
-                    saved_count += 1
+                    # Check file size
+                    file_size = uploaded_file.size if hasattr(uploaded_file, 'size') else len(uploaded_file.getvalue())
+
+                    if file_size > MAX_FILE_SIZE:
+                        st.warning(f"⚠️ {uploaded_file.name} is too large ({file_size / 1024 / 1024:.1f}MB). Max size is 10MB.")
+                        failed_count += 1
+                        continue
+
+                    try:
+                        photo_bytes = uploaded_file.read()
+                        photo_id = save_photo(
+                            uploaded_file.name,
+                            photo_bytes,
+                            photo_caption,
+                            photo_date.strftime('%Y-%m-%d')
+                        )
+                        if photo_id:
+                            saved_count += 1
+                        else:
+                            failed_count += 1
+                    except Exception as e:
+                        st.error(f"Error uploading {uploaded_file.name}: {e}")
+                        failed_count += 1
 
                 # Refresh photos in session state
                 st.session_state.photos = load_photos()
 
-                st.success(f"✅ {saved_count} photo(s) uploaded successfully!")
-                add_notification("Photos Uploaded", f"{saved_count} new photos added to your gallery", "success")
+                if saved_count > 0:
+                    st.success(f"✅ {saved_count} photo(s) uploaded successfully!")
+                    add_notification("Photos Uploaded", f"{saved_count} new photos added to your gallery", "success")
+                if failed_count > 0:
+                    st.error(f"❌ {failed_count} photo(s) failed to upload")
+
                 st.rerun()
 
         # Display photos
