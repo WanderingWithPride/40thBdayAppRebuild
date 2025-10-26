@@ -4918,6 +4918,11 @@ def render_full_schedule(df, activities_data, show_sensitive):
                         john_status_badge = '<p style="margin: 0.5rem 0;"><span style="background: #ff9800; color: white; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem;">❓ John: Needs to Decide</span></p>'
 
                 # Activity card
+                # Escape notes to prevent HTML breaking
+                import html
+                safe_notes = html.escape(mask_info(activity.get('notes', ''), show_sensitive))
+                safe_notes = safe_notes.replace('\n', '<br>')
+
                 st.markdown(f"""
                 <div class="timeline-item {status_class}" style="margin: 1rem 0;">
                     <div class="ultimate-card">
@@ -4930,7 +4935,7 @@ def render_full_schedule(df, activities_data, show_sensitive):
                             <p style="margin: 0.5rem 0;">📍 {activity['location']['name']}</p>
                             <p style="margin: 0.5rem 0;">📞 {mask_info(activity['location'].get('phone', 'N/A'), show_sensitive)}</p>
                             <p style="margin: 0.5rem 0;">💰 {"$" + str(activity['cost']) if show_sensitive else "$***"}</p>
-                            <p style="margin: 0.5rem 0; font-style: italic;">{mask_info(activity['notes'], show_sensitive)}</p>
+                            <p style="margin: 0.5rem 0; font-style: italic;">{safe_notes}</p>
                             {john_status_badge}
                         </div>
                     </div>
@@ -5146,8 +5151,12 @@ def render_explore_activities():
 
                 if success:
                     st.success(f"✅ Added **{qa_activity_name}** to {clean_day} at {qa_time.strftime('%I:%M %p').lstrip('0')}!")
-                    st.info("💡 View your updated schedule on the **Full Schedule** page!")
+                    st.info("💡 Reloading to show in your schedule...")
                     st.balloons()
+                    # Reload custom activities from database
+                    st.session_state.custom_activities = load_custom_activities()
+                    import time
+                    time.sleep(1)  # Give user time to see the success message
                     st.rerun()
                 else:
                     st.error("❌ Failed to add activity. Please try again.")
@@ -5459,8 +5468,13 @@ def render_explore_activities():
 
                                 if success:
                                     st.success(f"✅ Added {activity['name']} to {selected_day} at {selected_time}!")
-                                    st.info("💡 View your updated schedule on the Full Schedule page!")
+                                    st.info("💡 Reloading to show in your schedule...")
                                     st.balloons()
+                                    # Reload custom activities from database
+                                    st.session_state.custom_activities = load_custom_activities()
+                                    import time
+                                    time.sleep(1)  # Give user time to see the success message
+                                    st.rerun()
                                 else:
                                     st.error("❌ Failed to add activity. Please try again.")
                             else:
@@ -5622,8 +5636,13 @@ def render_explore_activities():
 
                                     if success:
                                         st.success(f"✅ Added {activity['name']} to {selected_day} at {selected_time}!")
-                                        st.info("💡 View your updated schedule on the Full Schedule page!")
+                                        st.info("💡 Reloading to show in your schedule...")
                                         st.balloons()
+                                        # Reload custom activities from database
+                                        st.session_state.custom_activities = load_custom_activities()
+                                        import time
+                                        time.sleep(1)  # Give user time to see the success message
+                                        st.rerun()
                                     else:
                                         st.error("❌ Failed to add activity. Please try again.")
                                 else:
