@@ -1065,12 +1065,22 @@ def get_ultimate_trip_data():
                 "phone": "904-741-4902"
             },
             "status": "Confirmed",
-            "cost": 65,
+            "cost": 603.88,
             "category": "Transport",
-            "notes": "American Airlines AA2434 - Departure 3:51 PM from DCA",
+            "notes": "American Airlines AA2434 - Departure 3:51 PM from DCA, Arrival 6:01 PM JAX. Business Class (R), Seat 1D. 2h 10m flight. Confirmation: IDLLZA",
+            "confirmation_code": "IDLLZA",
             "flight_number": "AA2434",
+            "seat": "1D",
+            "class": "Business (R)",
+            "ticket_number": "0012283037156",
+            "passenger": "Michael Eisinger",
+            "aadvantage_number": "Y36****",
+            "departure_time": "3:51 PM",
+            "arrival_time": "6:01 PM",
+            "duration": "2h 10m",
+            "checked_bags": "2 free bags",
             "what_to_bring": ["ID", "Boarding pass", "Phone charger", "Snacks for flight"],
-            "tips": ["Arrive 2 hours early", "TSA PreCheck available", "Download AA app"],
+            "tips": ["Arrive 2 hours early", "TSA PreCheck available", "Download AA app", "Check in 24 hours early via AA app", "Business class includes complimentary meals"],
             "priority": 3
         },
         {
@@ -1320,10 +1330,20 @@ def get_ultimate_trip_data():
             "status": "Confirmed",
             "cost": 0,
             "category": "Transport",
-            "notes": "AA5590 departs 2:39 PM. Checkout by 11am, leave hotel by 12:30pm (45min drive + 2hr early arrival buffer).",
+            "notes": "AA5590 (operated by PSA Airlines as American Eagle) departs 2:39 PM from JAX, arrives 4:40 PM at DCA. Business Class (I), Seat 1A. Checkout by 11am, leave hotel by 12:30pm (45min drive + 2hr early arrival buffer). Confirmation: IDLLZA",
+            "confirmation_code": "IDLLZA",
             "flight_number": "AA5590",
+            "operated_by": "PSA Airlines as American Eagle",
+            "seat": "1A",
+            "class": "Business (I)",
+            "ticket_number": "0012283037156",
+            "passenger": "Michael Eisinger",
+            "aadvantage_number": "Y36****",
+            "departure_time": "2:39 PM",
+            "arrival_time": "4:40 PM",
+            "checked_bags": "2 free bags",
             "what_to_bring": ["All belongings", "Souvenirs", "Photos", "Memories!"],
-            "tips": ["Hotel checkout 11 AM", "Leave by 12:30 PM", "Double-check room for items", "Return home with amazing memories!"],
+            "tips": ["Hotel checkout 11 AM", "Leave by 12:30 PM", "Double-check room for items", "Return home with amazing memories!", "Check in 24 hours early via AA app", "Business class includes complimentary meals"],
             "flight_departure_time": "2:39 PM",
             "priority": 3
         }
@@ -1696,18 +1716,34 @@ def get_optional_activities():
             {"name": "Birdwatching Tours", "description": "Naturalist-led birdwatching experiences", "cost_range": "FREE (hotel guests)", "duration": "1-2 hours", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Bring binoculars if you have them", "rating": "4.8/5"},
             {"name": "Ecology Field Trips", "description": "Customizable nature experiences tailored to your interests", "cost_range": "Varies", "duration": "2-3 hours", "phone": "904-277-1100", "booking_url": "N/A", "tips": "New program! Can customize to specific interests like marine life, birds, plants, etc.", "rating": "4.9/5"},
         ],
-        "🏊 Resort Pools, Beach & Free Activities": [
-            {"name": "Two Resort Pools", "description": "Multiple pools including one with kids splash pad", "cost_range": "FREE (hotel guests)", "duration": "All day", "phone": "N/A", "booking_url": "N/A", "tips": "Kids splash pad is perfect for little ones!", "rating": "4.9/5"},
+        "🏖️ Casual Beach & Free Activities (Anytime!)": [
+            {"name": "Beach Walk/Stroll", "description": "Leisurely walk along the beautiful Amelia Island shoreline - can be done anytime", "cost_range": "FREE", "duration": "30min-2 hours", "phone": "N/A", "booking_url": "N/A", "tips": "1.5 miles of private beach! Perfect morning, afternoon, or evening activity. Repeatable!", "rating": "5.0/5", "is_repeatable": True},
+            {"name": "Sunrise Viewing", "description": "Watch the sun rise over the Atlantic Ocean - magical start to your day", "cost_range": "FREE", "duration": "30-45 minutes", "phone": "N/A", "booking_url": "N/A", "tips": "Sunrise ~6:45am in November. Bring coffee and camera. Best spot: east-facing beach", "rating": "5.0/5", "is_repeatable": True},
+            {"name": "Sunset Viewing", "description": "Watch gorgeous sunset from the shore with changing colors across the sky", "cost_range": "FREE", "duration": "30-60 minutes", "phone": "N/A", "booking_url": "N/A", "tips": "Sunset ~5:30pm in November. Bring camera and beach blanket. Best spot: west side or pier", "rating": "5.0/5", "is_repeatable": True},
+            {"name": "Seashell Hunting", "description": "Search for unique shells, sand dollars, starfish, and sea glass treasures", "cost_range": "FREE", "duration": "1-2 hours", "phone": "N/A", "booking_url": "N/A", "tips": "BEST at low tide! Early morning has most finds. Bring a bag. Check tide times in app!", "rating": "4.9/5", "is_repeatable": True},
+            {"name": "Tide Pool Exploring", "description": "Discover crabs, small fish, and marine life in shallow tide pools at low tide", "cost_range": "FREE", "duration": "1-1.5 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Only accessible at LOW tide - check tide times! Fort Clinch has best tide pools", "rating": "4.8/5", "is_repeatable": True},
+            {"name": "Beach Photography", "description": "Capture amazing photos - sunrise, sunset, wildlife, landscapes, or fun candids", "cost_range": "FREE", "duration": "30min-2 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Golden hour (sunrise/sunset) for best light. Try Big Talbot's driftwood beach!", "rating": "5.0/5", "is_repeatable": True},
+            {"name": "Beach Reading & Relaxing", "description": "Read a book, journal, or simply relax in a beach chair with ocean sounds", "cost_range": "FREE", "duration": "1-3 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Chairs & umbrellas provided at Ritz. Bring sunscreen and water. So peaceful!", "rating": "5.0/5", "is_repeatable": True},
+            {"name": "Cloud Watching", "description": "Lay back and watch clouds drift by - meditative and fun", "cost_range": "FREE", "duration": "30min-1 hour", "phone": "N/A", "booking_url": "N/A", "tips": "Best on partly cloudy days. Bring beach blanket. Great for clearing your mind!", "rating": "4.5/5", "is_repeatable": True},
+            {"name": "Beach Picnic", "description": "Pack snacks or lunch and enjoy a meal on the beach", "cost_range": "Cost of food", "duration": "1-2 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Pick up food from hotel or nearby shops. Bring blanket and drinks. Watch for birds!", "rating": "4.8/5", "is_repeatable": True},
+            {"name": "Sandcastle Building", "description": "Build creative sandcastles, sculptures, or beach art", "cost_range": "FREE", "duration": "1-2 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Best when sand is slightly damp. Buckets available at hotel. Fun & creative!", "rating": "4.6/5", "is_repeatable": True},
+            {"name": "Beach Meditation/Yoga", "description": "Practice meditation or do your own yoga session on the beach", "cost_range": "FREE", "duration": "20-45 minutes", "phone": "N/A", "booking_url": "N/A", "tips": "Early morning is quietest. Ocean sounds are perfect for meditation. Bring mat!", "rating": "4.9/5", "is_repeatable": True},
+            {"name": "Bird Watching from Beach", "description": "Spot pelicans, seagulls, sandpipers, herons, and seasonal migratory birds", "cost_range": "FREE", "duration": "30min-1.5 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Bring binoculars if you have them. Early morning or late afternoon best", "rating": "4.7/5", "is_repeatable": True},
+            {"name": "Beach Journaling", "description": "Write in a journal, reflect on your trip, or capture memories", "cost_range": "FREE", "duration": "30min-1 hour", "phone": "N/A", "booking_url": "N/A", "tips": "Bring notebook and pen. Beach chair + ocean = perfect journaling spot!", "rating": "4.7/5", "is_repeatable": True},
+            {"name": "Collect Driftwood", "description": "Find interesting driftwood pieces for souvenirs or decor", "cost_range": "FREE", "duration": "30min-1 hour", "phone": "N/A", "booking_url": "N/A", "tips": "Big Talbot Island has incredible driftwood beach! Best for unique pieces", "rating": "4.6/5", "is_repeatable": True},
+            {"name": "Watch Dolphins from Shore", "description": "Spot dolphins swimming past the beach - often visible from shore!", "cost_range": "FREE", "duration": "30min-1 hour", "phone": "N/A", "booking_url": "N/A", "tips": "Look for fins in the water. Morning and late afternoon best. Be patient!", "rating": "4.8/5", "is_repeatable": True},
+        ],
+        "🏊 Resort Pools & Hotel Activities": [
+            {"name": "Two Resort Pools", "description": "Multiple pools including one with kids splash pad", "cost_range": "FREE (hotel guests)", "duration": "All day", "phone": "N/A", "booking_url": "N/A", "tips": "Kids splash pad is perfect for little ones!", "rating": "4.9/5", "is_repeatable": True},
             {"name": "Private Beach Cabanas", "description": "Reserve private poolside or beachside cabanas for ultimate luxury", "cost_range": "Varies (call for pricing)", "duration": "Half day or full day", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Book early - these go fast! Includes shade, seating, and service", "rating": "5.0/5"},
-            {"name": "1.5 Miles Private Beach Access", "description": "Exclusive access to pristine private beaches with summer service", "cost_range": "FREE (hotel guests)", "duration": "All day", "phone": "N/A", "booking_url": "N/A", "tips": "Beach chairs and umbrellas provided in summer season", "rating": "5.0/5"},
-            {"name": "Resort Pool Day", "description": "Relax at multiple Ritz-Carlton pools and hot tubs", "cost_range": "FREE (hotel guests)", "duration": "2-4 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Reserve a cabana for ultimate luxury relaxation", "rating": "4.8/5"},
-            {"name": "Beach Sunset Viewing", "description": "Watch gorgeous sunset from the shore", "cost_range": "FREE", "duration": "30-60 minutes", "phone": "N/A", "booking_url": "N/A", "tips": "Check sunset time, bring camera and beach blanket", "rating": "5.0/5"},
+            {"name": "1.5 Miles Private Beach Access", "description": "Exclusive access to pristine private beaches with summer service", "cost_range": "FREE (hotel guests)", "duration": "All day", "phone": "N/A", "booking_url": "N/A", "tips": "Beach chairs and umbrellas provided in summer season", "rating": "5.0/5", "is_repeatable": True},
+            {"name": "Resort Pool Day", "description": "Relax at multiple Ritz-Carlton pools and hot tubs", "cost_range": "FREE (hotel guests)", "duration": "2-4 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Reserve a cabana for ultimate luxury relaxation", "rating": "4.8/5", "is_repeatable": True},
+            {"name": "Hot Tub Relaxation", "description": "Unwind in resort hot tubs with ocean views", "cost_range": "FREE (hotel guests)", "duration": "30min-1 hour", "phone": "N/A", "booking_url": "N/A", "tips": "Perfect after activities or before dinner. Very relaxing!", "rating": "4.9/5", "is_repeatable": True},
             {"name": "Yoga on the Beach", "description": "Morning yoga classes on the beach at resort", "cost_range": "$20-35", "duration": "1 hour", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Hotel offers classes, check schedule", "rating": "4.6/5"},
             {"name": "Beach Bonfires", "description": "Private or group beach bonfire with s'mores", "cost_range": "$150-300", "duration": "2 hours", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Perfect for special celebrations, book ahead", "rating": "4.9/5"},
-            {"name": "Fitness Center Access", "description": "State-of-the-art gym with ocean views", "cost_range": "FREE (hotel guests)", "duration": "Flexible", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Open 24/7, personal trainers available", "rating": "4.7/5"},
-            {"name": "FREE Bike Rentals", "description": "Complimentary bicycle rentals through fitness center", "cost_range": "FREE (hotel guests)", "duration": "By hour or full day", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Bike paths nearby, great for exploring the island!", "rating": "4.8/5"},
-            {"name": "Beach Volleyball", "description": "Courts available at resort and Main Beach Park", "cost_range": "FREE", "duration": "1-2 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Bring your own equipment or join pickup games", "rating": "4.4/5"},
-            {"name": "Shelling & Beach Combing", "description": "Search for shells, sand dollars, and sea glass", "cost_range": "FREE", "duration": "1-2 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Best at low tide, early morning for best finds", "rating": "4.6/5"},
+            {"name": "Fitness Center Access", "description": "State-of-the-art gym with ocean views", "cost_range": "FREE (hotel guests)", "duration": "Flexible", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Open 24/7, personal trainers available", "rating": "4.7/5", "is_repeatable": True},
+            {"name": "FREE Bike Rentals", "description": "Complimentary bicycle rentals through fitness center", "cost_range": "FREE (hotel guests)", "duration": "By hour or full day", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Bike paths nearby, great for exploring the island!", "rating": "4.8/5", "is_repeatable": True},
+            {"name": "Beach Volleyball", "description": "Courts available at resort and Main Beach Park", "cost_range": "FREE", "duration": "1-2 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Bring your own equipment or join pickup games", "rating": "4.4/5", "is_repeatable": True},
         ],
         "🎾 Ritz-Carlton Tennis & Pickleball": [
             {"name": "Patrick Mouratoglou Signature Tennis Center", "description": "World-renowned coach's signature tennis center with newly renovated clay courts", "cost_range": "Court fees + optional lessons", "duration": "By hour", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Training camps, private lessons, and retreats available", "rating": "5.0/5"},
@@ -1959,6 +1995,300 @@ def get_tide_recommendation(activity_start_time, activity_type, date_str, tide_d
             result['best_time'] = f"High tide: {high_tides[0]['time']}"
 
     return result
+
+# ============================================================================
+# TRAFFIC & FLIGHT TRACKING APIS
+# ============================================================================
+
+@st.cache_data(ttl=300)  # Cache for 5 minutes (traffic changes frequently)
+def get_traffic_data(origin, destination, departure_time=None):
+    """Get real-time traffic data using Google Maps Distance Matrix API
+
+    Args:
+        origin: Starting address or coordinates
+        destination: Ending address or coordinates
+        departure_time: Unix timestamp for departure (optional, defaults to now)
+
+    Returns:
+        Dictionary with duration, duration_in_traffic, distance, and traffic level
+    """
+    api_key = os.getenv('GOOGLE_MAPS_API_KEY', '')
+
+    if not api_key:
+        # Return fallback data
+        return {
+            'distance': {'text': '45 miles', 'value': 72420},
+            'duration': {'text': '45 mins', 'value': 2700},
+            'duration_in_traffic': {'text': '45 mins', 'value': 2700},
+            'traffic_level': 'Unknown',
+            'status': 'FALLBACK',
+            'message': 'Set GOOGLE_MAPS_API_KEY for real-time traffic'
+        }
+
+    try:
+        # If departure_time not specified, use current time
+        if departure_time is None:
+            departure_time = int(datetime.now().timestamp())
+
+        url = "https://maps.googleapis.com/maps/api/distancematrix/json"
+        params = {
+            'origins': origin,
+            'destinations': destination,
+            'departure_time': departure_time,
+            'traffic_model': 'best_guess',
+            'key': api_key
+        }
+
+        resp = requests.get(url, params=params, timeout=10)
+
+        if resp.status_code == 200:
+            data = resp.json()
+
+            if data['status'] == 'OK' and data['rows'][0]['elements'][0]['status'] == 'OK':
+                element = data['rows'][0]['elements'][0]
+
+                # Calculate traffic level
+                normal_duration = element['duration']['value']
+                traffic_duration = element.get('duration_in_traffic', {}).get('value', normal_duration)
+
+                delay_minutes = (traffic_duration - normal_duration) / 60
+
+                if delay_minutes < 5:
+                    traffic_level = 'Light'
+                    traffic_emoji = '🟢'
+                elif delay_minutes < 15:
+                    traffic_level = 'Moderate'
+                    traffic_emoji = '🟡'
+                else:
+                    traffic_level = 'Heavy'
+                    traffic_emoji = '🔴'
+
+                return {
+                    'distance': element['distance'],
+                    'duration': element['duration'],
+                    'duration_in_traffic': element.get('duration_in_traffic', element['duration']),
+                    'traffic_level': traffic_level,
+                    'traffic_emoji': traffic_emoji,
+                    'delay_minutes': round(delay_minutes, 1),
+                    'status': 'OK'
+                }
+    except Exception as e:
+        print(f"Traffic API error: {e}")
+
+    # Fallback on error
+    return {
+        'distance': {'text': '45 miles', 'value': 72420},
+        'duration': {'text': '45 mins', 'value': 2700},
+        'duration_in_traffic': {'text': '45 mins', 'value': 2700},
+        'traffic_level': 'Unknown',
+        'status': 'ERROR',
+        'message': 'Traffic data unavailable'
+    }
+
+
+@st.cache_data(ttl=300)  # Cache for 5 minutes
+def get_flight_status(flight_number, flight_date):
+    """Get live flight status from AviationStack API
+
+    Args:
+        flight_number: e.g., "AA2434"
+        flight_date: Date in YYYY-MM-DD format
+
+    Returns:
+        Dictionary with flight status, gate info, delays, etc.
+    """
+    api_key = os.getenv('AVIATIONSTACK_API_KEY', '')
+
+    if not api_key:
+        # Return fallback data
+        return {
+            'status': 'scheduled',
+            'departure': {
+                'airport': 'DCA' if 'AA2434' in flight_number or 'AA1585' in flight_number else 'JAX',
+                'scheduled': None,
+                'actual': None,
+                'gate': 'TBD',
+                'terminal': 'TBD'
+            },
+            'arrival': {
+                'airport': 'JAX' if 'AA2434' in flight_number or 'AA1585' in flight_number else 'DCA',
+                'scheduled': None,
+                'actual': None,
+                'gate': 'TBD',
+                'terminal': 'TBD'
+            },
+            'live_status': 'FALLBACK',
+            'message': 'Set AVIATIONSTACK_API_KEY for live tracking'
+        }
+
+    try:
+        # Extract airline code and flight number
+        # AA2434 -> airline: AA, flight: 2434
+        airline_code = flight_number[:2]
+        flight_num = flight_number[2:]
+
+        url = "http://api.aviationstack.com/v1/flights"
+        params = {
+            'access_key': api_key,
+            'flight_iata': flight_number
+        }
+
+        resp = requests.get(url, params=params, timeout=10)
+
+        if resp.status_code == 200:
+            data = resp.json()
+
+            if data.get('data') and len(data['data']) > 0:
+                flight = data['data'][0]
+
+                # Determine status emoji and message
+                status = flight.get('flight_status', 'scheduled').lower()
+                if status == 'active' or status == 'en-route':
+                    status_emoji = '✈️'
+                    status_text = 'In Flight'
+                elif status == 'landed':
+                    status_emoji = '🛬'
+                    status_text = 'Landed'
+                elif status == 'scheduled':
+                    status_emoji = '🕐'
+                    status_text = 'On Time'
+                elif status == 'cancelled':
+                    status_emoji = '❌'
+                    status_text = 'Cancelled'
+                elif status == 'delayed':
+                    status_emoji = '⏰'
+                    status_text = 'Delayed'
+                else:
+                    status_emoji = '🛫'
+                    status_text = status.title()
+
+                return {
+                    'status': status,
+                    'status_emoji': status_emoji,
+                    'status_text': status_text,
+                    'flight_number': flight.get('flight', {}).get('iata', flight_number),
+                    'departure': {
+                        'airport': flight.get('departure', {}).get('iata', ''),
+                        'scheduled': flight.get('departure', {}).get('scheduled', ''),
+                        'actual': flight.get('departure', {}).get('actual', ''),
+                        'gate': flight.get('departure', {}).get('gate', 'TBD'),
+                        'terminal': flight.get('departure', {}).get('terminal', 'TBD'),
+                        'delay': flight.get('departure', {}).get('delay', 0)
+                    },
+                    'arrival': {
+                        'airport': flight.get('arrival', {}).get('iata', ''),
+                        'scheduled': flight.get('arrival', {}).get('scheduled', ''),
+                        'actual': flight.get('arrival', {}).get('actual', ''),
+                        'gate': flight.get('arrival', {}).get('gate', 'TBD'),
+                        'terminal': flight.get('arrival', {}).get('terminal', 'TBD'),
+                        'delay': flight.get('arrival', {}).get('delay', 0)
+                    },
+                    'live_status': 'OK'
+                }
+    except Exception as e:
+        print(f"Flight API error: {e}")
+
+    # Fallback on error
+    return {
+        'status': 'scheduled',
+        'status_emoji': '🕐',
+        'status_text': 'Scheduled',
+        'flight_number': flight_number,
+        'departure': {
+            'airport': 'DCA' if 'AA2434' in flight_number or 'AA1585' in flight_number else 'JAX',
+            'scheduled': None,
+            'gate': 'TBD',
+            'terminal': 'TBD'
+        },
+        'arrival': {
+            'airport': 'JAX' if 'AA2434' in flight_number or 'AA1585' in flight_number else 'DCA',
+            'scheduled': None,
+            'gate': 'TBD',
+            'terminal': 'TBD'
+        },
+        'live_status': 'ERROR',
+        'message': 'Flight tracking unavailable'
+    }
+
+
+def render_flight_status_widget(flight_number, flight_date, compact=False):
+    """Render a live flight status widget
+
+    Args:
+        flight_number: e.g., "AA2434"
+        flight_date: Date in YYYY-MM-DD format
+        compact: If True, show minimal info
+    """
+    status = get_flight_status(flight_number, flight_date)
+
+    if compact:
+        # Compact version for cards
+        st.markdown(f"""
+        <div style="background: #f0f7ff; padding: 0.75rem; border-radius: 8px; border-left: 4px solid #2196f3;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <strong>{status.get('status_emoji', '✈️')} {status.get('status_text', 'Scheduled')}</strong>
+                </div>
+                <div style="text-align: right; font-size: 0.9rem;">
+                    {f"Gate {status['departure']['gate']}" if status['departure']['gate'] != 'TBD' else 'Gate TBD'}
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        # Full version
+        st.markdown(f"""
+        <div class="ultimate-card" style="border-left: 4px solid #2196f3;">
+            <div class="card-body">
+                <h4 style="margin: 0 0 0.5rem 0;">{status.get('status_emoji', '✈️')} Flight {flight_number} - {status.get('status_text', 'Scheduled')}</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.75rem;">
+                    <div>
+                        <strong>🛫 Departure:</strong> {status['departure']['airport']}<br>
+                        <span style="font-size: 0.9rem;">Gate: {status['departure']['gate']} • Terminal: {status['departure']['terminal']}</span>
+                    </div>
+                    <div>
+                        <strong>🛬 Arrival:</strong> {status['arrival']['airport']}<br>
+                        <span style="font-size: 0.9rem;">Gate: {status['arrival']['gate']} • Terminal: {status['arrival']['terminal']}</span>
+                    </div>
+                </div>
+                {f"<p style='margin: 0.5rem 0 0 0; color: #f44336;'><strong>⚠️ Delay:</strong> {status['departure'].get('delay', 0)} minutes</p>" if status['departure'].get('delay', 0) > 0 else ""}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+
+def render_traffic_widget(origin, destination, label=""):
+    """Render a traffic status widget
+
+    Args:
+        origin: Starting location
+        destination: Ending location
+        label: Display label for the route
+    """
+    traffic = get_traffic_data(origin, destination)
+
+    st.markdown(f"""
+    <div class="ultimate-card" style="border-left: 4px solid {('#4caf50' if traffic['traffic_level'] == 'Light' else '#ff9800' if traffic['traffic_level'] == 'Moderate' else '#f44336')};">
+        <div class="card-body">
+            <h4 style="margin: 0 0 0.5rem 0;">🚗 {label if label else 'Route Traffic'}</h4>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <p style="margin: 0.25rem 0;">
+                        <strong>Distance:</strong> {traffic['distance']['text']}<br>
+                        <strong>Duration:</strong> {traffic['duration_in_traffic']['text']}
+                    </p>
+                </div>
+                <div style="text-align: right;">
+                    <div style="background: {('#4caf50' if traffic['traffic_level'] == 'Light' else '#ff9800' if traffic['traffic_level'] == 'Moderate' else '#f44336')}; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-weight: bold;">
+                        {traffic.get('traffic_emoji', '🚗')} {traffic['traffic_level']}
+                    </div>
+                    {f"<p style='margin: 0.5rem 0 0 0; font-size: 0.85rem;'>+{traffic['delay_minutes']} min delay</p>" if traffic.get('delay_minutes', 0) > 0 else ""}
+                </div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
 
 # ============================================================================
 # STEP 3-12: SMART INTELLIGENCE FUNCTIONS
@@ -2226,6 +2556,145 @@ def score_activity_for_slot(activity, time_slot_start, date_str, weather_data, t
         'reasons': reasons,
         'warnings': warnings
     }
+
+def get_smart_duration_default(activity_name, activity_type='activity'):
+    """Get smart default duration for an activity based on its name and type
+
+    Returns:
+        String like "2 hours" or "45 minutes"
+    """
+    activity_lower = activity_name.lower()
+
+    # Quick activities (15-30 min)
+    if any(word in activity_lower for word in ['coffee', 'ice cream', 'fudge', 'bagel']):
+        return "30 minutes"
+
+    # Short activities (45min-1hr)
+    if any(word in activity_lower for word in ['sunrise', 'sunset', 'cloud watch', 'meditation', 'journal']):
+        return "45 minutes"
+
+    # Medium activities (1-2 hours)
+    if any(word in activity_lower for word in ['walk', 'stroll', 'read', 'relax', 'photography', 'beach', 'pool', 'seashell', 'tide pool', 'bird watch', 'driftwood', 'dolphin']):
+        return "1.5 hours"
+
+    # Dining
+    if activity_type in ['dining', 'Dining']:
+        if 'breakfast' in activity_lower or 'brunch' in activity_lower:
+            return "1.5 hours"
+        elif 'fine dining' in activity_lower or 'dinner' in activity_lower:
+            return "2 hours"
+        else:
+            return "1 hour"
+
+    # Spa
+    if activity_type in ['spa', 'Spa'] or 'massage' in activity_lower or 'facial' in activity_lower:
+        if 'couple' in activity_lower:
+            return "2 hours"
+        else:
+            return "1 hour"
+
+    # Activities/Adventures
+    if any(word in activity_lower for word in ['tour', 'kayak', 'paddleboard', 'horseback', 'segway', 'golf', 'tennis', 'hike', 'fishing']):
+        return "3 hours"
+
+    # Default
+    return "2 hours"
+
+
+def check_time_conflict(new_date, new_time_str, new_duration, existing_activities):
+    """Check if a new activity conflicts with existing scheduled activities
+
+    Args:
+        new_date: Date string like "2025-11-07"
+        new_time_str: Time string like "10:00 AM"
+        new_duration: Duration string like "2 hours" or "90 minutes"
+        existing_activities: List of already scheduled activities
+
+    Returns:
+        tuple: (has_conflict: bool, conflicting_activity: dict or None)
+    """
+    from datetime import datetime, timedelta
+
+    # Parse new activity time
+    try:
+        new_time = datetime.strptime(new_time_str, "%I:%M %p")
+    except:
+        try:
+            new_time = datetime.strptime(new_time_str, "%H:%M")
+        except:
+            return (False, None)  # Can't parse time, skip conflict check
+
+    # Parse new activity duration
+    try:
+        if 'hour' in new_duration.lower():
+            hours = float(new_duration.lower().split('hour')[0].strip())
+            new_end_time = new_time + timedelta(hours=hours)
+        elif 'min' in new_duration.lower():
+            minutes = int(new_duration.lower().split('min')[0].strip())
+            new_end_time = new_time + timedelta(minutes=minutes)
+        else:
+            new_end_time = new_time + timedelta(hours=2)  # Default 2 hours
+    except:
+        new_end_time = new_time + timedelta(hours=2)  # Default 2 hours
+
+    # Check against existing activities on same date
+    for activity in existing_activities:
+        if activity['date'] != new_date:
+            continue
+
+        # Parse existing activity time
+        try:
+            existing_time = datetime.strptime(activity['time'], "%I:%M %p")
+        except:
+            try:
+                existing_time = datetime.strptime(activity['time'], "%H:%M")
+            except:
+                continue  # Can't parse, skip
+
+        # Parse existing activity duration
+        existing_duration = activity.get('duration', '2 hours')
+        try:
+            if 'hour' in existing_duration.lower():
+                hours = float(existing_duration.lower().split('hour')[0].strip())
+                existing_end_time = existing_time + timedelta(hours=hours)
+            elif 'min' in existing_duration.lower():
+                minutes = int(existing_duration.lower().split('min')[0].strip())
+                existing_end_time = existing_time + timedelta(minutes=minutes)
+            else:
+                existing_end_time = existing_time + timedelta(hours=2)
+        except:
+            existing_end_time = existing_time + timedelta(hours=2)
+
+        # Check for overlap
+        # Conflict if: new starts before existing ends AND new ends after existing starts
+        if new_time < existing_end_time and new_end_time > existing_time:
+            return (True, activity)
+
+    return (False, None)
+
+
+def is_activity_already_scheduled(activity_name, activities_data):
+    """Check if a unique activity is already in the schedule
+
+    Args:
+        activity_name: Name of the activity to check
+        activities_data: List of all scheduled activities
+
+    Returns:
+        bool: True if activity is already scheduled
+    """
+    # Normalize name for comparison
+    activity_name_lower = activity_name.lower()
+
+    for activity in activities_data:
+        scheduled_name_lower = activity['activity'].lower()
+
+        # Check for exact or very similar match
+        if activity_name_lower in scheduled_name_lower or scheduled_name_lower in activity_name_lower:
+            return True
+
+    return False
+
 
 def add_activity_to_schedule(activity_name, activity_description, selected_day, selected_time, duration, activity_type='activity', cost=0, location_name='TBD'):
     """Add a custom activity to the user's schedule
@@ -3452,35 +3921,81 @@ def render_today_view(df, activities_data, weather_data, show_sensitive):
         
     elif trip_start <= today <= trip_end:
         st.markdown('<div class="today-badge">📍 YOU\'RE ON YOUR TRIP!</div>', unsafe_allow_html=True)
-        
+
         # Get today's activities
         today_activities = [a for a in activities_data if pd.to_datetime(a['date']).date() == today]
-        
+        today_str = today.strftime('%Y-%m-%d')
+
+        # Check if today is a travel day (has flights or airport transport)
+        travel_activities = [a for a in today_activities if a['type'] == 'transport' and
+                           ('flight' in a.get('activity', '').lower() or 'airport' in a.get('activity', '').lower() or 'arrival' in a.get('activity', '').lower())]
+
         if today_activities:
             st.markdown(f"### Today is {today.strftime('%A, %B %d, %Y')}")
-            
+
+            # FLIGHT TRACKING for travel days
+            if travel_activities:
+                st.markdown("### ✈️ Live Flight Status")
+
+                for travel_act in travel_activities:
+                    if travel_act.get('flight_number'):
+                        flight_num = travel_act.get('flight_number')
+                        st.markdown(f"**{flight_num}** - {travel_act['activity']}")
+                        render_flight_status_widget(flight_num, today_str, compact=False)
+
+                        # Add traffic for airport trips
+                        if 'departure' in travel_act.get('activity', '').lower() or 'drop' in travel_act.get('activity', '').lower():
+                            st.markdown("#### 🚗 Traffic to Airport")
+                            render_traffic_widget(
+                                "4750 Amelia Island Parkway, Amelia Island, FL",
+                                "2400 Yankee Clipper Dr, Jacksonville, FL 32218",
+                                "Hotel → Jacksonville Airport (JAX)"
+                            )
+                        elif 'arrival' in travel_act.get('activity', '').lower() and 'DCA' in travel_act.get('notes', ''):
+                            st.markdown("#### 🚗 Traffic from DCA")
+                            st.info("Check traffic conditions before heading to airport")
+
+                st.markdown("---")
+
             # Morning briefing
             st.markdown("""
             <div class="ultimate-card fade-in">
                 <div class="card-header">🌅 Morning Briefing</div>
                 <div class="card-body">
             """, unsafe_allow_html=True)
-            
+
             # Weather for today
             current = weather_data['current']
             st.write(f"**Weather:** {current['temperature']}°F, {current['condition']}")
+            st.write(f"**UV Index:** {current['uv_index']} - {'⚠️ High - Use SPF 50+' if current['uv_index'] > 6 else '✅ Moderate'}")
+            st.write(f"**Wind:** {current['wind_speed']} mph")
             st.write(f"**Activities Scheduled:** {len(today_activities)}")
-            
+
+            # Tide info for beach days
+            tide_data = get_tide_data()
+            if today_str in tide_data:
+                day_tides = tide_data[today_str]
+                if day_tides.get('high'):
+                    high_tide = day_tides['high'][0]
+                    st.write(f"**🌊 High Tide:** {high_tide['time']} ({high_tide['height']}ft)")
+
             st.markdown("</div></div>", unsafe_allow_html=True)
-            
+
             # Timeline of today's activities
             st.markdown("### 📋 Today's Schedule")
-            
+
             for activity in sorted(today_activities, key=lambda x: x['time']):
-                activity_time = datetime.strptime(activity['time'], '%H:%M').time()
+                try:
+                    activity_time = datetime.strptime(activity['time'], '%I:%M %p').time()
+                except:
+                    try:
+                        activity_time = datetime.strptime(activity['time'], '%H:%M').time()
+                    except:
+                        activity_time = datetime.strptime('12:00 PM', '%I:%M %p').time()
+
                 activity_datetime = datetime.combine(today, activity_time)
                 time_until = (activity_datetime - datetime.now()).total_seconds() / 60
-                
+
                 if time_until > 0 and time_until < 60:
                     next_badge = '<span class="today-badge">⏰ COMING UP SOON!</span>'
                 elif time_until <= 0:
@@ -3488,7 +4003,18 @@ def render_today_view(df, activities_data, weather_data, show_sensitive):
                 else:
                     hours_until = int(time_until / 60)
                     next_badge = f'<span class="status-pending">In {hours_until}h {int(time_until % 60)}m</span>'
-                
+
+                # Add weather/UV warnings for outdoor activities
+                activity_warning = ""
+                if activity['type'] in ['beach', 'activity'] and current['uv_index'] > 7:
+                    activity_warning = "<br><small style='color: #ff9800;'>⚠️ High UV - Bring sunscreen SPF 50+</small>"
+                elif activity['type'] == 'beach':
+                    # Add tide info
+                    if today_str in tide_data:
+                        tide_rec = get_tide_recommendation(activity['time'], 'beach', today_str, tide_data)
+                        if tide_rec and tide_rec.get('recommendation'):
+                            activity_warning = f"<br><small style='color: #2196f3;'>{tide_rec['recommendation']}</small>"
+
                 st.markdown(f"""
                 <div class="ultimate-card today-card fade-in">
                     <div class="card-body">
@@ -3496,7 +4022,7 @@ def render_today_view(df, activities_data, weather_data, show_sensitive):
                             <div>
                                 <h3 style="margin: 0 0 0.5rem 0;">{activity['activity']}</h3>
                                 <p style="margin: 0.25rem 0;"><b>🕐 {activity['time']}</b></p>
-                                <p style="margin: 0.25rem 0;">📍 {activity['location']['name']}</p>
+                                <p style="margin: 0.25rem 0;">📍 {activity['location']['name']}{activity_warning}</p>
                             </div>
                             <div>{next_badge}</div>
                         </div>
@@ -4617,127 +5143,346 @@ def render_explore_activities():
 # ============================================================================
 
 def render_johns_page(df, activities_data, show_sensitive):
-    """John's dedicated page to manage his activities and opt-ins"""
-    st.markdown('<h2 class="fade-in">👤 John\'s Trip Overview</h2>', unsafe_allow_html=True)
+    """John's dedicated trip companion page"""
+    st.markdown('<h2 class="fade-in">👋 John\'s Trip Companion</h2>', unsafe_allow_html=True)
 
+    # Welcome banner
     st.markdown("""
     <div class="birthday-special">
-        <h3 style="margin: 0 0 0.5rem 0;">🎉 Welcome John!</h3>
-        <p style="margin: 0; font-size: 1.1rem;">Your Amelia Island adventure awaits! Nov 8-11, 2025</p>
+        <h3 style="margin: 0 0 0.5rem 0;">🌴 Welcome to Amelia Island!</h3>
+        <p style="margin: 0; font-size: 1.1rem;">Your quick reference guide for an amazing weekend getaway</p>
+        <p style="margin: 0.5rem 0 0 0; font-size: 0.95rem; opacity: 0.9;">November 8-11, 2025 • The Ritz-Carlton, Amelia Island</p>
     </div>
     """, unsafe_allow_html=True)
 
-    # John's activities
-    johns_activities = [a for a in activities_data if 'john' in a['activity'].lower() or a['date'] >= '2025-11-08']
+    # Quick Stats
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("📅 Trip Length", "3.5 days")
+    with col2:
+        st.metric("🏨 Hotel Nights", "3 nights")
+    with col3:
+        arrival_activity = next((a for a in activities_data if a.get('id') == 'arr002'), None)
+        arrival_time = arrival_activity['estimated_hotel_arrival'] if arrival_activity else "12:00 PM"
+        st.metric("✈️ You Arrive", f"Sat {arrival_time}")
+    with col4:
+        departure_activity = next((a for a in activities_data if a.get('id') == 'dep001'), None)
+        depart_time = departure_activity['flight_departure_time'] if departure_activity else "11:05 AM"
+        st.metric("🛫 You Depart", f"Tue {depart_time}")
 
-    st.markdown("### 📅 Your Schedule")
+    # ============ YOUR FLIGHT & ARRIVAL ============
+    st.markdown("---")
+    st.markdown("### ✈️ Your Flight & Arrival")
 
-    # Categorize activities
-    included_activities = []
-    optional_activities_john = []
+    john_arrival = next((a for a in activities_data if a.get('id') == 'arr002'), None)
+    john_departure = next((a for a in activities_data if a.get('id') == 'dep001'), None)
 
-    for activity in johns_activities:
-        # Activities John is definitely in
-        if activity['date'] >= '2025-11-08' and activity['date'] <= '2025-11-11':
-            if activity['type'] in ['transport', 'dining'] and activity['id'] != 'arr002':
-                included_activities.append(activity)
-            elif activity['id'] in ['act001', 'bch001', 'din002']:  # Shared activities
-                included_activities.append(activity)
-            elif activity['id'] == 'arr002':
-                included_activities.append(activity)
+    if john_arrival:
+        # Live flight tracking
+        st.markdown("#### 🛬 Arrival Flight - Nov 8")
+        if john_arrival.get('flight_number'):
+            render_flight_status_widget(john_arrival['flight_number'], '2025-11-08', compact=False)
 
-    # Optional spa services for John
-    spa_options = [
-        {"name": "Aromatherapy Massage", "cost": "$185-245", "duration": "50-80 min"},
-        {"name": "Hot Stone Massage", "cost": "$205", "duration": "80 min"},
-        {"name": "Gentleman's Facial", "cost": "$165", "duration": "50 min"},
-        {"name": "Mani-Pedi", "cost": "$125", "duration": "90 min"},
-        {"name": "Body Scrub & Wrap", "cost": "$175-225", "duration": "50-80 min"},
-    ]
+        col1, col2 = st.columns([2, 1])
 
-    # Display John's confirmed activities
-    st.markdown("#### ✅ Included in Your Trip")
+        with col1:
+            st.markdown(f"""
+            <div class="ultimate-card" style="border-left: 4px solid #4caf50; margin-top: 1rem;">
+                <div class="card-body">
+                    <h4 style="margin: 0 0 0.5rem 0;">📍 Arrival Details</h4>
+                    <p style="margin: 0.5rem 0;">
+                        ✈️ <strong>Lands at JAX:</strong> {john_arrival.get('estimated_flight_arrival', '10:40 AM')}<br>
+                        🏨 <strong>Hotel Arrival:</strong> ~{john_arrival.get('estimated_hotel_arrival', '12:00 PM')}<br>
+                        🚗 <strong>Ground Transport:</strong> {john_arrival['notes']}
+                    </p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
 
-    for activity in sorted(included_activities, key=lambda x: x['date'] + x['time']):
-        date_obj = pd.to_datetime(activity['date'])
+        with col2:
+            st.markdown("**📋 Arrival Checklist**")
+            st.markdown("""
+            - ✅ ID/Boarding Pass
+            - ✅ Phone charged
+            - ✅ Track flight status
+            - ✅ Text when landing
+            - ✅ 45 min drive to hotel
+            """)
 
-        paid_by = ""
-        if activity['id'] == 'arr002':
-            paid_by = "<span style='background: #e8f5e9; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem;'>✈️ Your Flight</span>"
-        elif activity['id'] in ['act001', 'bch001']:
-            paid_by = "<span style='background: #fff9c4; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem;'>💝 Shared Activity</span>"
+    # John's departure flight
+    if john_departure:
+        st.markdown("#### 🛫 Departure Flight - Nov 11")
+        if john_departure.get('flight_number'):
+            render_flight_status_widget(john_departure['flight_number'], '2025-11-11', compact=False)
 
-        cost_display = f"${activity['cost']}" if show_sensitive and activity['cost'] > 0 else ""
-        if not show_sensitive and activity['cost'] > 0:
-            cost_display = "$***"
+            # Traffic to airport
+            st.markdown("**🚗 Traffic to Airport**")
+            render_traffic_widget(
+                "4750 Amelia Island Parkway, Amelia Island, FL",
+                "2400 Yankee Clipper Dr, Jacksonville, FL 32218",
+                "Hotel → JAX Airport"
+            )
 
-        st.markdown(f"""
-        <div class="ultimate-card fade-in">
+        st.info(f"💡 **Pro Tip:** Leave hotel by 8:20 AM for {john_departure.get('flight_departure_time', '11:05 AM')} flight (45 min drive + 2 hrs early)")
+
+    # ============ DAY-BY-DAY SCHEDULE ============
+    st.markdown("---")
+    st.markdown("### 📅 Your Day-by-Day Schedule")
+
+    # Filter John's relevant activities (Nov 8-11)
+    john_start = '2025-11-08'
+    john_end = '2025-11-11'
+    johns_activities = [a for a in activities_data if a['date'] >= john_start and a['date'] <= john_end]
+
+    # Group by date
+    from itertools import groupby
+    johns_activities_sorted = sorted(johns_activities, key=lambda x: (x['date'], x['time']))
+
+    for date_str, day_activities in groupby(johns_activities_sorted, key=lambda x: x['date']):
+        date_obj = pd.to_datetime(date_str)
+        day_activities_list = list(day_activities)
+
+        # Determine if there are partner-only activities (spa)
+        partner_spa_times = [a for a in day_activities_list if a['type'] == 'spa']
+
+        with st.expander(f"**{date_obj.strftime('%A, %B %d')}** ({len(day_activities_list)} activities)", expanded=(date_str == john_start)):
+            for activity in day_activities_list:
+                # Determine if John is included
+                is_john_activity = False
+                activity_note = ""
+
+                if activity['type'] in ['transport', 'dining']:
+                    is_john_activity = True
+                    activity_note = "✅ Included"
+                elif activity['type'] == 'activity' or activity['type'] == 'beach':
+                    is_john_activity = True
+                    activity_note = "🎯 Shared Activity"
+                elif activity['type'] == 'spa':
+                    activity_note = "💆 Partner's Spa Time (Your Free Time!)"
+
+                # Color coding
+                if is_john_activity:
+                    border_color = "#4caf50"  # Green for included
+                elif activity['type'] == 'spa':
+                    border_color = "#ff9800"  # Orange for free time
+                else:
+                    border_color = "#9e9e9e"  # Grey for other
+
+                st.markdown(f"""
+                <div class="ultimate-card" style="border-left: 4px solid {border_color}; margin-bottom: 1rem;">
+                    <div class="card-body">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <h4 style="margin: 0 0 0.5rem 0;">{activity['activity']}</h4>
+                                <p style="margin: 0.25rem 0;"><strong>⏰ {activity['time']}</strong> {f"• {activity.get('duration', '')}" if activity.get('duration') else ""}</p>
+                                <p style="margin: 0.25rem 0;">📍 {activity['location']['name']}</p>
+                                <p style="margin: 0.5rem 0; font-style: italic; font-size: 0.9rem;">{activity.get('notes', '')}</p>
+                            </div>
+                            <div style="margin-left: 1rem;">
+                                <span style="background: {border_color}; color: white; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem; white-space: nowrap;">{activity_note}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+            # Show free time suggestion if partner has spa
+            if partner_spa_times:
+                st.markdown("""
+                <div class="info-box info-success">
+                    <strong>💡 Free Time Ideas:</strong> While your partner is at the spa, enjoy the pool, hot tub, beach, or book your own spa treatment below!
+                </div>
+                """, unsafe_allow_html=True)
+
+    # ============ THINGS TO DO (FREE TIME) ============
+    st.markdown("---")
+    st.markdown("### 🎯 Things You Might Enjoy")
+
+    tab1, tab2, tab3 = st.tabs(["🏊 Pool & Beach", "💆 Optional Spa", "🎮 Activities"])
+
+    with tab1:
+        st.markdown("""
+        <div class="ultimate-card">
             <div class="card-body">
-                <h4 style="margin: 0 0 0.5rem 0;">{activity['activity']}</h4>
-                <p style="margin: 0.25rem 0;"><strong>📅 {date_obj.strftime('%A, %B %d')} at {activity['time']}</strong></p>
-                <p style="margin: 0.25rem 0;">📍 {activity['location']['name']}</p>
-                {f"<p style='margin: 0.25rem 0;'>💰 {cost_display}</p>" if cost_display else ""}
-                <p style="margin: 0.5rem 0; font-style: italic;">{activity['notes']}</p>
-                {paid_by}
+                <h4 style="margin: 0 0 0.5rem 0;">🌴 Complimentary Resort Access</h4>
+                <p style="margin: 0.5rem 0;">Enjoy unlimited access to world-class facilities:</p>
+                <ul style="margin: 0.5rem 0;">
+                    <li><strong>Multiple Pools</strong> - Oceanfront infinity pool, family pool, adult-only pool</li>
+                    <li><strong>Hot Tubs</strong> - Several whirlpool spas throughout the property</li>
+                    <li><strong>Private Beach</strong> - Beach chairs, umbrellas, and towel service included</li>
+                    <li><strong>Poolside Bar</strong> - Cocktails and light fare available</li>
+                    <li><strong>Beach Activities</strong> - Volleyball, paddleboards, kayaks (some may have fees)</li>
+                </ul>
+                <p style="margin: 0.5rem 0 0 0; font-style: italic; color: #666;">📍 All facilities are steps from your room. Towels available at pool & beach stations.</p>
             </div>
         </div>
         """, unsafe_allow_html=True)
 
-    # Optional spa services John can opt into
-    st.markdown("---")
-    st.markdown("### 💆 Optional Spa Services (You Pay)")
-
-    st.markdown("""
-    <div class="info-box" style="background: linear-gradient(135deg, #e3f2fd 0%, #e1f5fe 100%);">
-        <p style="margin: 0;"><strong>ℹ️ Info:</strong> These spa treatments are optional. If you'd like to book any, let the trip organizer know and you'll cover the cost.</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    for idx, spa in enumerate(spa_options):
-        col1, col2, col3 = st.columns([3, 1, 1])
-
-        with col1:
-            st.markdown(f"**{spa['name']}**")
-            st.caption(f"{spa['duration']} • {spa['cost']}")
-
-        with col2:
-            interested = st.checkbox("Interested?", key=f"john_spa_{idx}")
-
-        with col3:
-            if interested:
-                st.success("✓ Noted")
-
-    # Pool access reminder
-    st.markdown("---")
-    st.markdown("### 🏊 Complimentary Access")
-
-    st.markdown("""
-    <div class="ultimate-card" style="border-left: 4px solid #4caf50;">
-        <div class="card-body">
-            <h4 style="margin: 0 0 0.5rem 0;">🌴 Resort Pool & Beach Access</h4>
-            <p style="margin: 0;">You have full access to all Ritz-Carlton pools, hot tubs, and beach facilities during your stay!</p>
-            <ul style="margin: 0.5rem 0;">
-                <li>Multiple pools & hot tubs</li>
-                <li>Beach chairs & umbrellas</li>
-                <li>Towel service</li>
-                <li>Poolside bar & dining</li>
-            </ul>
+    with tab2:
+        st.markdown("""
+        <div class="info-box" style="background: linear-gradient(135deg, #e3f2fd 0%, #e1f5fe 100%);">
+            <strong>ℹ️ Optional Services:</strong> Book any spa treatment at your own expense. Call 904-277-1087 or ask hotel concierge.
         </div>
-    </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
-    # Summary
+        spa_options = [
+            {"name": "Gentleman's Facial", "cost": "$165", "duration": "50 min", "desc": "Designed for men's skin. Addresses shaving irritation and deep cleaning."},
+            {"name": "Aromatherapy Massage", "cost": "$185-245", "duration": "50-80 min", "desc": "Relaxing full-body massage with essential oils."},
+            {"name": "Hot Stone Massage", "cost": "$205", "duration": "80 min", "desc": "Therapeutic massage with heated stones to ease muscle tension."},
+            {"name": "Sports Massage", "cost": "$195", "duration": "50 min", "desc": "Deep tissue massage focused on muscle recovery."},
+        ]
+
+        for spa in spa_options:
+            st.markdown(f"""
+            <div class="ultimate-card">
+                <div class="card-body">
+                    <h4 style="margin: 0 0 0.25rem 0;">{spa['name']}</h4>
+                    <p style="margin: 0.25rem 0; color: #666;"><strong>{spa['duration']} • {spa['cost']}</strong></p>
+                    <p style="margin: 0.5rem 0; font-size: 0.9rem;">{spa['desc']}</p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("**📞 To Book:** Call spa at 904-277-1087")
+
+    with tab3:
+        st.markdown("**🏖️ Nearby Activities** (during free time)")
+
+        optional_ideas = [
+            {"name": "Golf at Oak Marsh", "desc": "18-hole championship course on property", "cost": "~$150+"},
+            {"name": "Bike Rental", "desc": "Explore the island on two wheels", "cost": "~$30/day"},
+            {"name": "Historic Downtown Fernandina", "desc": "Shopping, dining, art galleries - 15 min drive", "cost": "Free"},
+            {"name": "Fort Clinch State Park", "desc": "Historic fort, fishing pier, nature trails", "cost": "$6 entry"},
+        ]
+
+        for idea in optional_ideas:
+            st.markdown(f"**{idea['name']}** ({idea['cost']})")
+            st.caption(idea['desc'])
+            st.markdown("")
+
+    # ============ PRACTICAL ESSENTIALS ============
     st.markdown("---")
-    st.markdown("### 📊 Trip Summary")
+    st.markdown("### 🎒 What to Pack (Your Essentials)")
 
     col1, col2 = st.columns(2)
+
     with col1:
-        st.metric("Days on Island", "3.5 days")
-        st.metric("Confirmed Activities", len(included_activities))
+        st.markdown("""
+        **🚨 Must Have:**
+        - ✈️ ID & boarding pass
+        - 💳 Credit card & cash
+        - 📱 Phone & charger
+        - 🧴 Toiletries & medications
+        - 🩳 Swimsuit (for pool/beach!)
+
+        **👕 Clothing:**
+        - Casual resort wear
+        - Swimwear & cover-up
+        - Comfortable walking shoes
+        - Sandals/flip-flops
+        - Light jacket (evenings can be cool)
+        """)
+
     with col2:
-        st.metric("Flight Arrival", "Sat Nov 8, 10:40am")
-        st.metric("Flight Departure", "Tue Nov 11, 11:05am")
+        st.markdown("""
+        **🌞 Beach Essentials:**
+        - Sunglasses
+        - Sunscreen SPF 50+
+        - Hat or cap
+        - Beach read or e-reader
+
+        **💼 Nice to Have:**
+        - Camera
+        - Headphones
+        - Workout clothes (if using gym)
+        - Golf gear (if playing)
+        """)
+
+    # ============ QUICK REFERENCE ============
+    st.markdown("---")
+    st.markdown("### 📞 Quick Reference")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("""
+        <div class="ultimate-card">
+            <div class="card-body">
+                <h4 style="margin: 0 0 0.5rem 0;">🏨 Hotel Information</h4>
+                <p style="margin: 0.25rem 0;"><strong>The Ritz-Carlton, Amelia Island</strong></p>
+                <p style="margin: 0.25rem 0;">4750 Amelia Island Parkway<br>Amelia Island, FL 32034</p>
+                <p style="margin: 0.5rem 0 0 0;">
+                    📞 <strong>Main:</strong> 904-277-1100<br>
+                    🧖 <strong>Spa:</strong> 904-277-1087<br>
+                    🍽️ <strong>Dining:</strong> 904-277-1100<br>
+                </p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("""
+        <div class="ultimate-card" style="margin-top: 1rem;">
+            <div class="card-body">
+                <h4 style="margin: 0 0 0.5rem 0;">🚗 Getting Around</h4>
+                <p style="margin: 0.25rem 0;">
+                    <strong>Airport to Hotel:</strong> 45 min drive<br>
+                    <strong>Rental Car/Uber:</strong> Arrange at JAX<br>
+                    <strong>Valet Parking:</strong> $40/day at hotel<br>
+                </p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col2:
+        # Get weather
+        weather = get_weather_ultimate()
+        if weather:
+            avg_temp = sum([w.get('temp', 75) for w in weather]) / len(weather) if weather else 75
+            st.markdown(f"""
+            <div class="ultimate-card">
+                <div class="card-body">
+                    <h4 style="margin: 0 0 0.5rem 0;">🌤️ Weather Forecast</h4>
+                    <p style="margin: 0.25rem 0;">
+                        <strong>Average:</strong> {avg_temp:.0f}°F<br>
+                        <strong>Conditions:</strong> Partly cloudy<br>
+                        <strong>What to Expect:</strong> Pleasant beach weather!
+                    </p>
+                    <p style="margin: 0.5rem 0 0 0; font-style: italic; font-size: 0.85rem;">
+                        Pack sunscreen and light layers.
+                    </p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("""
+        <div class="ultimate-card" style="margin-top: 1rem;">
+            <div class="card-body">
+                <h4 style="margin: 0 0 0.5rem 0;">💡 Good to Know</h4>
+                <p style="margin: 0.25rem 0;">
+                    🏨 <strong>Check-in:</strong> 4:00 PM<br>
+                    🚪 <strong>Check-out:</strong> 11:00 AM<br>
+                    📶 <strong>WiFi:</strong> Complimentary<br>
+                    🏋️ <strong>Fitness Center:</strong> 24/7 access<br>
+                    ☕ <strong>Coffee:</strong> In-room Nespresso<br>
+                </p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # Final tips
+    st.markdown("---")
+    st.markdown("""
+    <div class="info-box info-success">
+        <h4 style="margin: 0 0 0.5rem 0;">✨ Tips for a Great Trip</h4>
+        <ul style="margin: 0;">
+            <li>Download the American Airlines app for mobile boarding pass</li>
+            <li>Bring a refillable water bottle - stay hydrated in the sun</li>
+            <li>The resort is walkable - comfortable shoes recommended</li>
+            <li>Try the Salt restaurant for breakfast - amazing ocean views!</li>
+            <li>Sunset at the beach is spectacular - bring your camera around 6 PM</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
 
 
 def render_birthday_page():
