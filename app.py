@@ -1308,7 +1308,7 @@ def get_ultimate_trip_data():
             "status": "URGENT",
             "cost": 210,
             "category": "Dining",
-            "notes": "THE BIG 40! Upscale dining - MUST RESERVE - mention birthday!",
+            "notes": "THE BIG 40! Upscale dining for 2 - MUST RESERVE - mention birthday! Michael is treating for birthday celebration.",
             "what_to_bring": ["Nice outfit", "ID", "Camera for birthday photos"],
             "tips": ["Request window table", "Ask about chef's specials", "Save room for dessert!"],
             "dress_code": "Business casual to dressy",
@@ -1352,9 +1352,9 @@ def get_ultimate_trip_data():
                 "phone": "904-321-1430"
             },
             "status": "Pending",
-            "cost": 60,
+            "cost": 30,
             "category": "Dining",
-            "notes": "Beachside casual - famous for tacos and fresh catch",
+            "notes": "Beachside casual - famous for tacos and fresh catch. Going Dutch (each pays own meal).",
             "what_to_bring": ["Casual clothes", "Cash (faster)"],
             "tips": ["Try the blackened mahi tacos", "BYOB friendly", "Often a wait but moves fast"],
             "dress_code": "Beach casual",
@@ -5708,29 +5708,40 @@ def render_johns_page(df, activities_data, show_sensitive):
 
         with st.expander(f"**{date_obj.strftime('%A, %B %d')}** ({len(day_activities_list)} activities)", expanded=(date_str == john_start)):
             for activity in day_activities_list:
-                # Determine if John is included
+                # Determine if John is included and payment status
                 is_john_activity = False
                 activity_note = ""
+                activity_id = activity.get('id', '')
 
-                # Check if it's a couples spa activity
+                # Check if it's a couples spa activity (spa001)
                 is_couples_spa = activity['type'] == 'spa' and 'Couples' in activity.get('activity', '')
 
-                if activity['type'] in ['transport', 'dining']:
+                # Check if it's the birthday dinner (din001) - ONLY meal covered by user
+                is_birthday_dinner = activity_id == 'din001'
+
+                # Determine badge and color
+                if is_birthday_dinner:
                     is_john_activity = True
-                    activity_note = "✅ Included"
-                elif activity['type'] == 'activity' or activity['type'] == 'beach':
-                    is_john_activity = True
-                    activity_note = "🎯 Shared Activity"
+                    activity_note = "✅ Included - Michael's Treat"
+                    border_color = "#4caf50"  # Green for covered
                 elif is_couples_spa:
                     is_john_activity = True
                     activity_note = "✅ Included - Already Covered"
+                    border_color = "#4caf50"  # Green for covered
+                elif activity['type'] == 'transport':
+                    is_john_activity = True
+                    activity_note = "🚕 Your Transportation"
+                    border_color = "#2196f3"  # Blue for transport
+                elif activity['type'] == 'dining':
+                    is_john_activity = True
+                    activity_note = "💰 Going Dutch (Each Pays Own)"
+                    border_color = "#ff9800"  # Orange for split
+                elif activity['type'] == 'activity' or activity['type'] == 'beach':
+                    is_john_activity = True
+                    activity_note = "🎯 Shared Activity (Each Pays Own)"
+                    border_color = "#ff9800"  # Orange for split
                 elif activity['type'] == 'spa':
                     activity_note = "💆 Michael's Spa Time (Your Free Time!)"
-
-                # Color coding
-                if is_john_activity:
-                    border_color = "#4caf50"  # Green for included
-                elif activity['type'] == 'spa':
                     border_color = "#ff9800"  # Orange for free time
                 else:
                     border_color = "#9e9e9e"  # Grey for other
