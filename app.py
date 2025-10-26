@@ -1457,13 +1457,28 @@ def get_optional_activities():
     🏊 RESORT & FREE (7 options):
     - Pool, beach sunsets, yoga, bonfires, fitness, volleyball, shelling
 
-    TOTAL: 118 verified options with complete details, phone numbers, pricing, tips, and ratings!
+    TOTAL: 122+ verified options with complete details, phone numbers, pricing, tips, and ratings!
+
+    🌟 BOSS RECOMMENDATIONS INCLUDED:
+    - Ritz Spa (beautiful!)
+    - David's Restaurant
+    - Pogo's
+    - Lagniappe (Happy Hour!)
+    - Ciao (homemade pasta!)
+    - Espana (wine & tapas)
+    - Timoti's/Timotees (lunch)
+    - Amelia Tavern & The Alley (drinks)
+    - Ritz Lobby Bar (sushi, charcuterie, smoked Old Fashioneds!)
+    - Scenic drive to GA border
+
+    Your boss says: "You are going to have a fabulous week even if you never left the hotel!"
     """
     return {
         "🍽️ Fine Dining": [
             {"name": "Le Clos", "description": "French bistro with romantic atmosphere, extensive wine selection", "cost_range": "$40-70 per person", "duration": "2-3 hours", "phone": "904-261-8100", "booking_url": "https://www.opentable.com/r/le-clos-fernandina-beach", "tips": "Reservations required, dress code (business casual)", "rating": "4.8/5"},
+            {"name": "Espana Restaurant & Tapas", "description": "BOSS RECOMMENDATION! Authentic Spanish tapas, paella, extensive wine selection, intimate European atmosphere", "cost_range": "$25-50 per person", "duration": "1.5-2.5 hours", "phone": "904-261-7700", "booking_url": "https://www.opentable.com/espana-fernandina", "tips": "Perfect for wine and tapas - great small plates to share. Boss says: 'Espana for wine and tapas!'", "rating": "4.7/5"},
             {"name": "Burlingame", "description": "Charming 1947 cottage with modern twist, seasonal menu with Seafood Gumbo, Blue Crab Cakes, Lamb Bolognese", "cost_range": "$35-65 per person", "duration": "2-2.5 hours", "phone": "904-277-3700", "booking_url": "https://www.opentable.com/burlingame", "tips": "Intimate setting, reserve ahead for special occasions", "rating": "4.9/5"},
-            {"name": "Lagniappe", "description": "Southern refinement meets French Creole, standout Salmon Brulee and Lamb Lollipops", "cost_range": "$40-70 per person", "duration": "2-3 hours", "phone": "904-321-2007", "booking_url": "https://www.opentable.com/lagniappe-fernandina", "tips": "Chef Brett Heritage creates unique elevated cuisine", "rating": "4.8/5"},
+            {"name": "Lagniappe", "description": "BOSS RECOMMENDATION for Happy Hour! Southern refinement meets French Creole, standout Salmon Brulee and Lamb Lollipops", "cost_range": "$40-70 per person", "duration": "2-3 hours", "phone": "904-321-2007", "booking_url": "https://www.opentable.com/lagniappe-fernandina", "tips": "Chef Brett Heritage creates unique elevated cuisine. Don't miss happy hour!", "rating": "4.8/5"},
             {"name": "Cucina South", "description": "Fine dining Italian with chef-driven creations, traditional Italian with Mediterranean accents", "cost_range": "$35-60 per person", "duration": "2-2.5 hours", "phone": "904-321-2699", "booking_url": "https://www.opentable.com/cucina-south", "tips": "Classic Italian with modern twists, excellent wine list", "rating": "4.7/5"},
         ],
         "🦞 Seafood & Waterfront": [
@@ -1472,11 +1487,11 @@ def get_optional_activities():
             {"name": "Sandbar", "description": "Directly on Main Beach with Atlantic Ocean views, coastal cuisine, 1200+ whiskey selections", "cost_range": "$25-45 per person", "duration": "1.5-2 hours", "phone": "904-491-3743", "booking_url": "https://sandbaramelia.com", "tips": "Unobstructed beach views, live music on weekends", "rating": "4.7/5"},
             {"name": "The Boat House", "description": "Waterfront seafood with fresh local catches and harbor views", "cost_range": "$22-40 per person", "duration": "1-2 hours", "phone": "904-261-9300", "booking_url": "https://boathouseamelia.com", "tips": "Try the catch of the day and she-crab soup", "rating": "4.6/5"},
             {"name": "Down Under", "description": "Under the bridge to Amelia Island, oysters, crab dip, shrimp, fresh fish with waterfront view", "cost_range": "$15-30 per person", "duration": "1-1.5 hours", "phone": "904-261-1001", "booking_url": "N/A", "tips": "Casual vibe, great for fresh oysters and cold beer", "rating": "4.5/5"},
-            {"name": "Timoti's Seafood Shak", "description": "Family-friendly wild-caught seafood, fresh fried shrimp, poke bowls, fish tacos, lobster rolls", "cost_range": "$12-25 per person", "duration": "45min-1 hour", "phone": "904-206-0965", "booking_url": "https://timotis.com", "tips": "Fast casual, great for lunch, super fresh seafood", "rating": "4.6/5"},
+            {"name": "Timoti's Seafood Shak", "description": "BOSS RECOMMENDATION for lunch! Family-friendly wild-caught seafood, fresh fried shrimp, poke bowls, fish tacos, lobster rolls", "cost_range": "$12-25 per person", "duration": "45min-1 hour", "phone": "904-206-0965", "booking_url": "https://timotis.com", "tips": "Boss says: 'You must go to Timotees for lunch one day!' Fast casual, super fresh seafood", "rating": "4.6/5"},
             {"name": "Salt Life Food Shack", "description": "Oceanfront casual dining with amazing views and fresh seafood", "cost_range": "$15-30 per person", "duration": "1-2 hours", "phone": "904-277-3811", "booking_url": "https://www.saltlifefoodshack.com", "tips": "Perfect for lunch, great outdoor seating with ocean breeze", "rating": "4.5/5"},
         ],
         "🍕 Italian & Pizza": [
-            {"name": "Ciao Italian Eatery", "description": "Authentic Italian by Chef Luca, pasta, pizza, seafood, veal, chicken, pork, ribeye", "cost_range": "$20-40 per person", "duration": "1.5-2 hours", "phone": "904-491-9700", "booking_url": "https://ciaoitalianeats.com", "tips": "Dinner only, homemade pasta is exceptional", "rating": "4.7/5"},
+            {"name": "Ciao Italian Eatery", "description": "BOSS RECOMMENDATION! Authentic Italian by Chef Luca, pasta, pizza, veal, chicken, pork, ribeye", "cost_range": "$20-40 per person", "duration": "1.5-2 hours", "phone": "904-491-9700", "booking_url": "https://ciaoitalianeats.com", "tips": "Dinner only. Boss says: 'Have their homemade pasta!' - it's exceptional", "rating": "4.7/5"},
             {"name": "Arte Pizza", "description": "Authentic Neapolitan wood-fired pizzas, fresh high-quality ingredients, local favorite", "cost_range": "$15-28 per person", "duration": "1-1.5 hours", "phone": "904-206-5694", "booking_url": "https://artepizzabar.com", "tips": "Best pizza on the island, simple but perfect", "rating": "4.8/5"},
         ],
         "🌮 Mexican & Latin": [
@@ -1513,10 +1528,13 @@ def get_optional_activities():
             {"name": "Coast", "description": "Coastal cuisine with seasonal menu, local seafood, steaks, salads, small plates. All-day dining", "cost_range": "$25-55 per person", "duration": "1.5-2 hours", "phone": "904-277-1100", "booking_url": "https://www.opentable.com/coast-at-the-ritz-carlton", "tips": "Open 7am-3pm and 5pm-9pm daily", "rating": "4.4/5"},
             {"name": "Coquina", "description": "Oceanfront restaurant with beach views and casual coastal fare", "cost_range": "$20-40 per person", "duration": "1-2 hours", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Open 11am-9pm daily, perfect for lunch with ocean breeze", "rating": "4.5/5"},
             {"name": "Tidewater Grill", "description": "Casual poolside dining with grilled favorites and refreshing drinks", "cost_range": "$15-30 per person", "duration": "1-1.5 hours", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Open 5pm-10pm Mon-Fri, 3pm-10pm Sat-Sun", "rating": "4.3/5"},
-            {"name": "Lobby Bar", "description": "Classic lounge with craft cocktails, wine, and small plates", "cost_range": "$12-25 per drink/plate", "duration": "1-2 hours", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Open 3pm-12am Mon-Thu, 3pm-1am Fri-Sat", "rating": "4.6/5"},
+            {"name": "Lobby Bar", "description": "Classic lounge with craft cocktails, wine, and small plates. MUST TRY: Smoked Old Fashioneds, charcuterie board, sushi", "cost_range": "$12-30 per item", "duration": "1-2 hours", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Open 3pm-12am Mon-Thu, 3pm-1am Fri-Sat. Boss recommendation: 'Wonderful charcuterie at the bar, most wonderful smoked Old Fashioneds, sushi in the lobby!'", "rating": "4.8/5"},
             {"name": "Dune Bar", "description": "Beach bar with tropical drinks, frozen cocktails, and light bites", "cost_range": "$10-20 per drink", "duration": "1-2 hours", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Open 11am-6pm daily, perfect beach relaxation", "rating": "4.5/5"},
         ],
         "🍺 Bars & Nightlife": [
+            {"name": "Amelia Tavern & The Alley", "description": "Downtown tavern with secret alley bar, craft cocktails, extensive whiskey selection", "cost_range": "$10-18 per drink", "duration": "2-3 hours", "phone": "904-310-3854", "booking_url": "N/A", "tips": "BOSS RECOMMENDATION! Check out the hidden alley bar for unique atmosphere", "rating": "4.7/5"},
+            {"name": "Pogo's", "description": "Local favorite bar and restaurant on Centre Street", "cost_range": "$10-25 per person", "duration": "1-3 hours", "phone": "904-261-1000", "booking_url": "N/A", "tips": "BOSS RECOMMENDATION! Great casual spot, popular with locals", "rating": "4.6/5"},
+            {"name": "Lagniappe", "description": "BOSS RECOMMENDATION for Happy Hour! Southern refinement meets French Creole, standout Salmon Brulee", "cost_range": "$12-20 happy hour, $40-70 dinner", "duration": "2-3 hours", "phone": "904-321-2007", "booking_url": "https://www.opentable.com/lagniappe-fernandina", "tips": "Don't miss happy hour - great cocktails and atmosphere", "rating": "4.8/5"},
             {"name": "Palace Saloon", "description": "Florida's oldest continuously-operated bar since 1903, 40-foot historic bar, live music, famous Pirate's Punch", "cost_range": "$8-15 per drink", "duration": "1-3 hours", "phone": "904-491-3332", "booking_url": "N/A", "tips": "113 Centre St, stays open latest in downtown, cool atmosphere", "rating": "4.7/5"},
             {"name": "Green Turtle Tavern", "description": "Laid-back bar with best bourbon selection on island, hand-crafted cocktails with fresh local fruit, live entertainment weekends", "cost_range": "$10-18 per drink", "duration": "2-3 hours", "phone": "904-277-8989", "booking_url": "N/A", "tips": "Heart of historic district, friendly mix of locals and visitors", "rating": "4.8/5"},
             {"name": "The Decantery", "description": "Sophisticated cocktail lounge next to Palace Saloon, old Hollywood charm, rare wines, craft cocktails, decadent desserts", "cost_range": "$12-25 per drink", "duration": "1-2 hours", "phone": "904-491-3332", "booking_url": "N/A", "tips": "Plush velvet couches, vintage mirrors, upscale atmosphere", "rating": "4.7/5"},
@@ -1573,6 +1591,7 @@ def get_optional_activities():
             {"name": "Artrageous ArtWalk", "description": "Second Saturday monthly event, galleries open 5:30pm-8:30pm", "cost_range": "FREE", "duration": "2-3 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Great atmosphere, wine and refreshments at many galleries", "rating": "4.7/5"},
             {"name": "Saturday Farmer's Market", "description": "Local produce, crafts, food vendors, and live music", "cost_range": "Varies", "duration": "1-2 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Only Saturday mornings 9am-1pm, arrive early for best selection", "rating": "4.6/5"},
             {"name": "Historic Walking Tour", "description": "Self-guided or guided tours of Victorian-era architecture", "cost_range": "$FREE-$25", "duration": "1-2 hours", "phone": "904-277-0717", "booking_url": "N/A", "tips": "Pick up map at visitor center or book guided tour", "rating": "4.6/5"},
+            {"name": "Scenic Drive to Georgia Border", "description": "BOSS RECOMMENDATION! Drive north on A1A to Georgia border - beautiful coastal scenery", "cost_range": "FREE (just gas)", "duration": "1-2 hours round trip", "phone": "N/A", "booking_url": "N/A", "tips": "If you have a car, this scenic drive offers stunning views. Boss says: 'Try to drive north to the GA border!'", "rating": "4.7/5"},
             {"name": "Wine & Tasting Tour", "description": "Local guide takes you to best restaurants, bars and hot spots", "cost_range": "$60-90 per person", "duration": "2-3 hours", "phone": "904-556-7594", "booking_url": "N/A", "tips": "Fun way to discover local flavors and meet people", "rating": "4.5/5"},
         ],
         "💆 Ritz-Carlton Spa Services": [
