@@ -675,24 +675,24 @@ def get_ultimate_trip_data():
         {
             "id": "arr002",
             "date": "2025-11-08",
-            "time": "10:40 AM",
-            "activity": "John Arrives at JAX",
+            "time": "12:00 PM",
+            "activity": "John Arrives at Hotel",
             "type": "transport",
             "location": {
-                "name": "Jacksonville International Airport (JAX)",
-                "address": "2400 Yankee Clipper Dr, Jacksonville, FL 32218",
-                "lat": 30.4941,
-                "lon": -81.6879,
-                "phone": "904-741-4902"
+                "name": "The Ritz-Carlton, Amelia Island",
+                "address": "4750 Amelia Island Parkway",
+                "lat": 30.6074,
+                "lon": -81.4493,
+                "phone": "904-277-1100"
             },
             "status": "Confirmed",
             "cost": 0,
             "category": "Transport",
-            "notes": "AA1585 from DCA - Flight lands 10:40am. Plan realistic timeline: 15min deplaning + 10min baggage + 10min to curb = pickup ~11:15am. Then 45min drive to hotel = arrive ~12:00pm",
+            "notes": "AA1585 from DCA - Flight lands 10:40am, arrives at hotel ~12:00pm. He's getting himself to hotel (rental car/Uber).",
             "flight_number": "AA1585",
             "what_to_bring": ["Track flight on FlightAware", "Phone charged for coordination"],
-            "tips": ["Leave hotel by 10:00am to arrive on time", "Text when boarding/landing", "Account for traffic on A1A", "Plan lunch after arrival at hotel"],
-            "estimated_pickup_time": "11:15 AM",
+            "tips": ["Text when he lands and when leaving airport", "He should account for 45min drive from JAX to hotel", "Meet him at hotel lobby"],
+            "estimated_flight_arrival": "10:40 AM",
             "estimated_hotel_arrival": "12:00 PM",
             "priority": 3
         },
@@ -853,8 +853,8 @@ def get_ultimate_trip_data():
         {
             "id": "dep001",
             "date": "2025-11-11",
-            "time": "11:05 AM",
-            "activity": "John Departs",
+            "time": "8:20 AM",
+            "activity": "Drop John at Airport",
             "type": "transport",
             "location": {
                 "name": "Jacksonville International Airport (JAX)",
@@ -866,17 +866,18 @@ def get_ultimate_trip_data():
             "status": "Confirmed",
             "cost": 65,
             "category": "Transport",
-            "notes": "AA1586 to DCA - Arrive 2 hours early (9:05 AM)",
+            "notes": "AA1586 to DCA departs 11:05 AM. Leave hotel 8:20am (45min drive) to arrive by 9:05am (2 hours before flight).",
             "flight_number": "AA1586",
             "what_to_bring": ["ID", "Boarding pass"],
-            "tips": ["Check traffic before leaving", "Allow 45 min drive"],
+            "tips": ["Check traffic before leaving", "Allow 45 min drive", "Arrive 2 hours early for domestic flight"],
+            "flight_departure_time": "11:05 AM",
             "priority": 3
         },
         {
             "id": "dep002",
             "date": "2025-11-12",
-            "time": "2:39 PM",
-            "activity": "Your Departure",
+            "time": "12:30 PM",
+            "activity": "Leave Hotel for Airport",
             "type": "transport",
             "location": {
                 "name": "Jacksonville International Airport (JAX)",
@@ -888,10 +889,11 @@ def get_ultimate_trip_data():
             "status": "Confirmed",
             "cost": 0,
             "category": "Transport",
-            "notes": "AA5590 - Return home with amazing memories!",
+            "notes": "AA5590 departs 2:39 PM. Checkout by 11am, leave hotel by 12:30pm (45min drive + 2hr early arrival buffer).",
             "flight_number": "AA5590",
             "what_to_bring": ["All belongings", "Souvenirs", "Photos", "Memories!"],
-            "tips": ["Hotel checkout 11 AM", "Leave by 12:30 PM", "Double-check room for items"],
+            "tips": ["Hotel checkout 11 AM", "Leave by 12:30 PM", "Double-check room for items", "Return home with amazing memories!"],
+            "flight_departure_time": "2:39 PM",
             "priority": 3
         }
     ]
