@@ -1371,14 +1371,13 @@ def get_uv_index():
                   for i in range(6)]
     }
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=3600)  # Cache for 1 hour
 def get_tide_data():
-    """Get tide data from NOAA for Fernandina Beach, FL"""
+    """Get live tide data from NOAA for Fernandina Beach, FL (Station 8720030)"""
     station_id = "8720030"  # Fernandina Beach, FL
 
     try:
         # Get tide predictions for next 7 days
-        from datetime import datetime, timedelta
         begin_date = datetime.now().strftime('%Y%m%d')
         end_date = (datetime.now() + timedelta(days=7)).strftime('%Y%m%d')
 
@@ -1393,26 +1392,114 @@ def get_tide_data():
             # Group by date
             daily_tides = {}
             for pred in predictions:
-                date_str = pred['t'].split(' ')[0]
+                datetime_str = pred['t']  # Format: "2025-11-07 06:30"
+                date_str = datetime_str.split(' ')[0]
+                time_24hr = datetime_str.split(' ')[1]
+
+                # Convert 24hr time to 12hr format
+                try:
+                    time_obj = datetime.strptime(time_24hr, '%H:%M')
+                    time_12hr = time_obj.strftime('%I:%M %p').lstrip('0')
+                except:
+                    time_12hr = time_24hr  # Fallback to original if conversion fails
+
                 if date_str not in daily_tides:
                     daily_tides[date_str] = {'high': [], 'low': []}
 
+                tide_info = {
+                    'time': time_12hr,
+                    'time_24hr': time_24hr,
+                    'height': float(pred['v'])
+                }
+
                 if pred['type'] == 'H':
-                    daily_tides[date_str]['high'].append({'time': pred['t'].split(' ')[1], 'height': float(pred['v'])})
+                    daily_tides[date_str]['high'].append(tide_info)
                 else:
-                    daily_tides[date_str]['low'].append({'time': pred['t'].split(' ')[1], 'height': float(pred['v'])})
+                    daily_tides[date_str]['low'].append(tide_info)
 
             return daily_tides
-    except:
+    except Exception as e:
+        # Log error but don't crash
+        print(f"Tide API error: {e}")
         pass
 
-    # Fallback tide data
+    # Fallback tide data (in case API is down)
     return {
-        '2025-11-07': {'high': [{'time': '06:30', 'height': 6.5}, {'time': '19:00', 'height': 6.8}],
-                       'low': [{'time': '00:15', 'height': 0.5}, {'time': '12:45', 'height': 0.3}]},
-        '2025-11-08': {'high': [{'time': '07:15', 'height': 6.6}, {'time': '19:45', 'height': 6.9}],
-                       'low': [{'time': '01:00', 'height': 0.4}, {'time': '13:30', 'height': 0.2}]},
+        '2025-11-07': {
+            'high': [{'time': '6:30 AM', 'time_24hr': '06:30', 'height': 6.5},
+                     {'time': '7:00 PM', 'time_24hr': '19:00', 'height': 6.8}],
+            'low': [{'time': '12:15 AM', 'time_24hr': '00:15', 'height': 0.5},
+                    {'time': '12:45 PM', 'time_24hr': '12:45', 'height': 0.3}]
+        },
+        '2025-11-08': {
+            'high': [{'time': '7:15 AM', 'time_24hr': '07:15', 'height': 6.6},
+                     {'time': '7:45 PM', 'time_24hr': '19:45', 'height': 6.9}],
+            'low': [{'time': '1:00 AM', 'time_24hr': '01:00', 'height': 0.4},
+                    {'time': '1:30 PM', 'time_24hr': '13:30', 'height': 0.2}]
+        },
+        '2025-11-09': {
+            'high': [{'time': '8:00 AM', 'time_24hr': '08:00', 'height': 6.7},
+                     {'time': '8:30 PM', 'time_24hr': '20:30', 'height': 7.0}],
+            'low': [{'time': '1:45 AM', 'time_24hr': '01:45', 'height': 0.3},
+                    {'time': '2:15 PM', 'time_24hr': '14:15', 'height': 0.1}]
+        },
+        '2025-11-10': {
+            'high': [{'time': '8:45 AM', 'time_24hr': '08:45', 'height': 6.8},
+                     {'time': '9:15 PM', 'time_24hr': '21:15', 'height': 7.1}],
+            'low': [{'time': '2:30 AM', 'time_24hr': '02:30', 'height': 0.2},
+                    {'time': '3:00 PM', 'time_24hr': '15:00', 'height': 0.0}]
+        },
     }
+
+def get_tide_recommendation(activity_start_time, activity_type, date_str, tide_data):
+    """Get tide-based recommendation for an activity
+
+    Args:
+        activity_start_time: "10:00 AM"
+        activity_type: "beach", "activity", etc.
+        date_str: "2025-11-10"
+        tide_data: Dictionary from get_tide_data()
+
+    Returns:
+        Dictionary with tide info and recommendations
+    """
+    if date_str not in tide_data:
+        return None
+
+    day_tides = tide_data[date_str]
+
+    # Determine if it's a water/beach activity
+    water_activities = ['beach', 'water', 'surf', 'swim', 'kayak', 'boat', 'fish']
+    is_water_activity = any(word in activity_type.lower() for word in water_activities)
+
+    if not is_water_activity:
+        return None
+
+    # Get nearest high and low tides
+    high_tides = day_tides.get('high', [])
+    low_tides = day_tides.get('low', [])
+
+    result = {
+        'high_tides': high_tides,
+        'low_tides': low_tides,
+        'recommendation': '',
+        'best_time': ''
+    }
+
+    # Create recommendations based on activity type
+    if 'beach' in activity_type.lower() or 'swim' in activity_type.lower():
+        if high_tides:
+            result['recommendation'] = "🌊 Best for swimming during high tide"
+            result['best_time'] = f"High tide: {high_tides[0]['time']} ({high_tides[0]['height']}ft)"
+        if low_tides:
+            result['recommendation'] += "\n🐚 Best for shell hunting during low tide"
+
+    elif 'surf' in activity_type.lower():
+        if high_tides:
+            result['recommendation'] = "🏄 Better waves during high tide"
+            result['best_time'] = f"High tide: {high_tides[0]['time']}"
+
+    return result
 
 @st.cache_data(ttl=1800)
 def get_weather_ultimate():
