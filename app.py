@@ -5268,15 +5268,27 @@ def render_johns_page(df, activities_data, show_sensitive):
                 else:
                     border_color = "#9e9e9e"  # Grey for other
 
+                # Clean up activity name for John's view (remove "for you" text)
+                activity_name = activity['activity'].replace('(for you)', '(for your partner)').replace('(For You)', '(For Your Partner)')
+
+                # Clean up notes for John's view
+                activity_notes = activity.get('notes', '')
+                if activity['type'] == 'spa':
+                    # Replace confusing language in spa notes
+                    activity_notes = activity_notes.replace('John can pay for this if he wants', 'Your partner will be at the spa')
+                    activity_notes = activity_notes.replace('you\'re getting pampered', 'your partner is getting pampered')
+                    if not activity_notes.endswith('Enjoy your free time!'):
+                        activity_notes += ' This is your free time to relax!'
+
                 st.markdown(f"""
                 <div class="ultimate-card" style="border-left: 4px solid {border_color}; margin-bottom: 1rem;">
                     <div class="card-body">
                         <div style="display: flex; justify-content: space-between; align-items: start;">
                             <div style="flex: 1;">
-                                <h4 style="margin: 0 0 0.5rem 0;">{activity['activity']}</h4>
+                                <h4 style="margin: 0 0 0.5rem 0;">{activity_name}</h4>
                                 <p style="margin: 0.25rem 0;"><strong>⏰ {activity['time']}</strong> {f"• {activity.get('duration', '')}" if activity.get('duration') else ""}</p>
                                 <p style="margin: 0.25rem 0;">📍 {activity['location']['name']}</p>
-                                <p style="margin: 0.5rem 0; font-style: italic; font-size: 0.9rem;">{activity.get('notes', '')}</p>
+                                <p style="margin: 0.5rem 0; font-style: italic; font-size: 0.9rem;">{activity_notes}</p>
                             </div>
                             <div style="margin-left: 1rem;">
                                 <span style="background: {border_color}; color: white; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem; white-space: nowrap;">{activity_note}</span>
