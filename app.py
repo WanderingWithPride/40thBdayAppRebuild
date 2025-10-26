@@ -2547,16 +2547,28 @@ def render_flight_status_widget(flight_number, flight_date, compact=False):
     """
     status = get_flight_status(flight_number, flight_date)
 
+    # Escape HTML for all dynamic content from API
+    import html
+    safe_flight_number = html.escape(str(flight_number))
+    safe_status_emoji = html.escape(status.get('status_emoji', '✈️'))
+    safe_status_text = html.escape(status.get('status_text', 'Scheduled'))
+    safe_dep_airport = html.escape(status['departure']['airport'])
+    safe_dep_gate = html.escape(status['departure']['gate'])
+    safe_dep_terminal = html.escape(status['departure']['terminal'])
+    safe_arr_airport = html.escape(status['arrival']['airport'])
+    safe_arr_gate = html.escape(status['arrival']['gate'])
+    safe_arr_terminal = html.escape(status['arrival']['terminal'])
+
     if compact:
         # Compact version for cards
         st.markdown(f"""
         <div style="background: #f0f7ff; padding: 0.75rem; border-radius: 8px; border-left: 4px solid #2196f3;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <strong>{status.get('status_emoji', '✈️')} {status.get('status_text', 'Scheduled')}</strong>
+                    <strong>{safe_status_emoji} {safe_status_text}</strong>
                 </div>
                 <div style="text-align: right; font-size: 0.9rem;">
-                    {f"Gate {status['departure']['gate']}" if status['departure']['gate'] != 'TBD' else 'Gate TBD'}
+                    {f"Gate {safe_dep_gate}" if status['departure']['gate'] != 'TBD' else 'Gate TBD'}
                 </div>
             </div>
         </div>
@@ -2571,15 +2583,15 @@ def render_flight_status_widget(flight_number, flight_date, compact=False):
 
         st.markdown(f"""<div class="ultimate-card" style="border-left: 4px solid #2196f3;">
 <div class="card-body">
-<h4 style="margin: 0 0 0.5rem 0;">{status.get('status_emoji', '✈️')} Flight {flight_number} - {status.get('status_text', 'Scheduled')}</h4>
+<h4 style="margin: 0 0 0.5rem 0;">{safe_status_emoji} Flight {safe_flight_number} - {safe_status_text}</h4>
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.75rem;">
 <div>
-<strong>🛫 Departure:</strong> {status['departure']['airport']}<br>
-<span style="font-size: 0.9rem;">Gate: {status['departure']['gate']} • Terminal: {status['departure']['terminal']}</span>
+<strong>🛫 Departure:</strong> {safe_dep_airport}<br>
+<span style="font-size: 0.9rem;">Gate: {safe_dep_gate} • Terminal: {safe_dep_terminal}</span>
 </div>
 <div>
-<strong>🛬 Arrival:</strong> {status['arrival']['airport']}<br>
-<span style="font-size: 0.9rem;">Gate: {status['arrival']['gate']} • Terminal: {status['arrival']['terminal']}</span>
+<strong>🛬 Arrival:</strong> {safe_arr_airport}<br>
+<span style="font-size: 0.9rem;">Gate: {safe_arr_gate} • Terminal: {safe_arr_terminal}</span>
 </div>
 </div>
 {delay_text}
@@ -4079,23 +4091,32 @@ def create_ultimate_map(activities_data, center_on=None, show_routes=True):
             ).miles
             
             travel_time = int(distance / 0.583)  # Assume 35 mph average
-            
+
+            # Escape HTML to prevent broken rendering in map popups
+            import html
+            safe_activity = html.escape(activity['activity'])
+            safe_date = html.escape(activity['date'])
+            safe_time = html.escape(activity['time'])
+            safe_loc_name = html.escape(loc['name'])
+            safe_phone = html.escape(loc.get('phone', 'N/A'))
+            safe_notes = html.escape(activity['notes'])
+
             popup_html = f"""
             <div style='min-width: 280px; font-family: Inter, sans-serif;'>
-                <h3 style='color: #ff6b6b; margin: 0 0 10px 0;'>{activity['activity']}</h3>
-                <p style='margin: 5px 0;'><b>📅</b> {activity['date']} at {activity['time']}</p>
-                <p style='margin: 5px 0;'><b>📍</b> {loc['name']}</p>
-                <p style='margin: 5px 0;'><b>📞</b> {loc.get('phone', 'N/A')}</p>
+                <h3 style='color: #ff6b6b; margin: 0 0 10px 0;'>{safe_activity}</h3>
+                <p style='margin: 5px 0;'><b>📅</b> {safe_date} at {safe_time}</p>
+                <p style='margin: 5px 0;'><b>📍</b> {safe_loc_name}</p>
+                <p style='margin: 5px 0;'><b>📞</b> {safe_phone}</p>
                 <p style='margin: 5px 0;'><b>💰</b> ${activity['cost']}</p>
                 <p style='margin: 5px 0;'><b>🚗</b> {distance:.1f} mi ({travel_time} min from hotel)</p>
-                <p style='margin: 5px 0; font-style: italic;'>{activity['notes']}</p>
+                <p style='margin: 5px 0; font-style: italic;'>{safe_notes}</p>
             </div>
             """
-            
+
             folium.Marker(
                 location=[loc['lat'], loc['lon']],
                 popup=folium.Popup(popup_html, max_width=320),
-                tooltip=f"{activity['activity']} - {activity['date']}",
+                tooltip=f"{safe_activity} - {safe_date}",
                 icon=folium.Icon(
                     color=type_colors.get(activity['type'], 'gray'),
                     icon=type_icons.get(activity['type'], 'info-sign'),
@@ -4490,16 +4511,24 @@ def render_today_view(df, activities_data, weather_data, show_sensitive):
                     if today_str in tide_data:
                         tide_rec = get_tide_recommendation(activity['time'], 'beach', today_str, tide_data)
                         if tide_rec and tide_rec.get('recommendation'):
-                            activity_warning = f"<br><small style='color: #2196f3;'>{tide_rec['recommendation']}</small>"
+                            import html
+                            safe_rec = html.escape(tide_rec['recommendation'])
+                            activity_warning = f"<br><small style='color: #2196f3;'>{safe_rec}</small>"
+
+                # Escape HTML to prevent broken rendering
+                import html
+                safe_activity_name = html.escape(activity['activity'])
+                safe_time = html.escape(activity['time'])
+                safe_location = html.escape(activity['location']['name'])
 
                 st.markdown(f"""
                 <div class="ultimate-card today-card fade-in">
                     <div class="card-body">
                         <div style="display: flex; justify-content: space-between; align-items: start;">
                             <div>
-                                <h3 style="margin: 0 0 0.5rem 0;">{activity['activity']}</h3>
-                                <p style="margin: 0.25rem 0;"><b>🕐 {activity['time']}</b></p>
-                                <p style="margin: 0.25rem 0;">📍 {activity['location']['name']}{activity_warning}</p>
+                                <h3 style="margin: 0 0 0.5rem 0;">{safe_activity_name}</h3>
+                                <p style="margin: 0.25rem 0;"><b>🕐 {safe_time}</b></p>
+                                <p style="margin: 0.25rem 0;">📍 {safe_location}{activity_warning}</p>
                             </div>
                             <div>{next_badge}</div>
                         </div>
@@ -4881,9 +4910,12 @@ def render_full_schedule(df, activities_data, show_sensitive):
                                 gap_minutes = (curr_start_obj - prev_end_obj).total_seconds() / 60
 
                                 if gap_minutes > 60:  # More than 1 hour gap
+                                    import html
+                                    safe_prev_end = html.escape(prev_end_time)
+                                    safe_curr_time = html.escape(activity['time'])
                                     st.markdown(f"""
                                     <div style="background: #f0f9ff; border-left: 4px solid #4ecdc4; padding: 1rem; margin: 0.5rem 0; border-radius: 8px;">
-                                        <p style="margin: 0; color: #636e72;">💡 <strong>Free Time:</strong> {round(gap_minutes/60, 1)}h gap ({prev_end_time} - {activity['time']})</p>
+                                        <p style="margin: 0; color: #636e72;">💡 <strong>Free Time:</strong> {round(gap_minutes/60, 1)}h gap ({safe_prev_end} - {safe_curr_time})</p>
                                     </div>
                                     """, unsafe_allow_html=True)
                             except:
@@ -5228,6 +5260,13 @@ def render_explore_activities():
                     for rec in recommendations:
                         activity = rec['activity']
 
+                        # Escape HTML to prevent broken rendering
+                        import html
+                        safe_time = html.escape(rec['time'])
+                        safe_name = html.escape(activity['name'])
+                        safe_desc = html.escape(activity.get('description', ''))
+                        safe_reason = html.escape(rec['reason'])
+
                         # Activity card
                         st.markdown(f"""
                         <div style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
@@ -5236,9 +5275,9 @@ def render_explore_activities():
                                     border-left: 4px solid #f5576c;
                                     margin: 1rem 0;
                                     box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                            <h4 style="margin: 0; color: #f5576c;">⏰ {rec['time']} - {activity['name']}</h4>
-                            <p style="margin: 0.75rem 0; color: #636e72; line-height: 1.6;">{activity.get('description', '')}</p>
-                            <p style="margin: 0.5rem 0; font-style: italic; color: #2ecc71;">✨ {rec['reason']}</p>
+                            <h4 style="margin: 0; color: #f5576c;">⏰ {safe_time} - {safe_name}</h4>
+                            <p style="margin: 0.75rem 0; color: #636e72; line-height: 1.6;">{safe_desc}</p>
+                            <p style="margin: 0.5rem 0; font-style: italic; color: #2ecc71;">✨ {safe_reason}</p>
                         </div>
                         """, unsafe_allow_html=True)
 
@@ -5374,6 +5413,11 @@ def render_explore_activities():
         with st.expander(f"{category} ({len(items)} options)", expanded=(category == "🍽️ Fine Dining")):
             for idx, activity in enumerate(items):
                 with st.container():
+                    # Escape HTML to prevent broken rendering
+                    import html
+                    safe_activity_name = html.escape(activity['name'])
+                    safe_activity_desc = html.escape(activity['description'])
+
                     # Activity header
                     st.markdown(f"""
                     <div style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
@@ -5382,8 +5426,8 @@ def render_explore_activities():
                                 border-left: 4px solid #ff6b6b;
                                 margin: 1rem 0;
                                 box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <h4 style="margin: 0; color: #ff6b6b;">{activity['name']}</h4>
-                        <p style="margin: 0.75rem 0; color: #636e72; line-height: 1.6;">{activity['description']}</p>
+                        <h4 style="margin: 0; color: #ff6b6b;">{safe_activity_name}</h4>
+                        <p style="margin: 0.75rem 0; color: #636e72; line-height: 1.6;">{safe_activity_desc}</p>
                     </div>
                     """, unsafe_allow_html=True)
 
@@ -5525,6 +5569,11 @@ def render_explore_activities():
                 for i, rec in enumerate(recommendations[:20], 1):  # Show top 20
                     activity = rec['activity']
 
+                    # Escape HTML to prevent broken rendering
+                    import html
+                    safe_rec_name = html.escape(activity['name'])
+                    safe_rec_desc = html.escape(activity['description'])
+
                     # Use Streamlit container for clean card display
                     with st.container():
                         # Header with score
@@ -5536,7 +5585,7 @@ def render_explore_activities():
                                     margin: 1rem 0;
                                     box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                             <h4 style="margin: 0; color: #ff6b6b;">
-                                #{i} {activity['name']}
+                                #{i} {safe_rec_name}
                                 <span style="background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
                                             color: white;
                                             padding: 0.35rem 0.85rem;
@@ -5547,7 +5596,7 @@ def render_explore_activities():
                                     Score: {rec['score']}/100
                                 </span>
                             </h4>
-                            <p style="margin: 0.75rem 0; color: #636e72; line-height: 1.6;">{activity['description']}</p>
+                            <p style="margin: 0.75rem 0; color: #636e72; line-height: 1.6;">{safe_rec_desc}</p>
                         </div>
                         """, unsafe_allow_html=True)
 
@@ -6165,18 +6214,28 @@ def render_johns_page(df, activities_data, show_sensitive):
                 if activity.get('duration'):
                     duration_text = f"• {activity.get('duration', '')}"
 
+                # Escape HTML to prevent broken rendering
+                import html
+                safe_activity_name = html.escape(activity_name)
+                safe_time = html.escape(activity['time'])
+                safe_duration_text = html.escape(duration_text)
+                safe_location = html.escape(activity['location']['name'])
+                safe_notes = html.escape(activity_notes)
+                safe_notes = safe_notes.replace('\n', '<br>')
+                safe_activity_note = html.escape(activity_note)
+
                 st.markdown(f"""
                 <div class="ultimate-card" style="border-left: 4px solid {border_color}; margin-bottom: 1rem;">
                     <div class="card-body">
                         <div style="display: flex; justify-content: space-between; align-items: start;">
                             <div style="flex: 1;">
-                                <h4 style="margin: 0 0 0.5rem 0;">{activity_name}</h4>
-                                <p style="margin: 0.25rem 0;"><strong>⏰ {activity['time']}</strong> {duration_text}</p>
-                                <p style="margin: 0.25rem 0;">📍 {activity['location']['name']}</p>
-                                <p style="margin: 0.5rem 0; font-style: italic; font-size: 0.9rem;">{activity_notes}</p>
+                                <h4 style="margin: 0 0 0.5rem 0;">{safe_activity_name}</h4>
+                                <p style="margin: 0.25rem 0;"><strong>⏰ {safe_time}</strong> {safe_duration_text}</p>
+                                <p style="margin: 0.25rem 0;">📍 {safe_location}</p>
+                                <p style="margin: 0.5rem 0; font-style: italic; font-size: 0.9rem;">{safe_notes}</p>
                             </div>
                             <div style="margin-left: 1rem;">
-                                <span style="background: {border_color}; color: white; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem; white-space: nowrap;">{activity_note}</span>
+                                <span style="background: {border_color}; color: white; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem; white-space: nowrap;">{safe_activity_note}</span>
                             </div>
                         </div>
                     </div>
