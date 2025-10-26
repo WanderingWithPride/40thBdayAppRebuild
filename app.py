@@ -4637,127 +4637,324 @@ def render_explore_activities():
 # ============================================================================
 
 def render_johns_page(df, activities_data, show_sensitive):
-    """John's dedicated page to manage his activities and opt-ins"""
-    st.markdown('<h2 class="fade-in">👤 John\'s Trip Overview</h2>', unsafe_allow_html=True)
+    """John's dedicated trip companion page"""
+    st.markdown('<h2 class="fade-in">👋 John\'s Trip Companion</h2>', unsafe_allow_html=True)
 
+    # Welcome banner
     st.markdown("""
     <div class="birthday-special">
-        <h3 style="margin: 0 0 0.5rem 0;">🎉 Welcome John!</h3>
-        <p style="margin: 0; font-size: 1.1rem;">Your Amelia Island adventure awaits! Nov 8-11, 2025</p>
+        <h3 style="margin: 0 0 0.5rem 0;">🌴 Welcome to Amelia Island!</h3>
+        <p style="margin: 0; font-size: 1.1rem;">Your quick reference guide for an amazing weekend getaway</p>
+        <p style="margin: 0.5rem 0 0 0; font-size: 0.95rem; opacity: 0.9;">November 8-11, 2025 • The Ritz-Carlton, Amelia Island</p>
     </div>
     """, unsafe_allow_html=True)
 
-    # John's activities
-    johns_activities = [a for a in activities_data if 'john' in a['activity'].lower() or a['date'] >= '2025-11-08']
+    # Quick Stats
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("📅 Trip Length", "3.5 days")
+    with col2:
+        st.metric("🏨 Hotel Nights", "3 nights")
+    with col3:
+        arrival_activity = next((a for a in activities_data if a.get('id') == 'arr002'), None)
+        arrival_time = arrival_activity['estimated_hotel_arrival'] if arrival_activity else "12:00 PM"
+        st.metric("✈️ You Arrive", f"Sat {arrival_time}")
+    with col4:
+        departure_activity = next((a for a in activities_data if a.get('id') == 'dep001'), None)
+        depart_time = departure_activity['flight_departure_time'] if departure_activity else "11:05 AM"
+        st.metric("🛫 You Depart", f"Tue {depart_time}")
 
-    st.markdown("### 📅 Your Schedule")
+    # ============ YOUR FLIGHT & ARRIVAL ============
+    st.markdown("---")
+    st.markdown("### ✈️ Your Flight & Arrival")
 
-    # Categorize activities
-    included_activities = []
-    optional_activities_john = []
+    john_arrival = next((a for a in activities_data if a.get('id') == 'arr002'), None)
+    if john_arrival:
+        col1, col2 = st.columns([2, 1])
 
-    for activity in johns_activities:
-        # Activities John is definitely in
-        if activity['date'] >= '2025-11-08' and activity['date'] <= '2025-11-11':
-            if activity['type'] in ['transport', 'dining'] and activity['id'] != 'arr002':
-                included_activities.append(activity)
-            elif activity['id'] in ['act001', 'bch001', 'din002']:  # Shared activities
-                included_activities.append(activity)
-            elif activity['id'] == 'arr002':
-                included_activities.append(activity)
+        with col1:
+            st.markdown(f"""
+            <div class="ultimate-card" style="border-left: 4px solid #2196f3;">
+                <div class="card-body">
+                    <h4 style="margin: 0 0 0.5rem 0;">🛬 {john_arrival.get('flight_number', 'Flight')} to Jacksonville (JAX)</h4>
+                    <p style="margin: 0.25rem 0; font-size: 1.1rem;"><strong>Saturday, November 8, 2025</strong></p>
+                    <p style="margin: 0.5rem 0;">
+                        ✈️ <strong>Lands:</strong> {john_arrival.get('estimated_flight_arrival', '10:40 AM')}<br>
+                        🏨 <strong>Hotel Arrival:</strong> ~{john_arrival.get('estimated_hotel_arrival', '12:00 PM')}<br>
+                        🚗 <strong>Ground Transport:</strong> {john_arrival['notes']}
+                    </p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
 
-    # Optional spa services for John
-    spa_options = [
-        {"name": "Aromatherapy Massage", "cost": "$185-245", "duration": "50-80 min"},
-        {"name": "Hot Stone Massage", "cost": "$205", "duration": "80 min"},
-        {"name": "Gentleman's Facial", "cost": "$165", "duration": "50 min"},
-        {"name": "Mani-Pedi", "cost": "$125", "duration": "90 min"},
-        {"name": "Body Scrub & Wrap", "cost": "$175-225", "duration": "50-80 min"},
-    ]
+        with col2:
+            st.markdown("**📋 Arrival Checklist**")
+            st.markdown("""
+            - ✅ ID/Boarding Pass
+            - ✅ Phone charged
+            - ✅ Track flight status
+            - ✅ Text when landing
+            - ✅ 45 min drive to hotel
+            """)
 
-    # Display John's confirmed activities
-    st.markdown("#### ✅ Included in Your Trip")
+    # ============ DAY-BY-DAY SCHEDULE ============
+    st.markdown("---")
+    st.markdown("### 📅 Your Day-by-Day Schedule")
 
-    for activity in sorted(included_activities, key=lambda x: x['date'] + x['time']):
-        date_obj = pd.to_datetime(activity['date'])
+    # Filter John's relevant activities (Nov 8-11)
+    john_start = '2025-11-08'
+    john_end = '2025-11-11'
+    johns_activities = [a for a in activities_data if a['date'] >= john_start and a['date'] <= john_end]
 
-        paid_by = ""
-        if activity['id'] == 'arr002':
-            paid_by = "<span style='background: #e8f5e9; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem;'>✈️ Your Flight</span>"
-        elif activity['id'] in ['act001', 'bch001']:
-            paid_by = "<span style='background: #fff9c4; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem;'>💝 Shared Activity</span>"
+    # Group by date
+    from itertools import groupby
+    johns_activities_sorted = sorted(johns_activities, key=lambda x: (x['date'], x['time']))
 
-        cost_display = f"${activity['cost']}" if show_sensitive and activity['cost'] > 0 else ""
-        if not show_sensitive and activity['cost'] > 0:
-            cost_display = "$***"
+    for date_str, day_activities in groupby(johns_activities_sorted, key=lambda x: x['date']):
+        date_obj = pd.to_datetime(date_str)
+        day_activities_list = list(day_activities)
 
-        st.markdown(f"""
-        <div class="ultimate-card fade-in">
+        # Determine if there are partner-only activities (spa)
+        partner_spa_times = [a for a in day_activities_list if a['type'] == 'spa']
+
+        with st.expander(f"**{date_obj.strftime('%A, %B %d')}** ({len(day_activities_list)} activities)", expanded=(date_str == john_start)):
+            for activity in day_activities_list:
+                # Determine if John is included
+                is_john_activity = False
+                activity_note = ""
+
+                if activity['type'] in ['transport', 'dining']:
+                    is_john_activity = True
+                    activity_note = "✅ Included"
+                elif activity['type'] == 'activity' or activity['type'] == 'beach':
+                    is_john_activity = True
+                    activity_note = "🎯 Shared Activity"
+                elif activity['type'] == 'spa':
+                    activity_note = "💆 Partner's Spa Time (Your Free Time!)"
+
+                # Color coding
+                if is_john_activity:
+                    border_color = "#4caf50"  # Green for included
+                elif activity['type'] == 'spa':
+                    border_color = "#ff9800"  # Orange for free time
+                else:
+                    border_color = "#9e9e9e"  # Grey for other
+
+                st.markdown(f"""
+                <div class="ultimate-card" style="border-left: 4px solid {border_color}; margin-bottom: 1rem;">
+                    <div class="card-body">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <h4 style="margin: 0 0 0.5rem 0;">{activity['activity']}</h4>
+                                <p style="margin: 0.25rem 0;"><strong>⏰ {activity['time']}</strong> {f"• {activity.get('duration', '')}" if activity.get('duration') else ""}</p>
+                                <p style="margin: 0.25rem 0;">📍 {activity['location']['name']}</p>
+                                <p style="margin: 0.5rem 0; font-style: italic; font-size: 0.9rem;">{activity.get('notes', '')}</p>
+                            </div>
+                            <div style="margin-left: 1rem;">
+                                <span style="background: {border_color}; color: white; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem; white-space: nowrap;">{activity_note}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+            # Show free time suggestion if partner has spa
+            if partner_spa_times:
+                st.markdown("""
+                <div class="info-box info-success">
+                    <strong>💡 Free Time Ideas:</strong> While your partner is at the spa, enjoy the pool, hot tub, beach, or book your own spa treatment below!
+                </div>
+                """, unsafe_allow_html=True)
+
+    # ============ THINGS TO DO (FREE TIME) ============
+    st.markdown("---")
+    st.markdown("### 🎯 Things You Might Enjoy")
+
+    tab1, tab2, tab3 = st.tabs(["🏊 Pool & Beach", "💆 Optional Spa", "🎮 Activities"])
+
+    with tab1:
+        st.markdown("""
+        <div class="ultimate-card">
             <div class="card-body">
-                <h4 style="margin: 0 0 0.5rem 0;">{activity['activity']}</h4>
-                <p style="margin: 0.25rem 0;"><strong>📅 {date_obj.strftime('%A, %B %d')} at {activity['time']}</strong></p>
-                <p style="margin: 0.25rem 0;">📍 {activity['location']['name']}</p>
-                {f"<p style='margin: 0.25rem 0;'>💰 {cost_display}</p>" if cost_display else ""}
-                <p style="margin: 0.5rem 0; font-style: italic;">{activity['notes']}</p>
-                {paid_by}
+                <h4 style="margin: 0 0 0.5rem 0;">🌴 Complimentary Resort Access</h4>
+                <p style="margin: 0.5rem 0;">Enjoy unlimited access to world-class facilities:</p>
+                <ul style="margin: 0.5rem 0;">
+                    <li><strong>Multiple Pools</strong> - Oceanfront infinity pool, family pool, adult-only pool</li>
+                    <li><strong>Hot Tubs</strong> - Several whirlpool spas throughout the property</li>
+                    <li><strong>Private Beach</strong> - Beach chairs, umbrellas, and towel service included</li>
+                    <li><strong>Poolside Bar</strong> - Cocktails and light fare available</li>
+                    <li><strong>Beach Activities</strong> - Volleyball, paddleboards, kayaks (some may have fees)</li>
+                </ul>
+                <p style="margin: 0.5rem 0 0 0; font-style: italic; color: #666;">📍 All facilities are steps from your room. Towels available at pool & beach stations.</p>
             </div>
         </div>
         """, unsafe_allow_html=True)
 
-    # Optional spa services John can opt into
-    st.markdown("---")
-    st.markdown("### 💆 Optional Spa Services (You Pay)")
-
-    st.markdown("""
-    <div class="info-box" style="background: linear-gradient(135deg, #e3f2fd 0%, #e1f5fe 100%);">
-        <p style="margin: 0;"><strong>ℹ️ Info:</strong> These spa treatments are optional. If you'd like to book any, let the trip organizer know and you'll cover the cost.</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    for idx, spa in enumerate(spa_options):
-        col1, col2, col3 = st.columns([3, 1, 1])
-
-        with col1:
-            st.markdown(f"**{spa['name']}**")
-            st.caption(f"{spa['duration']} • {spa['cost']}")
-
-        with col2:
-            interested = st.checkbox("Interested?", key=f"john_spa_{idx}")
-
-        with col3:
-            if interested:
-                st.success("✓ Noted")
-
-    # Pool access reminder
-    st.markdown("---")
-    st.markdown("### 🏊 Complimentary Access")
-
-    st.markdown("""
-    <div class="ultimate-card" style="border-left: 4px solid #4caf50;">
-        <div class="card-body">
-            <h4 style="margin: 0 0 0.5rem 0;">🌴 Resort Pool & Beach Access</h4>
-            <p style="margin: 0;">You have full access to all Ritz-Carlton pools, hot tubs, and beach facilities during your stay!</p>
-            <ul style="margin: 0.5rem 0;">
-                <li>Multiple pools & hot tubs</li>
-                <li>Beach chairs & umbrellas</li>
-                <li>Towel service</li>
-                <li>Poolside bar & dining</li>
-            </ul>
+    with tab2:
+        st.markdown("""
+        <div class="info-box" style="background: linear-gradient(135deg, #e3f2fd 0%, #e1f5fe 100%);">
+            <strong>ℹ️ Optional Services:</strong> Book any spa treatment at your own expense. Call 904-277-1087 or ask hotel concierge.
         </div>
-    </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
-    # Summary
+        spa_options = [
+            {"name": "Gentleman's Facial", "cost": "$165", "duration": "50 min", "desc": "Designed for men's skin. Addresses shaving irritation and deep cleaning."},
+            {"name": "Aromatherapy Massage", "cost": "$185-245", "duration": "50-80 min", "desc": "Relaxing full-body massage with essential oils."},
+            {"name": "Hot Stone Massage", "cost": "$205", "duration": "80 min", "desc": "Therapeutic massage with heated stones to ease muscle tension."},
+            {"name": "Sports Massage", "cost": "$195", "duration": "50 min", "desc": "Deep tissue massage focused on muscle recovery."},
+        ]
+
+        for spa in spa_options:
+            st.markdown(f"""
+            <div class="ultimate-card">
+                <div class="card-body">
+                    <h4 style="margin: 0 0 0.25rem 0;">{spa['name']}</h4>
+                    <p style="margin: 0.25rem 0; color: #666;"><strong>{spa['duration']} • {spa['cost']}</strong></p>
+                    <p style="margin: 0.5rem 0; font-size: 0.9rem;">{spa['desc']}</p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("**📞 To Book:** Call spa at 904-277-1087")
+
+    with tab3:
+        st.markdown("**🏖️ Nearby Activities** (during free time)")
+
+        optional_ideas = [
+            {"name": "Golf at Oak Marsh", "desc": "18-hole championship course on property", "cost": "~$150+"},
+            {"name": "Bike Rental", "desc": "Explore the island on two wheels", "cost": "~$30/day"},
+            {"name": "Historic Downtown Fernandina", "desc": "Shopping, dining, art galleries - 15 min drive", "cost": "Free"},
+            {"name": "Fort Clinch State Park", "desc": "Historic fort, fishing pier, nature trails", "cost": "$6 entry"},
+        ]
+
+        for idea in optional_ideas:
+            st.markdown(f"**{idea['name']}** ({idea['cost']})")
+            st.caption(idea['desc'])
+            st.markdown("")
+
+    # ============ PRACTICAL ESSENTIALS ============
     st.markdown("---")
-    st.markdown("### 📊 Trip Summary")
+    st.markdown("### 🎒 What to Pack (Your Essentials)")
 
     col1, col2 = st.columns(2)
+
     with col1:
-        st.metric("Days on Island", "3.5 days")
-        st.metric("Confirmed Activities", len(included_activities))
+        st.markdown("""
+        **🚨 Must Have:**
+        - ✈️ ID & boarding pass
+        - 💳 Credit card & cash
+        - 📱 Phone & charger
+        - 🧴 Toiletries & medications
+        - 🩳 Swimsuit (for pool/beach!)
+
+        **👕 Clothing:**
+        - Casual resort wear
+        - Swimwear & cover-up
+        - Comfortable walking shoes
+        - Sandals/flip-flops
+        - Light jacket (evenings can be cool)
+        """)
+
     with col2:
-        st.metric("Flight Arrival", "Sat Nov 8, 10:40am")
-        st.metric("Flight Departure", "Tue Nov 11, 11:05am")
+        st.markdown("""
+        **🌞 Beach Essentials:**
+        - Sunglasses
+        - Sunscreen SPF 50+
+        - Hat or cap
+        - Beach read or e-reader
+
+        **💼 Nice to Have:**
+        - Camera
+        - Headphones
+        - Workout clothes (if using gym)
+        - Golf gear (if playing)
+        """)
+
+    # ============ QUICK REFERENCE ============
+    st.markdown("---")
+    st.markdown("### 📞 Quick Reference")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("""
+        <div class="ultimate-card">
+            <div class="card-body">
+                <h4 style="margin: 0 0 0.5rem 0;">🏨 Hotel Information</h4>
+                <p style="margin: 0.25rem 0;"><strong>The Ritz-Carlton, Amelia Island</strong></p>
+                <p style="margin: 0.25rem 0;">4750 Amelia Island Parkway<br>Amelia Island, FL 32034</p>
+                <p style="margin: 0.5rem 0 0 0;">
+                    📞 <strong>Main:</strong> 904-277-1100<br>
+                    🧖 <strong>Spa:</strong> 904-277-1087<br>
+                    🍽️ <strong>Dining:</strong> 904-277-1100<br>
+                </p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("""
+        <div class="ultimate-card" style="margin-top: 1rem;">
+            <div class="card-body">
+                <h4 style="margin: 0 0 0.5rem 0;">🚗 Getting Around</h4>
+                <p style="margin: 0.25rem 0;">
+                    <strong>Airport to Hotel:</strong> 45 min drive<br>
+                    <strong>Rental Car/Uber:</strong> Arrange at JAX<br>
+                    <strong>Valet Parking:</strong> $40/day at hotel<br>
+                </p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col2:
+        # Get weather
+        weather = get_weather_ultimate()
+        if weather:
+            avg_temp = sum([w.get('temp', 75) for w in weather]) / len(weather) if weather else 75
+            st.markdown(f"""
+            <div class="ultimate-card">
+                <div class="card-body">
+                    <h4 style="margin: 0 0 0.5rem 0;">🌤️ Weather Forecast</h4>
+                    <p style="margin: 0.25rem 0;">
+                        <strong>Average:</strong> {avg_temp:.0f}°F<br>
+                        <strong>Conditions:</strong> Partly cloudy<br>
+                        <strong>What to Expect:</strong> Pleasant beach weather!
+                    </p>
+                    <p style="margin: 0.5rem 0 0 0; font-style: italic; font-size: 0.85rem;">
+                        Pack sunscreen and light layers.
+                    </p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("""
+        <div class="ultimate-card" style="margin-top: 1rem;">
+            <div class="card-body">
+                <h4 style="margin: 0 0 0.5rem 0;">💡 Good to Know</h4>
+                <p style="margin: 0.25rem 0;">
+                    🏨 <strong>Check-in:</strong> 4:00 PM<br>
+                    🚪 <strong>Check-out:</strong> 11:00 AM<br>
+                    📶 <strong>WiFi:</strong> Complimentary<br>
+                    🏋️ <strong>Fitness Center:</strong> 24/7 access<br>
+                    ☕ <strong>Coffee:</strong> In-room Nespresso<br>
+                </p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # Final tips
+    st.markdown("---")
+    st.markdown("""
+    <div class="info-box info-success">
+        <h4 style="margin: 0 0 0.5rem 0;">✨ Tips for a Great Trip</h4>
+        <ul style="margin: 0;">
+            <li>Download the American Airlines app for mobile boarding pass</li>
+            <li>Bring a refillable water bottle - stay hydrated in the sun</li>
+            <li>The resort is walkable - comfortable shoes recommended</li>
+            <li>Try the Salt restaurant for breakfast - amazing ocean views!</li>
+            <li>Sunset at the beach is spectacular - bring your camera around 6 PM</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
 
 
 def render_birthday_page():
