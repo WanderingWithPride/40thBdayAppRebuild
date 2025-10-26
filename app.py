@@ -142,6 +142,14 @@ def init_database():
         )
     ''')
 
+    # Set default preferences if they don't exist
+    cursor.execute("SELECT COUNT(*) FROM john_preferences WHERE key = 'avoid_seafood_focused'")
+    if cursor.fetchone()[0] == 0:
+        cursor.execute(
+            "INSERT INTO john_preferences (key, value, updated_at) VALUES (?, ?, ?)",
+            ('avoid_seafood_focused', 'true', datetime.now().isoformat())
+        )
+
     conn.commit()
     conn.close()
 
@@ -2351,7 +2359,8 @@ def ai_auto_scheduler(target_date_str, existing_activities, weather_data, tide_d
             'max_activities': 3,
             'include_meals': True,
             'activity_types': ['beach', 'dining', 'activity', 'spa'],
-            'energy_balance': True
+            'energy_balance': True,
+            'avoid_seafood_focused': True  # Avoid seafood-only restaurants (diverse menus are OK)
         }
 
     # Get all optional activities
@@ -2361,6 +2370,12 @@ def ai_auto_scheduler(target_date_str, existing_activities, weather_data, tide_d
     dining_options = optional_activities.get('🍽️ Fine Dining', []) + \
                      optional_activities.get('🍽️ Casual Dining', []) + \
                      optional_activities.get('🥞 Breakfast & Brunch', [])
+
+    # Apply seafood preference filter
+    if preferences.get('avoid_seafood_focused'):
+        # Exclude seafood-focused restaurants (but keep places with diverse menus)
+        seafood_focused = optional_activities.get('🦞 Seafood & Waterfront', [])
+        dining_options = [r for r in dining_options if r not in seafood_focused]
 
     # Get NON-DINING activities only (for activity slots)
     all_activities = []
@@ -2387,12 +2402,13 @@ def ai_auto_scheduler(target_date_str, existing_activities, weather_data, tide_d
     allow_dinner = True
 
     if has_flight and is_arrival_day:
-        # Arrives 6:01 PM - only allow dinner and evening activities
+        # Arrives 6:01 PM + 90 min (deplane, luggage, drive, check-in) = ready by 7:30 PM
+        # Dinner recommendation at 8:00 PM gives time to settle in
         allow_breakfast = False
         allow_morning = False
         allow_lunch = False
         allow_afternoon = False
-        allow_dinner = True  # Can have dinner after arrival (~7:30 PM)
+        allow_dinner = True  # Can have dinner after arrival (~8:00 PM)
     elif has_flight and is_departure_day:
         # Departs 11:40 AM - only allow breakfast and early morning
         allow_breakfast = True  # Can have breakfast before departure
@@ -2542,8 +2558,8 @@ def ai_auto_scheduler(target_date_str, existing_activities, weather_data, tide_d
             # Prefer highly-rated restaurants for dinner
             best_dinner = max(dinner_candidates, key=lambda x: float(x.get('rating', '0/5').split('/')[0]))
 
-            # Adjust dinner time for arrival day (arrive 6:01 PM, suggest dinner at 7:30 PM)
-            dinner_time = '7:30 PM' if is_arrival_day else '6:30 PM'
+            # Adjust dinner time for arrival day (arrive 6:01 PM + 90 min travel/checkin = 8:00 PM)
+            dinner_time = '8:00 PM' if is_arrival_day else '6:30 PM'
 
             recommendations.append({
                 'time': dinner_time,
