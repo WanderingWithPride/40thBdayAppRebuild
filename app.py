@@ -68,6 +68,8 @@ if 'completed_activities' not in st.session_state:
     st.session_state.completed_activities = []
 if 'notes' not in st.session_state:
     st.session_state.notes = []
+if 'custom_activities' not in st.session_state:
+    st.session_state.custom_activities = []
 
 # ============================================================================
 # TRIP CONFIGURATION
@@ -962,7 +964,11 @@ def get_ultimate_trip_data():
             "priority": 3
         }
     ]
-    
+
+    # Merge with custom activities from session state
+    if 'custom_activities' in st.session_state and st.session_state.custom_activities:
+        activities = activities + st.session_state.custom_activities
+
     df = pd.DataFrame(activities)
     df['date'] = pd.to_datetime(df['date'])
     return df, activities
@@ -1767,6 +1773,79 @@ def score_activity_for_slot(activity, time_slot_start, date_str, weather_data, t
         'reasons': reasons,
         'warnings': warnings
     }
+
+def add_activity_to_schedule(activity_name, activity_description, selected_day, selected_time, duration, activity_type='activity', cost=0, location_name='TBD'):
+    """Add a custom activity to the user's schedule
+
+    Args:
+        activity_name: Name of the activity
+        activity_description: Description text
+        selected_day: Day string like "Friday, Nov 7"
+        selected_time: Time object or string like "10:00 AM"
+        duration: Duration string like "2 hours"
+        activity_type: Type category (activity, dining, etc.)
+        cost: Estimated cost
+        location_name: Location name
+
+    Returns:
+        True if added successfully, False otherwise
+    """
+    # Convert day name to date
+    day_to_date = {
+        "Friday, Nov 7": "2025-11-07",
+        "Saturday, Nov 8": "2025-11-08",
+        "Sunday, Nov 9": "2025-11-09",
+        "Monday, Nov 10": "2025-11-10",
+        "Tuesday, Nov 11": "2025-11-11",
+        "Wednesday, Nov 12": "2025-11-12"
+    }
+
+    date_str = day_to_date.get(selected_day)
+    if not date_str:
+        return False
+
+    # Convert time to string if it's a time object
+    if hasattr(selected_time, 'strftime'):
+        time_str = selected_time.strftime("%I:%M %p").lstrip('0')
+    else:
+        time_str = selected_time
+
+    # Generate unique ID
+    import uuid
+    activity_id = f"custom_{uuid.uuid4().hex[:8]}"
+
+    # Create activity object
+    new_activity = {
+        "id": activity_id,
+        "date": date_str,
+        "time": time_str,
+        "activity": activity_name,
+        "type": activity_type,
+        "duration": duration,
+        "location": {
+            "name": location_name,
+            "address": "TBD",
+            "lat": 30.6074,  # Default to Amelia Island
+            "lon": -81.4493,
+            "phone": "N/A"
+        },
+        "status": "Custom",
+        "cost": cost,
+        "category": activity_type.capitalize(),
+        "notes": activity_description,
+        "what_to_bring": [],
+        "tips": [],
+        "priority": 2,
+        "is_custom": True
+    }
+
+    # Add to session state
+    if 'custom_activities' not in st.session_state:
+        st.session_state.custom_activities = []
+
+    st.session_state.custom_activities.append(new_activity)
+
+    return True
 
 @st.cache_data(ttl=1800)
 def get_weather_ultimate():
@@ -2970,8 +3049,44 @@ def render_explore_activities():
                         if st.button(f"➕ Add to Schedule",
                                    key=f"add_{category}_{idx}",
                                    use_container_width=True):
-                            st.success(f"✅ Added {activity['name']} to {selected_day} at {selected_time}")
-                            st.info("💡 Activity added to your trip notes!")
+                            if selected_time:
+                                # Determine activity type from category
+                                activity_type = 'activity'
+                                if '🍽️' in category or 'Dining' in category:
+                                    activity_type = 'dining'
+                                elif '🏖️' in category or 'Beach' in category:
+                                    activity_type = 'beach'
+                                elif '💆' in category or 'Spa' in category:
+                                    activity_type = 'spa'
+
+                                # Extract cost for tracking
+                                cost = 0
+                                cost_str = activity.get('cost_range', '$0')
+                                try:
+                                    cost = int(re.findall(r'\d+', cost_str.split('-')[0])[0])
+                                except:
+                                    cost = 0
+
+                                # Add to schedule
+                                success = add_activity_to_schedule(
+                                    activity_name=activity['name'],
+                                    activity_description=activity.get('description', ''),
+                                    selected_day=selected_day,
+                                    selected_time=selected_time,
+                                    duration=custom_duration,
+                                    activity_type=activity_type,
+                                    cost=cost,
+                                    location_name=activity.get('name', 'TBD')
+                                )
+
+                                if success:
+                                    st.success(f"✅ Added {activity['name']} to {selected_day} at {selected_time}!")
+                                    st.info("💡 View your updated schedule on the Full Schedule page!")
+                                    st.balloons()
+                                else:
+                                    st.error("❌ Failed to add activity. Please try again.")
+                            else:
+                                st.warning("⚠️ Please select a time first!")
 
                     st.markdown("---")
 
@@ -3097,8 +3212,44 @@ def render_explore_activities():
                             if st.button(f"➕ Add {activity['name']} to Schedule",
                                        key=f"add_{gap['description']}_{i}",
                                        use_container_width=True):
-                                st.success(f"✅ Added {activity['name']} to {selected_day} at {selected_time} ({custom_duration})")
-                                st.info("💡 This activity has been added to your trip notes. Use the Full Schedule page to see all your plans!")
+                                if selected_time:
+                                    # Extract cost for tracking
+                                    cost = 0
+                                    cost_str = activity.get('cost_range', '$0')
+                                    try:
+                                        cost = int(re.findall(r'\d+', cost_str.split('-')[0])[0])
+                                    except:
+                                        cost = 0
+
+                                    # Determine activity type
+                                    activity_type = 'activity'
+                                    if 'dining' in activity.get('name', '').lower() or 'restaurant' in activity.get('name', '').lower():
+                                        activity_type = 'dining'
+                                    elif 'beach' in activity.get('name', '').lower():
+                                        activity_type = 'beach'
+                                    elif 'spa' in activity.get('name', '').lower() or 'massage' in activity.get('name', '').lower():
+                                        activity_type = 'spa'
+
+                                    # Add to schedule
+                                    success = add_activity_to_schedule(
+                                        activity_name=activity['name'],
+                                        activity_description=activity.get('description', ''),
+                                        selected_day=selected_day,
+                                        selected_time=selected_time,
+                                        duration=custom_duration,
+                                        activity_type=activity_type,
+                                        cost=cost,
+                                        location_name=activity.get('name', 'TBD')
+                                    )
+
+                                    if success:
+                                        st.success(f"✅ Added {activity['name']} to {selected_day} at {selected_time}!")
+                                        st.info("💡 View your updated schedule on the Full Schedule page!")
+                                        st.balloons()
+                                    else:
+                                        st.error("❌ Failed to add activity. Please try again.")
+                                else:
+                                    st.warning("⚠️ Please select a time first!")
 
                         st.markdown("---")
 
