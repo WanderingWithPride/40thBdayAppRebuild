@@ -5258,7 +5258,7 @@ def render_johns_page(df, activities_data, show_sensitive):
                     is_john_activity = True
                     activity_note = "🎯 Shared Activity"
                 elif activity['type'] == 'spa':
-                    activity_note = "💆 Partner's Spa Time (Your Free Time!)"
+                    activity_note = "💆 Michael's Spa Time (Your Free Time!)"
 
                 # Color coding
                 if is_john_activity:
@@ -5269,14 +5269,14 @@ def render_johns_page(df, activities_data, show_sensitive):
                     border_color = "#9e9e9e"  # Grey for other
 
                 # Clean up activity name for John's view (remove "for you" text)
-                activity_name = activity['activity'].replace('(for you)', '(for your partner)').replace('(For You)', '(For Your Partner)')
+                activity_name = activity['activity'].replace('(for you)', '(for Michael)').replace('(For You)', '(For Michael)')
 
                 # Clean up notes for John's view
                 activity_notes = activity.get('notes', '')
                 if activity['type'] == 'spa':
                     # Replace confusing language in spa notes
-                    activity_notes = activity_notes.replace('John can pay for this if he wants', 'Your partner will be at the spa')
-                    activity_notes = activity_notes.replace('you\'re getting pampered', 'your partner is getting pampered')
+                    activity_notes = activity_notes.replace('John can pay for this if he wants', 'Michael will be at the spa')
+                    activity_notes = activity_notes.replace('you\'re getting pampered', 'Michael is getting pampered')
                     if not activity_notes.endswith('Enjoy your free time!'):
                         activity_notes += ' This is your free time to relax!'
 
@@ -5302,7 +5302,7 @@ def render_johns_page(df, activities_data, show_sensitive):
             if partner_spa_times:
                 st.markdown("""
                 <div class="info-box info-success">
-                    <strong>💡 Free Time Ideas:</strong> While your partner is at the spa, enjoy the pool, hot tub, beach, or book your own spa treatment below!
+                    <strong>💡 Free Time Ideas:</strong> While Michael is at the spa, enjoy the pool, hot tub, beach, or book your own spa treatment below!
                 </div>
                 """, unsafe_allow_html=True)
 
