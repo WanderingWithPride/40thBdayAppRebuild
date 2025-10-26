@@ -2769,91 +2769,190 @@ def render_packing_list():
 
 
 def render_full_schedule(df, activities_data, show_sensitive):
-    """Complete trip schedule"""
+    """Complete trip schedule - Visual timeline showing all days at once"""
     st.markdown('<h2 class="fade-in">🗓️ Complete Trip Schedule</h2>', unsafe_allow_html=True)
-    
-    dates = df['date'].dt.date.unique()
-    dates = sorted(dates)
-    
-    # Create tabs for each day
-    date_tabs = st.tabs([f"📅 {date.strftime('%a %m/%d')}" for date in dates])
-    
-    for idx, date in enumerate(dates):
-        with date_tabs[idx]:
-            day_activities = [a for a in activities_data if pd.to_datetime(a['date']).date() == date]
-            day_activities.sort(key=lambda x: x['time'])
-            
-            st.markdown(f"### {date.strftime('%A, %B %d, %Y')}")
-            
-            # Check if birthday
-            if date.month == 11 and date.day == 9:
-                st.markdown("""
-                <div class="birthday-special">
-                    <h2 style="margin: 0;">🎂 BIRTHDAY DAY! 🎉</h2>
-                    <p style="font-size: 1.2rem; margin: 0.5rem 0 0 0;">Your special 40th celebration!</p>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            # Timeline
-            if day_activities:
-                st.markdown('<div class="timeline">', unsafe_allow_html=True)
-                
-                for activity in day_activities:
-                    status_class = activity['status'].lower()
 
-                    # Calculate end time
-                    end_time = None
-                    if activity.get('duration'):
-                        end_time = calculate_end_time(activity['time'], activity['duration'])
+    # Get intelligence data
+    weather_data = get_weather_ultimate()
+    tide_data = get_tide_data()
+    meal_gaps = detect_meal_gaps(activities_data)
+    conflicts = detect_conflicts(activities_data)
 
-                    # Format time display
-                    time_display = activity['time']
-                    if end_time:
-                        time_display = f"{activity['time']} - {end_time}"
+    # Show trip overview
+    st.markdown("""
+    <div class="info-box" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+        <h4 style="margin: 0; color: white;">🤖 AI-Powered Schedule Intelligence</h4>
+        <p style="margin: 0.5rem 0 0 0; opacity: 0.95;">Your complete trip at a glance with smart insights</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-                    st.markdown(f"""
-                    <div class="timeline-item {status_class}">
-                        <div class="ultimate-card">
-                            <div class="card-body">
-                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-                                    <h4 style="margin: 0;">{activity['activity']}</h4>
-                                    <span class="status-{status_class}">{activity['status']}</span>
-                                </div>
-                                <p style="margin: 0.5rem 0;"><b>🕐 {time_display}</b> {f'({activity["duration"]})' if activity.get('duration') else ''}</p>
-                                <p style="margin: 0.5rem 0;">📍 {activity['location']['name']}</p>
-                                <p style="margin: 0.5rem 0;">📞 {mask_info(activity['location'].get('phone', 'N/A'), show_sensitive)}</p>
-                                <p style="margin: 0.5rem 0;">💰 {"$" + str(activity['cost']) if show_sensitive else "$***"}</p>
-                                <p style="margin: 0.5rem 0; font-style: italic;">{mask_info(activity['notes'], show_sensitive)}</p>
+    # Summary metrics
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("📅 Total Days", len(df['date'].dt.date.unique()))
+    with col2:
+        st.metric("🎯 Activities", len(activities_data))
+    with col3:
+        custom_count = len([a for a in activities_data if a.get('is_custom', False)])
+        st.metric("➕ Custom Added", custom_count)
+    with col4:
+        urgent_count = len([a for a in activities_data if a.get('status') == 'URGENT'])
+        st.metric("🚨 Urgent", urgent_count)
+
+    # Show conflicts and meal gaps
+    if conflicts or meal_gaps:
+        st.markdown("---")
+        st.markdown("### 🚨 Schedule Alerts")
+
+        alert_col1, alert_col2 = st.columns(2)
+
+        with alert_col1:
+            if conflicts:
+                critical_conflicts = [c for c in conflicts if c['severity'] == 'critical']
+                warning_conflicts = [c for c in conflicts if c['severity'] == 'warning']
+
+                if critical_conflicts:
+                    st.error(f"**🔴 {len(critical_conflicts)} Critical Conflicts**")
+                    for conflict in critical_conflicts[:3]:  # Show first 3
+                        st.markdown(f"• {conflict['message']}")
+
+                if warning_conflicts:
+                    st.warning(f"**🟡 {len(warning_conflicts)} Timing Warnings**")
+                    for conflict in warning_conflicts[:3]:
+                        st.markdown(f"• {conflict['message']}")
+            else:
+                st.success("✅ No scheduling conflicts detected!")
+
+        with alert_col2:
+            if meal_gaps:
+                st.warning(f"**🍽️ {len(meal_gaps)} Missing Meals**")
+                for gap in meal_gaps[:5]:  # Show first 5
+                    st.markdown(f"• {gap['day_name']}: {gap['meal_type'].title()} at {gap['suggested_time']}")
+            else:
+                st.success("✅ All meals scheduled!")
+
+    st.markdown("---")
+
+    # Get all dates and sort
+    dates = sorted(df['date'].dt.date.unique())
+
+    # NO TABS - Show all days in one scrollable view
+    for date in dates:
+        # Day header with weather
+        day_activities = [a for a in activities_data if pd.to_datetime(a['date']).date() == date]
+        day_activities.sort(key=lambda x: x['time'])
+
+        # Check if birthday
+        is_birthday = date.month == 11 and date.day == 9
+
+        # Get weather for this day
+        date_str = date.strftime('%Y-%m-%d')
+        day_weather = None
+        for forecast in weather_data.get('forecast', []):
+            if forecast['date'] == date_str:
+                day_weather = forecast
+                break
+
+        # Day header card
+        if is_birthday:
+            header_style = "background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%); color: white;"
+        elif day_weather and day_weather.get('precipitation', 0) > 50:
+            header_style = "background: linear-gradient(135deg, #74b9ff 0%, #a29bfe 100%); color: white;"
+        else:
+            header_style = "background: linear-gradient(135deg, #55efc4 0%, #74b9ff 100%); color: white;"
+
+        st.markdown(f"""
+        <div style="{header_style} padding: 1.5rem; border-radius: 12px; margin: 1.5rem 0 1rem 0; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+            <h2 style="margin: 0; color: white;">{'🎂 BIRTHDAY! ' if is_birthday else '📅 '}{date.strftime('%A, %B %d, %Y')}</h2>
+            {f'<p style="margin: 0.5rem 0 0 0; opacity: 0.95; font-size: 1.1rem;">{day_weather["condition"]} | 🌡️ {day_weather["high"]}°F | 💧 {day_weather["precipitation"]}% rain | 💨 {day_weather["wind"]} mph</p>' if day_weather else ''}
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Timeline
+        if day_activities:
+            for idx, activity in enumerate(day_activities):
+                status_class = activity['status'].lower()
+
+                # Calculate end time
+                end_time = None
+                if activity.get('duration'):
+                    end_time = calculate_end_time(activity['time'], activity['duration'])
+
+                # Format time display
+                time_display = activity['time']
+                if end_time:
+                    time_display = f"{activity['time']} - {end_time}"
+
+                # Check for gap before this activity
+                if idx > 0:
+                    prev_activity = day_activities[idx - 1]
+                    if prev_activity.get('duration'):
+                        prev_end_time = calculate_end_time(prev_activity['time'], prev_activity['duration'])
+                        if prev_end_time:
+                            try:
+                                prev_end_obj = datetime.strptime(prev_end_time, "%I:%M %p")
+                                curr_start_obj = datetime.strptime(activity['time'], "%I:%M %p")
+                                gap_minutes = (curr_start_obj - prev_end_obj).total_seconds() / 60
+
+                                if gap_minutes > 60:  # More than 1 hour gap
+                                    st.markdown(f"""
+                                    <div style="background: #f0f9ff; border-left: 4px solid #4ecdc4; padding: 1rem; margin: 0.5rem 0; border-radius: 8px;">
+                                        <p style="margin: 0; color: #636e72;">💡 <strong>Free Time:</strong> {round(gap_minutes/60, 1)}h gap ({prev_end_time} - {activity['time']})</p>
+                                    </div>
+                                    """, unsafe_allow_html=True)
+                            except:
+                                pass
+
+                # Custom activity badge
+                custom_badge = ""
+                if activity.get('is_custom', False):
+                    custom_badge = '<span style="background: #74b9ff; color: white; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem; margin-left: 0.5rem;">➕ Custom</span>'
+
+                # Activity card
+                st.markdown(f"""
+                <div class="timeline-item {status_class}" style="margin: 1rem 0;">
+                    <div class="ultimate-card">
+                        <div class="card-body">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                                <h4 style="margin: 0;">{activity['activity']} {custom_badge}</h4>
+                                <span class="status-{status_class}">{activity['status']}</span>
                             </div>
+                            <p style="margin: 0.5rem 0;"><b>🕐 {time_display}</b> {f'({activity["duration"]})' if activity.get('duration') else ''}</p>
+                            <p style="margin: 0.5rem 0;">📍 {activity['location']['name']}</p>
+                            <p style="margin: 0.5rem 0;">📞 {mask_info(activity['location'].get('phone', 'N/A'), show_sensitive)}</p>
+                            <p style="margin: 0.5rem 0;">💰 {"$" + str(activity['cost']) if show_sensitive else "$***"}</p>
+                            <p style="margin: 0.5rem 0; font-style: italic;">{mask_info(activity['notes'], show_sensitive)}</p>
                         </div>
                     </div>
-                    """, unsafe_allow_html=True)
+                </div>
+                """, unsafe_allow_html=True)
 
-                    # Display additional details (dress code, what to bring, tips) below the card
-                    if activity.get('dress_code'):
-                        st.markdown(f"**👔 Dress Code:** {activity['dress_code']}")
+                # Display additional details (dress code, what to bring, tips) below the card
+                if activity.get('dress_code'):
+                    st.markdown(f"**👔 Dress Code:** {activity['dress_code']}")
 
-                    if activity.get('what_to_bring'):
-                        st.markdown("**🎒 What to Bring:**")
-                        items = activity['what_to_bring']
-                        if isinstance(items, list):
-                            for item in items:
-                                st.markdown(f"- {item}")
-                        else:
-                            st.markdown(f"- {items}")
+                if activity.get('what_to_bring'):
+                    st.markdown("**🎒 What to Bring:**")
+                    items = activity['what_to_bring']
+                    if isinstance(items, list):
+                        for item in items:
+                            st.markdown(f"- {item}")
+                    else:
+                        st.markdown(f"- {items}")
 
-                    if activity.get('tips'):
-                        tips = activity['tips']
-                        if isinstance(tips, list):
-                            st.markdown("**💡 Tips:**")
-                            for tip in tips:
-                                st.markdown(f"- {tip}")
-                        elif isinstance(tips, str):
-                            st.info(f"💡 **Tip:** {tips}")
-                
-                st.markdown('</div>', unsafe_allow_html=True)
-            else:
-                st.info("No scheduled activities - free day!")
+                if activity.get('tips'):
+                    tips = activity['tips']
+                    if isinstance(tips, list):
+                        st.markdown("**💡 Tips:**")
+                        for tip in tips:
+                            st.markdown(f"- {tip}")
+                    elif isinstance(tips, str):
+                        st.info(f"💡 **Tip:** {tips}")
+
+        else:
+            st.info("No scheduled activities - free day!")
+
+        st.markdown("---")
 
 def render_budget(df, show_sensitive):
     """Budget tracker"""
