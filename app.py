@@ -1013,19 +1013,19 @@ def get_smart_packing_list():
     }
 
 def get_optional_activities():
-    """ULTIMATE Amelia Island Guide - 120+ comprehensive options covering EVERYTHING you need!
+    """ULTIMATE Amelia Island Guide - 118 comprehensive options covering EVERYTHING you need!
 
-    🍽️ DINING & DRINKS (46 options):
-    - Fine Dining (5): Le Clos, Salt, Burlingame, Lagniappe, Cucina South
+    🍽️ DINING & DRINKS (44 options):
+    - Fine Dining (4): Le Clos, Burlingame, Lagniappe, Cucina South
     - Seafood & Waterfront (7): Brett's, Salty Pelican, Sandbar, Boat House, Down Under, Timoti's, Salt Life
     - Italian & Pizza (2): Ciao Italian, Arte Pizza
     - Mexican & Latin (2): Mezcal, Tortuga Jacks
     - Asian Cuisine (3): Wicked Bao, Akari Sushi, Hana Sushi
-    - Breakfast & Brunch (3): 29 South, Beach Diner, The Surf
+    - Breakfast & Brunch (2): 29 South, Beach Diner
     - Casual & Comfort Food (3): Sliders, Fantastic Fudge, Café Karibo
     - ☕ Coffee & Cafes (5): Amelia Island Coffee, First Drop, Mocama, Hola Cuban, Nana Teresa's
     - 🥖 Delis & Lunch (2): Aloha Bagel, 4th Street Deli
-    - 🏨 Ritz-Carlton Dining (6): Salt, Coast, Coquina, Tidewater Grill, Lobby Bar, Dune Bar
+    - 🏨 Ritz-Carlton Dining (6): Salt (AAA Five Diamond), Coast, Coquina, Tidewater Grill, Lobby Bar, Dune Bar
     - 🍺 Bars & Nightlife (6): Palace Saloon, Green Turtle, Decantery, First Love Brewing, Mocama Beer, A1A Cidery
 
     🏖️ ACTIVITIES & OUTDOOR (52 options):
@@ -1043,12 +1043,11 @@ def get_optional_activities():
     🏊 RESORT & FREE (7 options):
     - Pool, beach sunsets, yoga, bonfires, fitness, volleyball, shelling
 
-    TOTAL: 120+ comprehensive options with complete details, phone numbers, pricing, tips, and ratings!
+    TOTAL: 118 verified options with complete details, phone numbers, pricing, tips, and ratings!
     """
     return {
         "🍽️ Fine Dining": [
             {"name": "Le Clos", "description": "French bistro with romantic atmosphere, extensive wine selection", "cost_range": "$40-70 per person", "duration": "2-3 hours", "phone": "904-261-8100", "booking_url": "https://www.opentable.com/r/le-clos-fernandina-beach", "tips": "Reservations required, dress code (business casual)", "rating": "4.8/5"},
-            {"name": "Salt", "description": "Upscale coastal cuisine with sophisticated ambiance", "cost_range": "$45-75 per person", "duration": "2-3 hours", "phone": "904-277-1100", "booking_url": "https://www.opentable.com/salt-amelia-island", "tips": "Known for innovative dishes and craft cocktails", "rating": "4.8/5"},
             {"name": "Burlingame", "description": "Charming 1947 cottage with modern twist, seasonal menu with Seafood Gumbo, Blue Crab Cakes, Lamb Bolognese", "cost_range": "$35-65 per person", "duration": "2-2.5 hours", "phone": "904-277-3700", "booking_url": "https://www.opentable.com/burlingame", "tips": "Intimate setting, reserve ahead for special occasions", "rating": "4.9/5"},
             {"name": "Lagniappe", "description": "Southern refinement meets French Creole, standout Salmon Brulee and Lamb Lollipops", "cost_range": "$40-70 per person", "duration": "2-3 hours", "phone": "904-321-2007", "booking_url": "https://www.opentable.com/lagniappe-fernandina", "tips": "Chef Brett Heritage creates unique elevated cuisine", "rating": "4.8/5"},
             {"name": "Cucina South", "description": "Fine dining Italian with chef-driven creations, traditional Italian with Mediterranean accents", "cost_range": "$35-60 per person", "duration": "2-2.5 hours", "phone": "904-321-2699", "booking_url": "https://www.opentable.com/cucina-south", "tips": "Classic Italian with modern twists, excellent wine list", "rating": "4.7/5"},
@@ -1078,7 +1077,6 @@ def get_optional_activities():
         "🥞 Breakfast & Brunch": [
             {"name": "29 South", "description": "Farm-to-table Southern cuisine, excellent brunch with local ingredients", "cost_range": "$18-35 per person", "duration": "1.5-2 hours", "phone": "904-277-7919", "booking_url": "https://www.opentable.com/r/29-south-fernandina-beach", "tips": "Amazing brunch on weekends, try the shrimp and grits", "rating": "4.6/5"},
             {"name": "Beach Diner", "description": "Family owned unique breakfast & lunch, Chocolate Chip Pancakes, Shrimp & Crab Omelette, Fish & Grits", "cost_range": "$10-20 per person", "duration": "1-1.5 hours", "phone": "904-261-3663", "booking_url": "N/A", "tips": "Popular local spot, expect a wait on weekends", "rating": "4.6/5"},
-            {"name": "The Surf Restaurant", "description": "Beachfront dining at Ritz-Carlton, exceptional breakfast buffet and oceanfront brunch", "cost_range": "$30-60 per person", "duration": "1.5-2 hours", "phone": "904-277-1100", "booking_url": "https://www.ritzcarlton.com/en/hotels/ameliarc/dining", "tips": "No reservation needed, great ocean views", "rating": "4.7/5"},
         ],
         "🍔 Casual & Comfort Food": [
             {"name": "Sliders Seaside Grill", "description": "Beachfront burgers, seafood, and casual American fare with ocean views", "cost_range": "$12-25 per person", "duration": "1-1.5 hours", "phone": "904-277-6652", "booking_url": "N/A", "tips": "Perfect beach lunch spot, great burgers and fish sandwiches", "rating": "4.4/5"},
@@ -2476,7 +2474,7 @@ def render_explore_activities():
     activities = get_optional_activities()
 
     for category, items in activities.items():
-        with st.expander(f"{category} ({len(items)} options)", expanded=(category == "🍽️ Dining Options")):
+        with st.expander(f"{category} ({len(items)} options)", expanded=(category == "🍽️ Fine Dining")):
             for idx, activity in enumerate(items):
                 with st.container():
                     # Activity header
