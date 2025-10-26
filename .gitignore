@@ -43,6 +43,12 @@ env/
 # Streamlit
 .streamlit/secrets.toml
 
+# Database (contains user data)
+trip_data.db
+*.db
+*.sqlite
+*.sqlite3
+
 # Logs
 *.log
 logs/

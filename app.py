@@ -42,6 +42,8 @@ from geopy.distance import geodesic
 import qrcode
 from PIL import Image
 import pytz
+import sqlite3
+import pickle
 
 # ============================================================================
 # CONFIGURATION & SETUP
@@ -59,17 +61,347 @@ st.set_page_config(
     }
 )
 
-# Initialize session state
+# ============================================================================
+# DATABASE PERSISTENCE LAYER
+# ============================================================================
+
+DB_FILE = "trip_data.db"
+
+def init_database():
+    """Initialize SQLite database for persistent storage"""
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+
+    # Custom activities table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS custom_activities (
+            id TEXT PRIMARY KEY,
+            data TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    # Packing list progress
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS packing_progress (
+            item_id TEXT PRIMARY KEY,
+            packed INTEGER DEFAULT 0,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    # Notes and memories
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS notes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date TEXT,
+            content TEXT,
+            type TEXT DEFAULT 'note',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    # John's preferences
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS john_preferences (
+            key TEXT PRIMARY KEY,
+            value TEXT,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    # Completed activities
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS completed_activities (
+            activity_id TEXT PRIMARY KEY,
+            completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    # Photos storage
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS photos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            filename TEXT,
+            photo_data BLOB,
+            caption TEXT,
+            date TEXT,
+            uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    # Notifications
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS notifications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT,
+            message TEXT,
+            type TEXT DEFAULT 'info',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            dismissed INTEGER DEFAULT 0
+        )
+    ''')
+
+    conn.commit()
+    conn.close()
+
+# Database helper functions
+def save_custom_activity(activity_dict):
+    """Save a custom activity to database"""
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        activity_id = activity_dict.get('id', f"custom_{datetime.now().timestamp()}")
+        activity_dict['id'] = activity_id
+        cursor.execute(
+            "INSERT OR REPLACE INTO custom_activities (id, data) VALUES (?, ?)",
+            (activity_id, json.dumps(activity_dict))
+        )
+        conn.commit()
+        conn.close()
+        return activity_id
+    except Exception as e:
+        print(f"Error saving custom activity: {e}")
+        return None
+
+def load_custom_activities():
+    """Load all custom activities from database"""
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute("SELECT data FROM custom_activities")
+        activities = [json.loads(row[0]) for row in cursor.fetchall()]
+        conn.close()
+        return activities
+    except Exception as e:
+        print(f"Error loading custom activities: {e}")
+        return []
+
+def delete_custom_activity(activity_id):
+    """Delete a custom activity"""
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM custom_activities WHERE id = ?", (activity_id,))
+    conn.commit()
+    conn.close()
+
+def save_packing_progress(item_id, packed):
+    """Save packing list checkbox state"""
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT OR REPLACE INTO packing_progress (item_id, packed, updated_at) VALUES (?, ?, ?)",
+        (item_id, 1 if packed else 0, datetime.now().isoformat())
+    )
+    conn.commit()
+    conn.close()
+
+def load_packing_progress():
+    """Load packing list progress"""
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute("SELECT item_id, packed FROM packing_progress")
+        progress = {row[0]: bool(row[1]) for row in cursor.fetchall()}
+        conn.close()
+        return progress
+    except Exception as e:
+        print(f"Error loading packing progress: {e}")
+        return {}
+
+def save_note(date, content, note_type='note'):
+    """Save a note or memory"""
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO notes (date, content, type) VALUES (?, ?, ?)",
+        (date, content, note_type)
+    )
+    conn.commit()
+    conn.close()
+
+def load_notes(date=None):
+    """Load notes, optionally filtered by date"""
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        if date:
+            cursor.execute("SELECT id, date, content, type, created_at FROM notes WHERE date = ? ORDER BY created_at DESC", (date,))
+        else:
+            cursor.execute("SELECT id, date, content, type, created_at FROM notes ORDER BY created_at DESC")
+        notes = [{"id": row[0], "date": row[1], "content": row[2], "type": row[3], "created_at": row[4]} for row in cursor.fetchall()]
+        conn.close()
+        return notes
+    except Exception as e:
+        print(f"Error loading notes: {e}")
+        return []
+
+def delete_note(note_id):
+    """Delete a note"""
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM notes WHERE id = ?", (note_id,))
+    conn.commit()
+    conn.close()
+
+def save_john_preference(key, value):
+    """Save John's preference"""
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT OR REPLACE INTO john_preferences (key, value, updated_at) VALUES (?, ?, ?)",
+        (key, value, datetime.now().isoformat())
+    )
+    conn.commit()
+    conn.close()
+
+def load_john_preferences():
+    """Load all of John's preferences"""
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute("SELECT key, value FROM john_preferences")
+        prefs = {row[0]: row[1] for row in cursor.fetchall()}
+        conn.close()
+        return prefs
+    except Exception as e:
+        print(f"Error loading John's preferences: {e}")
+        return {}
+
+def mark_activity_completed(activity_id):
+    """Mark an activity as completed"""
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT OR REPLACE INTO completed_activities (activity_id) VALUES (?)",
+        (activity_id,)
+    )
+    conn.commit()
+    conn.close()
+
+def load_completed_activities():
+    """Load all completed activity IDs"""
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute("SELECT activity_id FROM completed_activities")
+        completed = [row[0] for row in cursor.fetchall()]
+        conn.close()
+        return completed
+    except Exception as e:
+        print(f"Error loading completed activities: {e}")
+        return []
+
+def save_photo(filename, photo_bytes, caption, date):
+    """Save a photo to database"""
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO photos (filename, photo_data, caption, date) VALUES (?, ?, ?, ?)",
+        (filename, photo_bytes, caption, date)
+    )
+    photo_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return photo_id
+
+def load_photos(date=None):
+    """Load photos, optionally filtered by date"""
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        if date:
+            cursor.execute("SELECT id, filename, photo_data, caption, date, uploaded_at FROM photos WHERE date = ? ORDER BY uploaded_at DESC", (date,))
+        else:
+            cursor.execute("SELECT id, filename, photo_data, caption, date, uploaded_at FROM photos ORDER BY uploaded_at DESC")
+        photos = []
+        for row in cursor.fetchall():
+            photos.append({
+                "id": row[0],
+                "filename": row[1],
+                "photo_data": row[2],
+                "caption": row[3],
+                "date": row[4],
+                "uploaded_at": row[5]
+            })
+        conn.close()
+        return photos
+    except Exception as e:
+        print(f"Error loading photos: {e}")
+        return []
+
+def delete_photo(photo_id):
+    """Delete a photo"""
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM photos WHERE id = ?", (photo_id,))
+    conn.commit()
+    conn.close()
+
+def add_notification(title, message, notif_type='info'):
+    """Add a notification"""
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO notifications (title, message, type) VALUES (?, ?, ?)",
+        (title, message, notif_type)
+    )
+    conn.commit()
+    conn.close()
+
+def load_notifications(include_dismissed=False):
+    """Load notifications"""
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        if include_dismissed:
+            cursor.execute("SELECT id, title, message, type, created_at, dismissed FROM notifications ORDER BY created_at DESC")
+        else:
+            cursor.execute("SELECT id, title, message, type, created_at, dismissed FROM notifications WHERE dismissed = 0 ORDER BY created_at DESC")
+        notifications = []
+        for row in cursor.fetchall():
+            notifications.append({
+                "id": row[0],
+                "title": row[1],
+                "message": row[2],
+                "type": row[3],
+                "created_at": row[4],
+                "dismissed": bool(row[5])
+            })
+        conn.close()
+        return notifications
+    except Exception as e:
+        print(f"Error loading notifications: {e}")
+        return []
+
+def dismiss_notification(notif_id):
+    """Dismiss a notification"""
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("UPDATE notifications SET dismissed = 1 WHERE id = ?", (notif_id,))
+    conn.commit()
+    conn.close()
+
+# Initialize database on app start
+init_database()
+
+# Initialize session state with database data
 if 'password_verified' not in st.session_state:
     st.session_state.password_verified = False
 if 'packing_list' not in st.session_state:
-    st.session_state.packing_list = {}
+    st.session_state.packing_list = load_packing_progress()
 if 'completed_activities' not in st.session_state:
-    st.session_state.completed_activities = []
+    st.session_state.completed_activities = load_completed_activities()
 if 'notes' not in st.session_state:
-    st.session_state.notes = []
+    st.session_state.notes = load_notes()
 if 'custom_activities' not in st.session_state:
-    st.session_state.custom_activities = []
+    st.session_state.custom_activities = load_custom_activities()
+if 'john_preferences' not in st.session_state:
+    st.session_state.john_preferences = load_john_preferences()
+if 'notifications' not in st.session_state:
+    st.session_state.notifications = load_notifications()
+if 'photos' not in st.session_state:
+    st.session_state.photos = load_photos()
 
 # ============================================================================
 # TRIP CONFIGURATION
@@ -1845,6 +2177,16 @@ def add_activity_to_schedule(activity_name, activity_description, selected_day, 
 
     st.session_state.custom_activities.append(new_activity)
 
+    # Save to database for persistence
+    save_custom_activity(new_activity)
+
+    # Add a notification
+    add_notification(
+        "Activity Added",
+        f"{activity_name} added to {selected_day} at {time_str}",
+        "success"
+    )
+
     return True
 
 def auto_fill_meals(meal_gaps, weather_data):
@@ -3057,10 +3399,16 @@ def render_packing_list():
     """, unsafe_allow_html=True)
     
     packing_data = get_smart_packing_list()
-    
-    # Summary stats
+
+    # Summary stats - count packed items from packing list only (not birthday/bucket items)
     total_items = sum(len(items) for items in packing_data.values())
-    checked_items = sum(1 for category in packing_data.values() for item in category if item.get('checked', False))
+
+    # Only count items that belong to packing list categories (exclude birthday_, bucket_ prefixes)
+    packing_category_prefixes = [cat.split()[0] for cat in packing_data.keys()]  # Extract emoji prefixes
+    checked_items = sum(
+        1 for key, value in st.session_state.packing_list.items()
+        if value and any(key.startswith(prefix) or key.startswith(f"{prefix}_") for prefix in packing_data.keys())
+    )
     progress = (checked_items / total_items * 100) if total_items > 0 else 0
     
     col1, col2, col3 = st.columns(3)
@@ -3091,8 +3439,19 @@ def render_packing_list():
                     """, unsafe_allow_html=True)
                 
                 with col2:
-                    checked = st.checkbox("✓", value=item.get('checked', False), key=f"pack_{category}_{idx}", label_visibility="collapsed")
-                    if checked != item.get('checked', False):
+                    # Create unique item ID for database persistence
+                    item_id = f"{category}_{idx}_{item['item'][:20]}"
+
+                    # Check if this item is packed (from session state or database)
+                    is_packed = st.session_state.packing_list.get(item_id, False)
+
+                    checked = st.checkbox("✓", value=is_packed, key=f"pack_{category}_{idx}", label_visibility="collapsed")
+
+                    if checked != is_packed:
+                        # Update session state
+                        st.session_state.packing_list[item_id] = checked
+                        # Save to database
+                        save_packing_progress(item_id, checked)
                         item['checked'] = checked
                         st.rerun()
 
@@ -3127,6 +3486,70 @@ def render_full_schedule(df, activities_data, show_sensitive):
     with col4:
         urgent_count = len([a for a in activities_data if a.get('status') == 'URGENT'])
         st.metric("🚨 Urgent", urgent_count)
+
+    # Export options
+    st.markdown("---")
+    export_col1, export_col2 = st.columns(2)
+
+    with export_col1:
+        # CSV Export
+        csv_data = []
+        for activity in activities_data:
+            csv_data.append({
+                "Date": activity.get('date', ''),
+                "Time": activity.get('time', ''),
+                "Activity": activity.get('activity', ''),
+                "Location": activity.get('location', {}).get('name', '') if isinstance(activity.get('location'), dict) else activity.get('location', ''),
+                "Duration": activity.get('duration', ''),
+                "Cost": activity.get('cost', 0),
+                "Status": activity.get('status', ''),
+                "Category": activity.get('category', '')
+            })
+
+        csv_df = pd.DataFrame(csv_data)
+        csv_string = csv_df.to_csv(index=False)
+
+        st.download_button(
+            label="📥 Download Schedule (CSV)",
+            data=csv_string,
+            file_name="birthday_trip_schedule.csv",
+            mime="text/csv",
+            use_container_width=True
+        )
+
+    with export_col2:
+        # Text calendar export
+        calendar_text = "🎂 40TH BIRTHDAY TRIP SCHEDULE\n"
+        calendar_text += "=" * 50 + "\n\n"
+
+        # Group by date
+        from collections import defaultdict
+        by_date = defaultdict(list)
+        for activity in activities_data:
+            by_date[activity.get('date', '')].append(activity)
+
+        for date in sorted(by_date.keys()):
+            date_obj = datetime.strptime(date, '%Y-%m-%d')
+            calendar_text += f"\n{date_obj.strftime('%A, %B %d, %Y')}\n"
+            calendar_text += "-" * 50 + "\n"
+
+            for activity in sorted(by_date[date], key=lambda x: x.get('time', '')):
+                time_str = activity.get('time', 'TBD')
+                activity_name = activity.get('activity', '')
+                location = activity.get('location', {})
+                location_name = location.get('name', '') if isinstance(location, dict) else location
+
+                calendar_text += f"{time_str:10} - {activity_name}\n"
+                if location_name:
+                    calendar_text += f"{'':10}   📍 {location_name}\n"
+
+        st.download_button(
+            label="📄 Download Schedule (TXT)",
+            data=calendar_text,
+            file_name="birthday_trip_schedule.txt",
+            mime="text/plain",
+            use_container_width=True
+        )
 
     # Show conflicts and meal gaps
     if conflicts or meal_gaps:
@@ -4043,6 +4466,523 @@ def render_johns_page(df, activities_data, show_sensitive):
         st.metric("Flight Departure", "Tue Nov 11, 11:05am")
 
 
+def render_birthday_page():
+    """Birthday Special Features - 40th Birthday Celebration Tools"""
+    st.markdown('<h2 class="fade-in">🎂 40th Birthday Celebration</h2>', unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; text-align: center;">
+        <h1 style="margin: 0; color: white; font-size: 3rem;">🎉 HAPPY 40TH BIRTHDAY! 🎉</h1>
+        <p style="margin: 0.5rem 0 0 0; font-size: 1.2rem; opacity: 0.95;">November 10, 2025</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Birthday countdown
+    birthday_date = datetime(2025, 11, 10)
+    days_until_birthday = (birthday_date - datetime.now()).days
+
+    if days_until_birthday > 0:
+        st.markdown(f"""
+        <div class="metric-card">
+            <h3 style="margin: 0; text-align: center;">🎂 Birthday Countdown</h3>
+            <h1 style="margin: 0.5rem 0 0 0; text-align: center; color: #ff6b6b; font-size: 3rem;">
+                {days_until_birthday} Days
+            </h1>
+            <p style="margin: 0.5rem 0 0 0; text-align: center;">Until the big 4-0!</p>
+        </div>
+        """, unsafe_allow_html=True)
+    elif days_until_birthday == 0:
+        st.balloons()
+        st.markdown("""
+        <div class="metric-card" style="background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);">
+            <h1 style="margin: 0; text-align: center; color: #d63031; font-size: 3rem;">🎉 TODAY IS THE DAY! 🎉</h1>
+            <p style="margin: 0.5rem 0 0 0; text-align: center; font-size: 1.2rem;">Happy 40th Birthday!</p>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        days_since = abs(days_until_birthday)
+        st.markdown(f"""
+        <div class="metric-card">
+            <h3 style="margin: 0; text-align: center;">✨ Birthday Memory</h3>
+            <p style="margin: 0.5rem 0 0 0; text-align: center; font-size: 1.2rem;">
+                {days_since} days since your amazing 40th birthday!
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # Tabs for different birthday features
+    tab1, tab2, tab3, tab4 = st.tabs(["🎁 Celebration Checklist", "💭 40 Reflections", "🎊 Birthday Wishes", "🎯 Bucket List"])
+
+    with tab1:
+        st.markdown("### 🎁 Birthday Celebration Checklist")
+        st.markdown("Make sure you don't miss any special birthday moments!")
+
+        celebration_items = [
+            {"item": "Birthday breakfast in bed", "category": "morning"},
+            {"item": "Spa day pampering", "category": "daytime"},
+            {"item": "Take a birthday photo at the beach", "category": "daytime"},
+            {"item": "Birthday dinner at Café Karibo", "category": "evening"},
+            {"item": "Birthday cake and candles", "category": "evening"},
+            {"item": "Toast with champagne", "category": "evening"},
+            {"item": "Make a birthday wish", "category": "evening"},
+            {"item": "Capture a birthday selfie", "category": "anytime"},
+            {"item": "Write in your birthday journal", "category": "anytime"},
+            {"item": "Call family to say thanks", "category": "anytime"}
+        ]
+
+        # Group by category
+        for category in ["morning", "daytime", "evening", "anytime"]:
+            category_name = category.capitalize()
+            st.markdown(f"#### {category_name}")
+
+            items_in_category = [item for item in celebration_items if item['category'] == category]
+
+            for idx, item in enumerate(items_in_category):
+                col1, col2 = st.columns([0.9, 0.1])
+
+                with col1:
+                    st.markdown(f"**{item['item']}**")
+
+                with col2:
+                    item_id = f"birthday_{category}_{idx}"
+                    is_checked = st.session_state.packing_list.get(item_id, False)
+                    checked = st.checkbox("✓", value=is_checked, key=f"bday_check_{item_id}", label_visibility="collapsed")
+
+                    if checked != is_checked:
+                        st.session_state.packing_list[item_id] = checked
+                        save_packing_progress(item_id, checked)
+                        st.rerun()
+
+    with tab2:
+        st.markdown("### 💭 40th Birthday Reflections")
+        st.markdown("Take a moment to reflect on this milestone!")
+
+        reflection_prompts = [
+            "What are you most proud of from your first 40 years?",
+            "What lesson has been most valuable to learn?",
+            "What are you most grateful for as you turn 40?",
+            "What are you most excited about for the next chapter?",
+            "If you could give advice to your younger self, what would it be?",
+            "What does turning 40 mean to you?",
+            "What's one thing you want to accomplish in your 40s?",
+            "Who has made the biggest impact on your life?",
+            "What's your favorite memory from your 30s?",
+            "How do you want to celebrate life moving forward?"
+        ]
+
+        selected_prompt = st.selectbox("Choose a reflection prompt:", reflection_prompts)
+
+        reflection_text = st.text_area(
+            "Your reflection:",
+            placeholder="Write your thoughts here...",
+            height=150,
+            key="reflection_input"
+        )
+
+        if st.button("💾 Save Reflection", type="primary", use_container_width=True):
+            if reflection_text.strip():
+                save_note(
+                    datetime.now().strftime('%Y-%m-%d'),
+                    f"**{selected_prompt}**\n\n{reflection_text}",
+                    'reflection'
+                )
+                st.session_state.notes = load_notes()
+                st.success("✅ Reflection saved!")
+                add_notification("New Reflection", "40th birthday reflection saved", "success")
+                st.rerun()
+            else:
+                st.warning("Please write your reflection first!")
+
+        # Display saved reflections
+        st.markdown("---")
+        st.markdown("#### Your Reflections")
+        reflections = [n for n in st.session_state.notes if n['type'] == 'reflection']
+
+        if reflections:
+            for reflection in reflections:
+                parts = reflection['content'].split('\n\n', 1)
+                prompt = parts[0].replace('**', '')
+                response = parts[1] if len(parts) > 1 else ""
+
+                st.markdown(f"""
+                <div class="card" style="margin-bottom: 1rem; background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+                    <h4 style="margin: 0 0 0.5rem 0;">💭 {prompt}</h4>
+                    <p style="margin: 0;">{response}</p>
+                </div>
+                """, unsafe_allow_html=True)
+        else:
+            st.info("💭 No reflections yet. Start writing your thoughts!")
+
+    with tab3:
+        st.markdown("### 🎊 Birthday Wishes Collection")
+        st.markdown("Collect birthday wishes from friends and family!")
+
+        # Add a wish (for others to fill in)
+        with st.expander("✍️ Add a Birthday Wish", expanded=True):
+            wisher_name = st.text_input("Your name:", placeholder="John")
+            wish_message = st.text_area(
+                "Birthday message:",
+                placeholder="Happy 40th birthday! Wishing you...",
+                height=100
+            )
+
+            if st.button("💌 Save Wish", type="primary", use_container_width=True):
+                if wisher_name.strip() and wish_message.strip():
+                    save_note(
+                        datetime.now().strftime('%Y-%m-%d'),
+                        f"**From {wisher_name}:**\n\n{wish_message}",
+                        'wish'
+                    )
+                    st.session_state.notes = load_notes()
+                    st.success("✅ Birthday wish saved!")
+                    add_notification("New Wish", f"Birthday wish from {wisher_name}", "success")
+                    st.rerun()
+                else:
+                    st.warning("Please fill in both name and message!")
+
+        # Display wishes
+        st.markdown("---")
+        wishes = [n for n in st.session_state.notes if n['type'] == 'wish']
+
+        if wishes:
+            st.markdown(f"#### 💌 You have {len(wishes)} birthday wishes!")
+
+            for wish in wishes:
+                parts = wish['content'].split('\n\n', 1)
+                from_line = parts[0].replace('**', '').replace('From ', '')
+                message = parts[1] if len(parts) > 1 else ""
+
+                st.markdown(f"""
+                <div class="card" style="margin-bottom: 1rem; background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);">
+                    <h4 style="margin: 0 0 0.5rem 0;">💌 {from_line}</h4>
+                    <p style="margin: 0; font-style: italic;">"{message}"</p>
+                </div>
+                """, unsafe_allow_html=True)
+        else:
+            st.info("💌 No birthday wishes yet!")
+
+    with tab4:
+        st.markdown("### 🎯 40 Before 50 Bucket List")
+        st.markdown("What do you want to accomplish in your 40s?")
+
+        # Add bucket list item
+        with st.expander("➕ Add Bucket List Item", expanded=True):
+            bucket_item = st.text_input("I want to...", placeholder="Travel to Japan")
+            bucket_category = st.selectbox(
+                "Category:",
+                ["Travel", "Career", "Health", "Relationships", "Learning", "Adventure", "Creative", "Other"]
+            )
+
+            if st.button("⭐ Add to Bucket List", type="primary", use_container_width=True):
+                if bucket_item.strip():
+                    save_note(
+                        datetime.now().strftime('%Y-%m-%d'),
+                        f"**[{bucket_category}]** {bucket_item}",
+                        'bucket_list'
+                    )
+                    st.session_state.notes = load_notes()
+                    st.success("✅ Added to bucket list!")
+                    add_notification("Bucket List", f"New goal: {bucket_item}", "info")
+                    st.rerun()
+                else:
+                    st.warning("Please enter a bucket list item!")
+
+        # Display bucket list
+        st.markdown("---")
+        bucket_items = [n for n in st.session_state.notes if n['type'] == 'bucket_list']
+
+        if bucket_items:
+            st.markdown(f"#### 🎯 Your 40 Before 50 ({len(bucket_items)} items)")
+
+            for item in bucket_items:
+                col1, col2 = st.columns([0.9, 0.1])
+
+                with col1:
+                    st.markdown(f"{item['content']}")
+
+                with col2:
+                    item_id = f"bucket_{item['id']}"
+                    is_done = st.session_state.packing_list.get(item_id, False)
+                    done = st.checkbox("✓", value=is_done, key=f"bucket_check_{item['id']}", label_visibility="collapsed")
+
+                    if done != is_done:
+                        st.session_state.packing_list[item_id] = done
+                        save_packing_progress(item_id, done)
+                        if done:
+                            st.balloons()
+                        st.rerun()
+        else:
+            st.info("🎯 No bucket list items yet. Start dreaming big!")
+
+def render_memories_page():
+    """Photo Gallery & Memories page - Upload and view trip photos and notes"""
+    st.markdown('<h2 class="fade-in">📸 Memories & Photos</h2>', unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="info-box" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+        <h4 style="margin: 0; color: white;">✨ Capture Your Celebration</h4>
+        <p style="margin: 0.5rem 0 0 0; opacity: 0.95;">Upload photos and save memories from your 40th birthday trip!</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Tabs for different sections
+    tab1, tab2, tab3 = st.tabs(["📷 Photo Gallery", "📝 Trip Journal", "⭐ Highlights"])
+
+    with tab1:
+        st.markdown("### 📷 Photo Gallery")
+
+        # Upload section
+        with st.expander("📤 Upload New Photos", expanded=False):
+            col1, col2 = st.columns([2, 1])
+
+            with col1:
+                uploaded_files = st.file_uploader(
+                    "Choose photos to upload",
+                    type=['png', 'jpg', 'jpeg'],
+                    accept_multiple_files=True,
+                    help="Upload photos from your trip"
+                )
+
+            with col2:
+                photo_date = st.date_input(
+                    "Photo Date",
+                    value=TRIP_CONFIG['start_date'],
+                    min_value=TRIP_CONFIG['start_date'],
+                    max_value=TRIP_CONFIG['end_date']
+                )
+
+            photo_caption = st.text_input("Caption (optional)", placeholder="Sunset at the beach...")
+
+            if uploaded_files and st.button("💾 Save Photos", type="primary", use_container_width=True):
+                saved_count = 0
+                failed_count = 0
+                MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB limit
+
+                for uploaded_file in uploaded_files:
+                    # Check file size
+                    file_size = uploaded_file.size if hasattr(uploaded_file, 'size') else len(uploaded_file.getvalue())
+
+                    if file_size > MAX_FILE_SIZE:
+                        st.warning(f"⚠️ {uploaded_file.name} is too large ({file_size / 1024 / 1024:.1f}MB). Max size is 10MB.")
+                        failed_count += 1
+                        continue
+
+                    try:
+                        photo_bytes = uploaded_file.read()
+                        photo_id = save_photo(
+                            uploaded_file.name,
+                            photo_bytes,
+                            photo_caption,
+                            photo_date.strftime('%Y-%m-%d')
+                        )
+                        if photo_id:
+                            saved_count += 1
+                        else:
+                            failed_count += 1
+                    except Exception as e:
+                        st.error(f"Error uploading {uploaded_file.name}: {e}")
+                        failed_count += 1
+
+                # Refresh photos in session state
+                st.session_state.photos = load_photos()
+
+                if saved_count > 0:
+                    st.success(f"✅ {saved_count} photo(s) uploaded successfully!")
+                    add_notification("Photos Uploaded", f"{saved_count} new photos added to your gallery", "success")
+                if failed_count > 0:
+                    st.error(f"❌ {failed_count} photo(s) failed to upload")
+
+                st.rerun()
+
+        # Display photos
+        st.markdown("---")
+
+        # Filter by date
+        filter_col1, filter_col2 = st.columns([3, 1])
+        with filter_col1:
+            filter_date = st.selectbox(
+                "Filter by date",
+                ["All Dates"] + [
+                    (TRIP_CONFIG['start_date'] + timedelta(days=i)).strftime('%Y-%m-%d')
+                    for i in range((TRIP_CONFIG['end_date'] - TRIP_CONFIG['start_date']).days + 1)
+                ]
+            )
+
+        with filter_col2:
+            photo_count = len(st.session_state.photos)
+            st.metric("Total Photos", photo_count)
+
+        # Get photos based on filter
+        if filter_date == "All Dates":
+            photos_to_display = st.session_state.photos
+        else:
+            photos_to_display = [p for p in st.session_state.photos if p['date'] == filter_date]
+
+        if photos_to_display:
+            # Display photos in grid
+            cols_per_row = 3
+            for i in range(0, len(photos_to_display), cols_per_row):
+                cols = st.columns(cols_per_row)
+                for j in range(cols_per_row):
+                    idx = i + j
+                    if idx < len(photos_to_display):
+                        photo = photos_to_display[idx]
+                        with cols[j]:
+                            # Display photo
+                            try:
+                                image = Image.open(io.BytesIO(photo['photo_data']))
+                                st.image(image, use_container_width=True)
+
+                                # Photo info
+                                st.caption(f"📅 {photo['date']}")
+                                if photo.get('caption'):
+                                    st.caption(f"💬 {photo['caption']}")
+
+                                # Delete button
+                                if st.button(f"🗑️ Delete", key=f"del_photo_{photo['id']}", use_container_width=True):
+                                    delete_photo(photo['id'])
+                                    st.session_state.photos = load_photos()
+                                    st.success("Photo deleted!")
+                                    st.rerun()
+                            except Exception as e:
+                                st.error(f"Error loading photo: {e}")
+        else:
+            st.info("📸 No photos uploaded yet. Start capturing your memories!")
+
+    with tab2:
+        st.markdown("### 📝 Trip Journal")
+        st.markdown("Write notes about each day of your trip!")
+
+        # Add new note
+        with st.expander("✍️ Add New Journal Entry", expanded=True):
+            note_date = st.date_input(
+                "Date",
+                value=TRIP_CONFIG['start_date'],
+                min_value=TRIP_CONFIG['start_date'],
+                max_value=TRIP_CONFIG['end_date'],
+                key="journal_date"
+            )
+
+            note_content = st.text_area(
+                "What happened today?",
+                placeholder="Today we...",
+                height=150
+            )
+
+            if st.button("💾 Save Journal Entry", type="primary", use_container_width=True):
+                if note_content.strip():
+                    save_note(note_date.strftime('%Y-%m-%d'), note_content, 'journal')
+                    st.session_state.notes = load_notes()
+                    st.success("✅ Journal entry saved!")
+                    add_notification("Journal Entry", f"New entry for {note_date.strftime('%b %d')}", "info")
+                    st.rerun()
+                else:
+                    st.warning("Please write something before saving!")
+
+        # Display journal entries
+        st.markdown("---")
+        journal_entries = [n for n in st.session_state.notes if n['type'] == 'journal']
+
+        if journal_entries:
+            for entry in journal_entries:
+                with st.container():
+                    st.markdown(f"""
+                    <div class="card" style="margin-bottom: 1rem;">
+                        <h4 style="margin: 0 0 0.5rem 0;">📅 {entry['date']}</h4>
+                        <p style="margin: 0;">{entry['content']}</p>
+                        <p style="margin: 0.5rem 0 0 0; font-size: 0.8rem; opacity: 0.6;">
+                            Written on {entry['created_at'][:10]}
+                        </p>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    if st.button(f"🗑️ Delete Entry", key=f"del_note_{entry['id']}", use_container_width=True):
+                        delete_note(entry['id'])
+                        st.session_state.notes = load_notes()
+                        st.success("Entry deleted!")
+                        st.rerun()
+        else:
+            st.info("📝 No journal entries yet. Start documenting your trip!")
+
+    with tab3:
+        st.markdown("### ⭐ Trip Highlights")
+        st.markdown("Save your favorite moments and special memories!")
+
+        # Add highlight
+        with st.expander("✨ Add New Highlight", expanded=True):
+            highlight_title = st.text_input("Highlight Title", placeholder="Best sunset ever!")
+            highlight_content = st.text_area(
+                "Describe this moment",
+                placeholder="The sky turned the most amazing shades of pink and orange...",
+                height=100
+            )
+            highlight_date = st.date_input(
+                "Date",
+                value=TRIP_CONFIG['start_date'],
+                min_value=TRIP_CONFIG['start_date'],
+                max_value=TRIP_CONFIG['end_date'],
+                key="highlight_date"
+            )
+
+            if st.button("⭐ Save Highlight", type="primary", use_container_width=True):
+                if highlight_title.strip() and highlight_content.strip():
+                    save_note(
+                        highlight_date.strftime('%Y-%m-%d'),
+                        f"**{highlight_title}**\n\n{highlight_content}",
+                        'highlight'
+                    )
+                    st.session_state.notes = load_notes()
+                    st.success("✅ Highlight saved!")
+                    add_notification("New Highlight", highlight_title, "success")
+                    st.rerun()
+                else:
+                    st.warning("Please fill in both title and description!")
+
+        # Display highlights
+        st.markdown("---")
+        highlights = [n for n in st.session_state.notes if n['type'] == 'highlight']
+
+        if highlights:
+            for idx, highlight in enumerate(highlights):
+                # Parse title and content
+                parts = highlight['content'].split('\n\n', 1)
+                title = parts[0].replace('**', '')
+                content = parts[1] if len(parts) > 1 else ""
+
+                st.markdown(f"""
+                <div class="card" style="margin-bottom: 1rem; background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);">
+                    <h4 style="margin: 0 0 0.5rem 0;">⭐ {title}</h4>
+                    <p style="margin: 0 0 0.5rem 0;">{content}</p>
+                    <p style="margin: 0; font-size: 0.8rem; opacity: 0.7;">📅 {highlight['date']}</p>
+                </div>
+                """, unsafe_allow_html=True)
+
+                if st.button(f"🗑️ Delete Highlight", key=f"del_highlight_{highlight['id']}", use_container_width=True):
+                    delete_note(highlight['id'])
+                    st.session_state.notes = load_notes()
+                    st.success("Highlight deleted!")
+                    st.rerun()
+        else:
+            st.info("⭐ No highlights yet. Mark your special moments!")
+
+    # Trip recap section
+    st.markdown("---")
+    st.markdown("### 📊 Trip Recap")
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        photo_count = len(st.session_state.photos)
+        st.metric("📷 Total Photos", photo_count)
+    with col2:
+        journal_count = len([n for n in st.session_state.notes if n['type'] == 'journal'])
+        st.metric("📝 Journal Entries", journal_count)
+    with col3:
+        highlight_count = len([n for n in st.session_state.notes if n['type'] == 'highlight'])
+        st.metric("⭐ Highlights", highlight_count)
+
+
 # ============================================================================
 # MAIN APPLICATION
 # ============================================================================
@@ -4107,6 +5047,8 @@ def main():
                 "👤 John's Page",
                 "🗺️ Map & Locations",
                 "🎒 Packing List",
+                "🎂 Birthday",
+                "📸 Memories",
                 "💰 Budget",
                 "🌤️ Weather",
                 "ℹ️ About"
@@ -4133,7 +5075,45 @@ def main():
             st.success("🏖️ On your trip!")
         
         st.markdown("---")
-        
+
+        # Notifications
+        active_notifications = [n for n in st.session_state.notifications if not n['dismissed']]
+        if active_notifications:
+            st.markdown("### 🔔 Notifications")
+            for notif in active_notifications[:3]:  # Show max 3 in sidebar
+                notif_type = notif.get('type', 'info')
+
+                # Icon based on type
+                if notif_type == 'success':
+                    icon = "✅"
+                    color = "#4caf50"
+                elif notif_type == 'warning':
+                    icon = "⚠️"
+                    color = "#ff9800"
+                elif notif_type == 'error':
+                    icon = "🚨"
+                    color = "#f44336"
+                else:
+                    icon = "ℹ️"
+                    color = "#2196f3"
+
+                st.markdown(f"""
+                <div style="background: {color}15; border-left: 3px solid {color}; padding: 0.5rem; margin-bottom: 0.5rem; border-radius: 4px;">
+                    <div style="font-weight: bold; font-size: 0.9rem;">{icon} {notif['title']}</div>
+                    <div style="font-size: 0.8rem; opacity: 0.8;">{notif['message']}</div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                if st.button(f"Dismiss", key=f"dismiss_{notif['id']}", use_container_width=True):
+                    dismiss_notification(notif['id'])
+                    st.session_state.notifications = load_notifications()
+                    st.rerun()
+
+            if len(active_notifications) > 3:
+                st.caption(f"+{len(active_notifications) - 3} more notifications")
+
+            st.markdown("---")
+
         # Version info
         st.caption("**Ultimate Edition v2.0**")
         st.caption("Enhanced by Claude Code")
@@ -4159,7 +5139,13 @@ def main():
     
     elif page == "🎒 Packing List":
         render_packing_list()
-    
+
+    elif page == "🎂 Birthday":
+        render_birthday_page()
+
+    elif page == "📸 Memories":
+        render_memories_page()
+
     elif page == "💰 Budget":
         render_budget(df, show_sensitive)
     
