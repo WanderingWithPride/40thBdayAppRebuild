@@ -5608,6 +5608,9 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
 
 def render_johns_page(df, activities_data, show_sensitive):
     """John's dedicated trip companion page"""
+    # Load John's preferences for opt-in status
+    john_prefs = load_john_preferences()
+
     st.markdown('<h2 class="fade-in">👋 John\'s Trip Companion</h2>', unsafe_allow_html=True)
 
     # Welcome banner
