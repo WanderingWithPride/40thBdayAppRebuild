@@ -5879,9 +5879,9 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
         if any(word in category_name.lower() for word in ['dining', 'fine dining', 'seafood', 'italian', 'mexican', 'asian', 'breakfast', 'casual', 'coffee', 'ritz-carlton dining', 'bars']):
             all_restaurants.extend(items)
 
-    # Define meal slots
+    # Define meal slots - ONLY for days when John is there (Nov 8-11)
     meal_slots = [
-        {"id": "fri_dinner", "label": "Friday Dinner (Nov 7)", "date": "2025-11-07", "time": "7:00 PM"},
+        # Friday removed - John not there yet
         {"id": "sat_breakfast", "label": "Saturday Breakfast (Nov 8)", "date": "2025-11-08", "time": "9:00 AM"},
         {"id": "sat_lunch", "label": "Saturday Lunch (Nov 8)", "date": "2025-11-08", "time": "12:30 PM"},
         {"id": "sat_dinner", "label": "Saturday Dinner (Nov 8) - Already Booked", "date": "2025-11-08", "time": "7:00 PM", "locked": True},
@@ -5893,6 +5893,25 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
         {"id": "mon_dinner", "label": "Monday Dinner (Nov 10)", "date": "2025-11-10", "time": "7:00 PM"},
         {"id": "tue_breakfast", "label": "Tuesday Breakfast (Nov 11)", "date": "2025-11-11", "time": "8:00 AM"},
     ]
+
+    # Get list of already-used restaurants to prevent duplicates
+    def get_used_restaurants():
+        """Get list of restaurant names already confirmed or proposed"""
+        used = set()
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute("SELECT restaurant_options FROM meal_proposals WHERE status IN ('confirmed', 'proposed', 'voted')")
+        rows = cursor.fetchall()
+        conn.close()
+
+        for row in rows:
+            try:
+                options = json.loads(row[0])
+                for opt in options:
+                    used.add(opt.get('name', ''))
+            except:
+                pass
+        return used
 
     for meal_slot in meal_slots:
         if meal_slot.get("locked"):
@@ -6004,32 +6023,90 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
 
         else:
             # No proposal yet - create one
-            with st.expander(f"📝 **Propose 3 Options for {meal_slot['label']}**"):
-                st.markdown("**Select 3 restaurants to propose:**")
+            with st.expander(f"📝 **Propose 3 Options for {meal_slot['label']}**", expanded=True):
+                st.markdown("**Select 3 restaurants to propose to John:**")
+                st.info("💡 Click on each restaurant card to select. Duplicates and already-booked restaurants are filtered out.")
+
+                # Get already-used restaurants
+                used_restaurants = get_used_restaurants()
 
                 # Filter restaurants by meal type
                 meal_type = "breakfast" if "breakfast" in meal_slot['label'].lower() else ("lunch" if "lunch" in meal_slot['label'].lower() else "dinner")
 
-                restaurant_names = [r['name'] for r in all_restaurants]
+                # Filter out used restaurants
+                available_restaurants = [r for r in all_restaurants if r['name'] not in used_restaurants]
 
-                option1 = st.selectbox(f"Option 1", restaurant_names, key=f"{meal_slot['id']}_opt1")
-                option2 = st.selectbox(f"Option 2", restaurant_names, key=f"{meal_slot['id']}_opt2")
-                option3 = st.selectbox(f"Option 3", restaurant_names, key=f"{meal_slot['id']}_opt3")
+                if len(available_restaurants) < 3:
+                    st.error("⚠️ Not enough unique restaurants available! You may need to cancel some previous proposals or pick different options.")
+                else:
+                    # Initialize session state for selections
+                    selection_key = f"selected_{meal_slot['id']}"
+                    if selection_key not in st.session_state:
+                        st.session_state[selection_key] = []
 
-                if st.button(f"Send Proposal to John", key=f"propose_{meal_slot['id']}", type="primary"):
-                    # Get full restaurant data
-                    selected_restaurants = []
-                    for name in [option1, option2, option3]:
-                        rest = next((r for r in all_restaurants if r['name'] == name), None)
-                        if rest:
-                            selected_restaurants.append(rest)
+                    st.markdown(f"**Selected: {len(st.session_state[selection_key])}/3**")
 
-                    if len(selected_restaurants) == 3:
-                        save_meal_proposal(meal_slot['id'], selected_restaurants)
-                        st.success(f"✅ Proposal sent! John will see these options on his page.")
-                        st.rerun()
+                    # Show available restaurants as clickable cards
+                    cols = st.columns(3)
+                    for idx, restaurant in enumerate(available_restaurants):
+                        col = cols[idx % 3]
+                        rest_details = restaurant_details.get(restaurant['name'], {})
+                        is_selected = restaurant['name'] in st.session_state[selection_key]
+
+                        with col:
+                            # Create card with description - escape HTML
+                            import html
+                            safe_name = html.escape(restaurant['name'])
+                            safe_desc = html.escape(restaurant.get('description', 'Great dining option'))
+                            safe_cost = html.escape(restaurant.get('cost_range', 'N/A'))
+                            safe_dress = html.escape(rest_details.get('dress_code', 'Casual'))
+
+                            border_color = "#4caf50" if is_selected else "#ddd"
+                            st.markdown(f"""
+<div class="ultimate-card" style="border-left: 4px solid {border_color}; min-height: 200px;">
+<div class="card-body">
+<h4 style="margin: 0 0 0.5rem 0;">{'✅ ' if is_selected else ''}{safe_name}</h4>
+<p style="margin: 0.5rem 0; font-size: 0.9rem; color: #666;">{safe_desc}</p>
+<p style="margin: 0.5rem 0;"><strong>💰</strong> {safe_cost}</p>
+<p style="margin: 0.5rem 0;"><strong>👔</strong> {safe_dress}</p>
+</div>
+</div>
+""", unsafe_allow_html=True)
+
+                            # Toggle button
+                            if is_selected:
+                                if st.button(f"❌ Remove", key=f"remove_{meal_slot['id']}_{idx}", use_container_width=True):
+                                    st.session_state[selection_key].remove(restaurant['name'])
+                                    st.rerun()
+                            else:
+                                if len(st.session_state[selection_key]) < 3:
+                                    if st.button(f"➕ Select", key=f"select_{meal_slot['id']}_{idx}", use_container_width=True):
+                                        st.session_state[selection_key].append(restaurant['name'])
+                                        st.rerun()
+                                else:
+                                    st.button(f"Max 3", key=f"disabled_{meal_slot['id']}_{idx}", use_container_width=True, disabled=True)
+
+                    # Send proposal button
+                    if len(st.session_state[selection_key]) == 3:
+                        st.markdown("---")
+                        if st.button(f"✅ Send Proposal to John", key=f"propose_{meal_slot['id']}", type="primary", use_container_width=True):
+                            # Get full restaurant data
+                            selected_restaurants = []
+                            for name in st.session_state[selection_key]:
+                                rest = next((r for r in all_restaurants if r['name'] == name), None)
+                                if rest:
+                                    selected_restaurants.append(rest)
+
+                            if len(selected_restaurants) == 3:
+                                save_meal_proposal(meal_slot['id'], selected_restaurants)
+                                # Clear selection
+                                st.session_state[selection_key] = []
+                                st.success(f"✅ Proposal sent! John will see these options on his page.")
+                                st.rerun()
+                    elif len(st.session_state[selection_key]) > 0:
+                        st.warning(f"⚠️ Please select {3 - len(st.session_state[selection_key])} more restaurant(s)")
                     else:
-                        st.error("Please select 3 different restaurants")
+                        st.info("👆 Select 3 restaurants from the cards above")
 
         st.markdown("---")
 
