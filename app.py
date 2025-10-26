@@ -1765,8 +1765,61 @@ def score_activity_for_slot(activity, time_slot_start, date_str, weather_data, t
             score += 10
             reasons.append(tide_rec.get('best_time', ''))
 
+    # FACTOR 6: UV warnings for outdoor activities (safety-based scoring adjustment)
+    outdoor_keywords = ['beach', 'hike', 'kayak', 'bike', 'walk', 'boat', 'horse', 'golf', 'tour']
+    is_outdoor_activity = any(word in activity['name'].lower() or word in activity.get('description', '').lower()
+                               for word in outdoor_keywords)
+
+    # Get weather for this specific date (for UV and temp checks)
+    weather_for_date = None
+    if weather_data and 'forecast' in weather_data:
+        for forecast in weather_data['forecast']:
+            if forecast['date'] == date_str:
+                weather_for_date = forecast
+                break
+
+    if is_outdoor_activity and weather_for_date:
+        uv_index = weather_for_date.get('uv_index', 5.0)
+
+        # Parse time to check if it's during peak UV hours (10 AM - 4 PM)
+        try:
+            activity_hour = datetime.strptime(time_slot_start, "%I:%M %p").hour
+
+            # Peak UV hours
+            if 10 <= activity_hour <= 16:
+                if uv_index >= 8:
+                    score -= 15  # Reduce score for extreme UV during peak hours
+                    warnings.append(f"☀️ EXTREME UV ({uv_index}) - Wear SPF 50+, seek shade, limit exposure")
+                elif uv_index >= 6:
+                    score -= 5
+                    warnings.append(f"☀️ HIGH UV ({uv_index}) - Wear SPF 30+, hat, and sunglasses")
+                elif uv_index >= 3:
+                    reasons.append(f"☀️ Moderate UV ({uv_index}) - sunscreen recommended")
+            else:
+                # Early morning or late afternoon - better for outdoor activities
+                if uv_index >= 6:
+                    reasons.append(f"✅ Good timing! Lower UV during this hour")
+                    score += 5
+        except:
+            pass
+
+    # FACTOR 7: Temperature-based hiking recommendations
+    if any(word in activity['name'].lower() for word in ['hik', 'trail', 'walk', 'nature']):
+        if weather_for_date:
+            temp_for_activity = weather_for_date.get('high', 75)
+
+            if 70 <= temp_for_activity <= 80:
+                score += 15
+                reasons.append(f"🥾 Perfect hiking temp ({temp_for_activity}°F)")
+            elif temp_for_activity > 85:
+                score -= 10
+                warnings.append(f"🌡️ Hot for hiking ({temp_for_activity}°F) - bring extra water, start early")
+            elif temp_for_activity < 60:
+                score -= 5
+                warnings.append(f"🧥 Cool weather ({temp_for_activity}°F) - dress in layers")
+
     # Cap at 100
-    score = min(100, score)
+    score = min(100, max(0, score))  # Also ensure it doesn't go negative
 
     return {
         'score': score,
@@ -2323,6 +2376,244 @@ def get_weather_ultimate():
         ],
         "source": "Sample Data (Set OPENWEATHER_API_KEY for real data)"
     }
+
+@st.cache_data(ttl=86400)  # Cache for 24 hours (sunrise/sunset doesn't change much)
+def get_sunrise_sunset_data():
+    """Get sunrise/sunset times for Amelia Island for the trip dates
+
+    Uses sunrise-sunset.org free API (no key required)
+
+    Returns:
+        Dict with sunrise/sunset times for each day of trip
+    """
+    lat, lon = 30.6074, -81.4493  # Amelia Island
+
+    sunrise_sunset_data = {}
+
+    # Get data for each day of the trip
+    trip_dates = [
+        "2025-11-07", "2025-11-08", "2025-11-09",
+        "2025-11-10", "2025-11-11", "2025-11-12"
+    ]
+
+    for date_str in trip_dates:
+        try:
+            url = f"https://api.sunrise-sunset.org/json?lat={lat}&lng={lon}&date={date_str}&formatted=0"
+            resp = requests.get(url, timeout=10)
+
+            if resp.status_code == 200:
+                data = resp.json()
+                if data.get('status') == 'OK':
+                    results = data['results']
+
+                    # Parse UTC times and convert to EST
+                    sunrise_utc = datetime.fromisoformat(results['sunrise'].replace('Z', '+00:00'))
+                    sunset_utc = datetime.fromisoformat(results['sunset'].replace('Z', '+00:00'))
+
+                    # Convert to Eastern Time (UTC-5 for EST, UTC-4 for EDT)
+                    # Nov is EST (UTC-5)
+                    eastern = pytz.timezone('America/New_York')
+                    sunrise_local = sunrise_utc.astimezone(eastern)
+                    sunset_local = sunset_utc.astimezone(eastern)
+
+                    # Golden hour is ~1 hour after sunrise and ~1 hour before sunset
+                    golden_hour_morning_start = sunrise_local
+                    golden_hour_morning_end = sunrise_local + timedelta(hours=1)
+                    golden_hour_evening_start = sunset_local - timedelta(hours=1)
+                    golden_hour_evening_end = sunset_local
+
+                    sunrise_sunset_data[date_str] = {
+                        'sunrise': sunrise_local.strftime('%I:%M %p').lstrip('0'),
+                        'sunset': sunset_local.strftime('%I:%M %p').lstrip('0'),
+                        'sunrise_24hr': sunrise_local.strftime('%H:%M'),
+                        'sunset_24hr': sunset_local.strftime('%H:%M'),
+                        'golden_hour_morning': {
+                            'start': golden_hour_morning_start.strftime('%I:%M %p').lstrip('0'),
+                            'end': golden_hour_morning_end.strftime('%I:%M %p').lstrip('0')
+                        },
+                        'golden_hour_evening': {
+                            'start': golden_hour_evening_start.strftime('%I:%M %p').lstrip('0'),
+                            'end': golden_hour_evening_end.strftime('%I:%M %p').lstrip('0')
+                        },
+                        'day_length': results.get('day_length', 'N/A'),
+                        'solar_noon': datetime.fromisoformat(results['solar_noon'].replace('Z', '+00:00')).astimezone(eastern).strftime('%I:%M %p').lstrip('0')
+                    }
+        except Exception as e:
+            print(f"Sunrise/sunset API error for {date_str}: {e}")
+
+    # Fallback data if API fails
+    if not sunrise_sunset_data:
+        sunrise_sunset_data = {
+            "2025-11-07": {"sunrise": "6:50 AM", "sunset": "5:30 PM", "sunrise_24hr": "06:50", "sunset_24hr": "17:30", "golden_hour_morning": {"start": "6:50 AM", "end": "7:50 AM"}, "golden_hour_evening": {"start": "4:30 PM", "end": "5:30 PM"}, "solar_noon": "12:10 PM"},
+            "2025-11-08": {"sunrise": "6:51 AM", "sunset": "5:29 PM", "sunrise_24hr": "06:51", "sunset_24hr": "17:29", "golden_hour_morning": {"start": "6:51 AM", "end": "7:51 AM"}, "golden_hour_evening": {"start": "4:29 PM", "end": "5:29 PM"}, "solar_noon": "12:10 PM"},
+            "2025-11-09": {"sunrise": "6:52 AM", "sunset": "5:28 PM", "sunrise_24hr": "06:52", "sunset_24hr": "17:28", "golden_hour_morning": {"start": "6:52 AM", "end": "7:52 AM"}, "golden_hour_evening": {"start": "4:28 PM", "end": "5:28 PM"}, "solar_noon": "12:10 PM"},
+            "2025-11-10": {"sunrise": "6:53 AM", "sunset": "5:27 PM", "sunrise_24hr": "06:53", "sunset_24hr": "17:27", "golden_hour_morning": {"start": "6:53 AM", "end": "7:53 AM"}, "golden_hour_evening": {"start": "4:27 PM", "end": "5:27 PM"}, "solar_noon": "12:10 PM"},
+            "2025-11-11": {"sunrise": "6:54 AM", "sunset": "5:27 PM", "sunrise_24hr": "06:54", "sunset_24hr": "17:27", "golden_hour_morning": {"start": "6:54 AM", "end": "7:54 AM"}, "golden_hour_evening": {"start": "4:27 PM", "end": "5:27 PM"}, "solar_noon": "12:10 PM"},
+            "2025-11-12": {"sunrise": "6:55 AM", "sunset": "5:26 PM", "sunrise_24hr": "06:55", "sunset_24hr": "17:26", "golden_hour_morning": {"start": "6:55 AM", "end": "7:55 AM"}, "golden_hour_evening": {"start": "4:26 PM", "end": "5:26 PM"}, "solar_noon": "12:10 PM"}
+        }
+
+    return sunrise_sunset_data
+
+def get_shell_collecting_recommendations(date_str, tide_data):
+    """Get intelligent shell collecting recommendations based on tide data
+
+    Args:
+        date_str: Date like "2025-11-08"
+        tide_data: Tide data from get_tide_data()
+
+    Returns:
+        Dict with best times and tips for shell collecting
+    """
+    if date_str not in tide_data:
+        return None
+
+    day_tides = tide_data[date_str]
+    low_tides = day_tides.get('low', [])
+
+    if not low_tides:
+        return None
+
+    # Find the LOWEST tide of the day (best for shelling)
+    lowest_tide = min(low_tides, key=lambda x: x['height'])
+
+    # Calculate best time window (1 hour before to 1 hour after low tide)
+    try:
+        low_tide_time = datetime.strptime(lowest_tide['time_24hr'], '%H:%M')
+
+        best_start = (low_tide_time - timedelta(hours=1)).strftime('%I:%M %p').lstrip('0')
+        best_end = (low_tide_time + timedelta(hours=1)).strftime('%I:%M %p').lstrip('0')
+
+        return {
+            'best_time': lowest_tide['time'],
+            'best_window': f"{best_start} - {best_end}",
+            'tide_height': round(lowest_tide['height'], 1),
+            'recommendation': f"🐚 PRIME SHELLING TIME! Low tide at {lowest_tide['time']} ({lowest_tide['height']}ft)",
+            'tips': [
+                "Go 1 hour before and after low tide for best finds",
+                "Look near the waterline and in tidal pools",
+                "Early morning low tides often have fewer people",
+                "Bring a bucket or mesh bag for your treasures",
+                "Best beaches: Peters Point Beach (quieter) or Main Beach"
+            ],
+            'quality_score': 'Excellent' if lowest_tide['height'] < 0.5 else 'Good' if lowest_tide['height'] < 1.0 else 'Fair'
+        }
+    except:
+        return None
+
+def get_intelligent_alternatives(activity, date_str, weather_data, tide_data, sun_data):
+    """Get smart activity alternatives based on current conditions
+
+    Args:
+        activity: Original activity dict
+        date_str: Date string
+        weather_data: Weather forecast
+        tide_data: Tide data
+        sun_data: Sunrise/sunset data
+
+    Returns:
+        List of alternative activities with reasons
+    """
+    alternatives = []
+
+    # Get weather for this date
+    weather_for_date = None
+    if weather_data and 'forecast' in weather_data:
+        for forecast in weather_data['forecast']:
+            if forecast['date'] == date_str:
+                weather_for_date = forecast
+                break
+
+    if not weather_for_date:
+        return alternatives
+
+    activity_name = activity.get('name', '').lower()
+    activity_desc = activity.get('description', '').lower()
+    rain_chance = weather_for_date.get('precipitation', 0)
+    temp = weather_for_date.get('high', 75)
+    uv_index = weather_for_date.get('uv_index', 5.0)
+
+    # Get all optional activities
+    optional_activities = get_optional_activities()
+
+    # SCENARIO 1: Outdoor activity but high rain chance (>60%)
+    outdoor_keywords = ['beach', 'hike', 'kayak', 'bike', 'walk', 'boat', 'horse']
+    is_outdoor = any(word in activity_name or word in activity_desc for word in outdoor_keywords)
+
+    if is_outdoor and rain_chance > 60:
+        # Suggest indoor alternatives
+        indoor_options = []
+        indoor_options.extend(optional_activities.get('💆 Ritz-Carlton Spa Services', [])[:2])
+        indoor_options.extend(optional_activities.get('🛍️ Shopping & Culture', [])[:3])
+        indoor_options.extend(optional_activities.get('🍽️ Fine Dining', [])[:2])
+
+        for alt in indoor_options[:3]:
+            alternatives.append({
+                'activity': alt,
+                'reason': f"☔ Better choice with {rain_chance}% rain - stay dry and comfortable",
+                'score': 90
+            })
+
+    # SCENARIO 2: Beach activity but extreme UV (>8)
+    if 'beach' in activity_name and uv_index > 8:
+        # Suggest shaded or indoor alternatives
+        alternatives.append({
+            'activity': {'name': 'Spa Treatment', 'description': 'Relax indoors during peak UV hours', 'cost_range': '$150-250', 'duration': '90 minutes'},
+            'reason': f"☀️ EXTREME UV ({uv_index}) - Consider rescheduling beach time to late afternoon",
+            'score': 85
+        })
+
+    # SCENARIO 3: Hot temperature (>85°F) - suggest water activities
+    if temp > 85 and not any(word in activity_name for word in ['beach', 'pool', 'swim', 'water']):
+        water_activities = optional_activities.get('🏖️ Beach & Water', [])[:3]
+        for alt in water_activities:
+            alternatives.append({
+                'activity': alt,
+                'reason': f"🌡️ Cool off! It's {temp}°F - water activities are refreshing",
+                'score': 80
+            })
+
+    # SCENARIO 4: Perfect hiking weather (70-80°F, low rain)
+    if 70 <= temp <= 80 and rain_chance < 30 and 'hik' not in activity_name:
+        hiking_trails = optional_activities.get('🥾 Hiking & Nature Trails', [])[:2]
+        for alt in hiking_trails:
+            alternatives.append({
+                'activity': alt,
+                'reason': f"🥾 Perfect hiking weather! {temp}°F and {rain_chance}% rain chance",
+                'score': 85
+            })
+
+    # SCENARIO 5: Golden hour - suggest photography
+    if sun_data and date_str in sun_data:
+        alternatives.append({
+            'activity': {
+                'name': 'Golden Hour Photography',
+                'description': f"Capture stunning photos at Big Talbot Island's driftwood beach during magical light",
+                'cost_range': 'FREE (park entry $3-5)',
+                'duration': '1-2 hours',
+                'rating': '5.0/5'
+            },
+            'reason': f"📸 GOLDEN HOUR: {sun_data[date_str]['golden_hour_evening']['start']} - {sun_data[date_str]['golden_hour_evening']['end']} (perfect lighting!)",
+            'score': 90
+        })
+
+    # SCENARIO 6: Low tide - suggest shell collecting
+    shell_rec = get_shell_collecting_recommendations(date_str, tide_data)
+    if shell_rec and shell_rec['quality_score'] == 'Excellent':
+        alternatives.append({
+            'activity': {
+                'name': 'Shell Collecting',
+                'description': f"Best shelling conditions! {shell_rec['recommendation']}",
+                'cost_range': 'FREE',
+                'duration': '1-2 hours',
+                'rating': '4.8/5'
+            },
+            'reason': f"🐚 {shell_rec['best_window']} - Prime low tide for finding treasures!",
+            'score': 95
+        })
+
+    # Sort by score and return top 3
+    alternatives.sort(key=lambda x: x['score'], reverse=True)
+    return alternatives[:3]
 
 @st.cache_data(ttl=1800)  # Cache for 30 minutes
 def get_flight_status(flight_number, flight_date):
