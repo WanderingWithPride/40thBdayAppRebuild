@@ -2356,28 +2356,50 @@ def ai_auto_scheduler(target_date_str, existing_activities, weather_data, tide_d
 
     # Get all optional activities
     optional_activities = get_optional_activities()
-    all_activities = []
-    for category, items in optional_activities.items():
-        all_activities.extend(items)
 
-    # Get dining options
+    # Separate dining from activities
     dining_options = optional_activities.get('🍽️ Fine Dining', []) + \
                      optional_activities.get('🍽️ Casual Dining', []) + \
                      optional_activities.get('🥞 Breakfast & Brunch', [])
 
+    # Get NON-DINING activities only (for activity slots)
+    all_activities = []
+    for category, items in optional_activities.items():
+        # Skip dining categories - they'll be handled in meal slots only
+        if '🍽️' not in category and '🥞' not in category:
+            all_activities.extend(items)
+
     # Check what's already scheduled for this day
     day_activities = [a for a in existing_activities if a['date'] == target_date_str]
 
-    # SPECIAL HANDLING: Skip arrival/departure days if they have flights
-    is_arrival_day = target_date_str == "2025-11-07"
-    is_departure_day = target_date_str == "2025-11-12"
+    # SPECIAL HANDLING: Arrival/departure days with flights
+    is_arrival_day = target_date_str == "2025-11-07"  # Arrives 6:01 PM
+    is_departure_day = target_date_str == "2025-11-12"  # Departs 11:40 AM
 
     # Check for flights/transport on this day
     has_flight = any(a.get('type') == 'transport' and ('flight' in a.get('activity', '').lower() or 'arrival' in a.get('activity', '').lower() or 'departure' in a.get('activity', '').lower()) for a in day_activities)
 
-    # Skip AI scheduling for arrival/departure days with flights
-    if (is_arrival_day or is_departure_day) and has_flight:
-        return []  # Don't auto-schedule on travel days
+    # Determine which time slots are available based on flight times
+    allow_breakfast = True
+    allow_morning = True
+    allow_lunch = True
+    allow_afternoon = True
+    allow_dinner = True
+
+    if has_flight and is_arrival_day:
+        # Arrives 6:01 PM - only allow dinner and evening activities
+        allow_breakfast = False
+        allow_morning = False
+        allow_lunch = False
+        allow_afternoon = False
+        allow_dinner = True  # Can have dinner after arrival (~7:30 PM)
+    elif has_flight and is_departure_day:
+        # Departs 11:40 AM - only allow breakfast and early morning
+        allow_breakfast = True  # Can have breakfast before departure
+        allow_morning = False  # No time for 10am activities (need to leave by 10am)
+        allow_lunch = False
+        allow_afternoon = False
+        allow_dinner = False
 
     # Convert date string to day name
     date_obj = pd.to_datetime(target_date_str)
@@ -2399,7 +2421,7 @@ def ai_auto_scheduler(target_date_str, existing_activities, weather_data, tide_d
     # STEP 1: Schedule breakfast if missing (7:30-9:00 AM)
     has_breakfast = any(a['type'] == 'dining' and datetime.strptime(a['time'], "%I:%M %p").hour < 11 for a in day_activities)
 
-    if not has_breakfast and preferences['include_meals']:
+    if not has_breakfast and preferences['include_meals'] and allow_breakfast:
         breakfast_candidates = [r for r in dining_options if 'breakfast' in r.get('name', '').lower() or 'brunch' in r.get('name', '').lower()]
         if breakfast_candidates:
             best_breakfast = max(breakfast_candidates, key=lambda x: float(x.get('rating', '0/5').split('/')[0]))
@@ -2415,7 +2437,7 @@ def ai_auto_scheduler(target_date_str, existing_activities, weather_data, tide_d
     # STEP 2: Morning activity (9:00 AM - 12:00 PM)
     morning_slot_filled = any(9 <= datetime.strptime(a['time'], "%I:%M %p").hour < 12 for a in day_activities)
 
-    if not morning_slot_filled:
+    if not morning_slot_filled and allow_morning:
         # Score activities for morning slot
         morning_scores = []
 
@@ -2454,7 +2476,7 @@ def ai_auto_scheduler(target_date_str, existing_activities, weather_data, tide_d
     # STEP 3: Lunch (12:00 PM - 2:00 PM)
     has_lunch = any(a['type'] == 'dining' and 11 <= datetime.strptime(a['time'], "%I:%M %p").hour < 16 for a in day_activities)
 
-    if not has_lunch and preferences['include_meals']:
+    if not has_lunch and preferences['include_meals'] and allow_lunch:
         lunch_candidates = [r for r in dining_options if 'casual' in r.get('description', '').lower() or 'lunch' in r.get('description', '').lower()]
         if not lunch_candidates:
             lunch_candidates = dining_options[:10]
@@ -2474,7 +2496,7 @@ def ai_auto_scheduler(target_date_str, existing_activities, weather_data, tide_d
     # STEP 4: Afternoon activity (2:00 PM - 5:00 PM)
     afternoon_slot_filled = any(14 <= datetime.strptime(a['time'], "%I:%M %p").hour < 17 for a in day_activities)
 
-    if not afternoon_slot_filled:
+    if not afternoon_slot_filled and allow_afternoon:
         afternoon_scores = []
 
         for activity in all_activities:
@@ -2511,7 +2533,7 @@ def ai_auto_scheduler(target_date_str, existing_activities, weather_data, tide_d
     # STEP 5: Dinner (6:00 PM - 8:00 PM)
     has_dinner = any(a['type'] == 'dining' and datetime.strptime(a['time'], "%I:%M %p").hour >= 16 for a in day_activities)
 
-    if not has_dinner and preferences['include_meals']:
+    if not has_dinner and preferences['include_meals'] and allow_dinner:
         dinner_candidates = [r for r in dining_options if 'fine' in r.get('description', '').lower() or 'dinner' in r.get('description', '').lower()]
         if not dinner_candidates:
             dinner_candidates = dining_options[:10]
@@ -2520,11 +2542,14 @@ def ai_auto_scheduler(target_date_str, existing_activities, weather_data, tide_d
             # Prefer highly-rated restaurants for dinner
             best_dinner = max(dinner_candidates, key=lambda x: float(x.get('rating', '0/5').split('/')[0]))
 
+            # Adjust dinner time for arrival day (arrive 6:01 PM, suggest dinner at 7:30 PM)
+            dinner_time = '7:30 PM' if is_arrival_day else '6:30 PM'
+
             recommendations.append({
-                'time': '6:30 PM',
+                'time': dinner_time,
                 'activity': best_dinner,
                 'type': 'dining',
-                'reason': 'End the day with an amazing dinner',
+                'reason': 'End the day with an amazing dinner' if not is_arrival_day else 'Welcome dinner after arrival',
                 'duration': '1.5 hours'
             })
 
