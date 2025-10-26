@@ -1989,6 +1989,193 @@ def auto_fill_meals(meal_gaps, weather_data):
 
     return added_activities
 
+def ai_auto_scheduler(target_date_str, existing_activities, weather_data, tide_data, preferences=None):
+    """AI-powered automatic schedule generator for a specific day
+
+    Args:
+        target_date_str: Date string like "2025-11-08"
+        existing_activities: Current scheduled activities
+        weather_data: Weather forecast data
+        tide_data: Tide data
+        preferences: Dict with user preferences (budget, activity_types, etc.)
+
+    Returns:
+        List of recommended activities for the day with optimal timing
+    """
+    if preferences is None:
+        preferences = {
+            'budget_per_day': 200,
+            'max_activities': 3,
+            'include_meals': True,
+            'activity_types': ['beach', 'dining', 'activity', 'spa'],
+            'energy_balance': True
+        }
+
+    # Get all optional activities
+    optional_activities = get_optional_activities()
+    all_activities = []
+    for category, items in optional_activities.items():
+        all_activities.extend(items)
+
+    # Get dining options
+    dining_options = optional_activities.get('🍽️ Fine Dining', []) + \
+                     optional_activities.get('🍽️ Casual Dining', []) + \
+                     optional_activities.get('🥞 Breakfast & Brunch', [])
+
+    # Check what's already scheduled for this day
+    day_activities = [a for a in existing_activities if a['date'] == target_date_str]
+
+    # Convert date string to day name
+    date_obj = pd.to_datetime(target_date_str)
+    day_name = date_obj.strftime('%A, %B %d')
+
+    # Day name mapping
+    date_to_day = {
+        "2025-11-07": "Friday, Nov 7",
+        "2025-11-08": "Saturday, Nov 8",
+        "2025-11-09": "Sunday, Nov 9",
+        "2025-11-10": "Monday, Nov 10",
+        "2025-11-11": "Tuesday, Nov 11",
+        "2025-11-12": "Wednesday, Nov 12"
+    }
+    selected_day = date_to_day.get(target_date_str, day_name)
+
+    recommendations = []
+
+    # STEP 1: Schedule breakfast if missing (7:30-9:00 AM)
+    has_breakfast = any(a['type'] == 'dining' and datetime.strptime(a['time'], "%I:%M %p").hour < 11 for a in day_activities)
+
+    if not has_breakfast and preferences['include_meals']:
+        breakfast_candidates = [r for r in dining_options if 'breakfast' in r.get('name', '').lower() or 'brunch' in r.get('name', '').lower()]
+        if breakfast_candidates:
+            best_breakfast = max(breakfast_candidates, key=lambda x: float(x.get('rating', '0/5').split('/')[0]))
+
+            recommendations.append({
+                'time': '8:00 AM',
+                'activity': best_breakfast,
+                'type': 'dining',
+                'reason': 'Start your day with highly-rated breakfast',
+                'duration': '45 minutes'
+            })
+
+    # STEP 2: Morning activity (9:00 AM - 12:00 PM)
+    morning_slot_filled = any(9 <= datetime.strptime(a['time'], "%I:%M %p").hour < 12 for a in day_activities)
+
+    if not morning_slot_filled:
+        # Score activities for morning slot
+        morning_scores = []
+
+        for activity in all_activities:
+            score_result = score_activity_for_slot(
+                activity,
+                '10:00 AM',
+                target_date_str,
+                weather_data,
+                tide_data,
+                day_activities
+            )
+
+            # Boost outdoor activities in morning
+            if any(word in activity.get('name', '').lower() for word in ['beach', 'kayak', 'bike', 'walk', 'boat']):
+                score_result['score'] += 15
+
+            morning_scores.append({
+                'activity': activity,
+                'score': score_result['score'],
+                'reasons': score_result['reasons']
+            })
+
+        # Get top recommendation
+        if morning_scores:
+            best_morning = max(morning_scores, key=lambda x: x['score'])
+            if best_morning['score'] > 50:  # Only recommend if score is decent
+                recommendations.append({
+                    'time': '10:00 AM',
+                    'activity': best_morning['activity'],
+                    'type': 'activity',
+                    'reason': ', '.join(best_morning['reasons'][:2]),
+                    'duration': best_morning['activity'].get('duration', '2 hours')
+                })
+
+    # STEP 3: Lunch (12:00 PM - 2:00 PM)
+    has_lunch = any(a['type'] == 'dining' and 11 <= datetime.strptime(a['time'], "%I:%M %p").hour < 16 for a in day_activities)
+
+    if not has_lunch and preferences['include_meals']:
+        lunch_candidates = [r for r in dining_options if 'casual' in r.get('description', '').lower() or 'lunch' in r.get('description', '').lower()]
+        if not lunch_candidates:
+            lunch_candidates = dining_options[:10]
+
+        if lunch_candidates:
+            # Score by rating and cost
+            best_lunch = max(lunch_candidates, key=lambda x: float(x.get('rating', '0/5').split('/')[0]))
+
+            recommendations.append({
+                'time': '12:30 PM',
+                'activity': best_lunch,
+                'type': 'dining',
+                'reason': 'Refuel with a great lunch spot',
+                'duration': '1 hour'
+            })
+
+    # STEP 4: Afternoon activity (2:00 PM - 5:00 PM)
+    afternoon_slot_filled = any(14 <= datetime.strptime(a['time'], "%I:%M %p").hour < 17 for a in day_activities)
+
+    if not afternoon_slot_filled:
+        afternoon_scores = []
+
+        for activity in all_activities:
+            score_result = score_activity_for_slot(
+                activity,
+                '3:00 PM',
+                target_date_str,
+                weather_data,
+                tide_data,
+                day_activities + [r for r in recommendations]
+            )
+
+            # Boost relaxing activities in afternoon
+            if any(word in activity.get('name', '').lower() for word in ['spa', 'massage', 'wine', 'museum']):
+                score_result['score'] += 10
+
+            afternoon_scores.append({
+                'activity': activity,
+                'score': score_result['score'],
+                'reasons': score_result['reasons']
+            })
+
+        if afternoon_scores:
+            best_afternoon = max(afternoon_scores, key=lambda x: x['score'])
+            if best_afternoon['score'] > 50:
+                recommendations.append({
+                    'time': '3:00 PM',
+                    'activity': best_afternoon['activity'],
+                    'type': 'activity',
+                    'reason': ', '.join(best_afternoon['reasons'][:2]),
+                    'duration': best_afternoon['activity'].get('duration', '2 hours')
+                })
+
+    # STEP 5: Dinner (6:00 PM - 8:00 PM)
+    has_dinner = any(a['type'] == 'dining' and datetime.strptime(a['time'], "%I:%M %p").hour >= 16 for a in day_activities)
+
+    if not has_dinner and preferences['include_meals']:
+        dinner_candidates = [r for r in dining_options if 'fine' in r.get('description', '').lower() or 'dinner' in r.get('description', '').lower()]
+        if not dinner_candidates:
+            dinner_candidates = dining_options[:10]
+
+        if dinner_candidates:
+            # Prefer highly-rated restaurants for dinner
+            best_dinner = max(dinner_candidates, key=lambda x: float(x.get('rating', '0/5').split('/')[0]))
+
+            recommendations.append({
+                'time': '6:30 PM',
+                'activity': best_dinner,
+                'type': 'dining',
+                'reason': 'End the day with an amazing dinner',
+                'duration': '1.5 hours'
+            })
+
+    return recommendations
+
 @st.cache_data(ttl=1800)
 def get_weather_ultimate():
     """Get real weather data with fallback"""
@@ -3211,6 +3398,168 @@ def render_explore_activities():
         st.markdown(gap_html, unsafe_allow_html=True)
     else:
         st.info("Your schedule is fully booked - no gaps detected!")
+
+    st.markdown("---")
+
+    # AI AUTO-SCHEDULER - Generate complete day schedules
+    st.markdown("### 🤖 AI Auto-Scheduler")
+
+    st.markdown("""
+    <div class="info-box" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+        <h4 style="margin: 0; color: white;">🚀 Let AI Build Your Perfect Day</h4>
+        <p style="margin: 0.5rem 0 0 0; opacity: 0.95;">Select a day and let our AI generate a complete optimized schedule with breakfast, activities, lunch, and dinner!</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    auto_col1, auto_col2 = st.columns([2, 1])
+
+    with auto_col1:
+        selected_date_for_ai = st.selectbox(
+            "📅 Select Day to Auto-Fill",
+            ["2025-11-07", "2025-11-08", "2025-11-09", "2025-11-10", "2025-11-11", "2025-11-12"],
+            format_func=lambda x: {
+                "2025-11-07": "Friday, Nov 7 - Arrival Day",
+                "2025-11-08": "Saturday, Nov 8",
+                "2025-11-09": "Sunday, Nov 9 - 🎂 BIRTHDAY!",
+                "2025-11-10": "Monday, Nov 10",
+                "2025-11-11": "Tuesday, Nov 11",
+                "2025-11-12": "Wednesday, Nov 12 - Departure Day"
+            }.get(x, x)
+        )
+
+    with auto_col2:
+        if st.button("✨ Generate AI Schedule", use_container_width=True, type="primary"):
+            with st.spinner("🤖 AI analyzing weather, tides, ratings, and generating optimal schedule..."):
+                tide_data = get_tide_data()
+
+                # Generate schedule
+                recommendations = ai_auto_scheduler(
+                    selected_date_for_ai,
+                    activities_data,
+                    weather_data,
+                    tide_data
+                )
+
+                if recommendations:
+                    st.success(f"✅ Generated {len(recommendations)} activity recommendations!")
+
+                    # Show recommendations and allow adding
+                    st.markdown("#### 🎯 AI Recommendations:")
+
+                    for rec in recommendations:
+                        activity = rec['activity']
+
+                        # Activity card
+                        st.markdown(f"""
+                        <div style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+                                    padding: 1.5rem;
+                                    border-radius: 12px;
+                                    border-left: 4px solid #f5576c;
+                                    margin: 1rem 0;
+                                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <h4 style="margin: 0; color: #f5576c;">⏰ {rec['time']} - {activity['name']}</h4>
+                            <p style="margin: 0.75rem 0; color: #636e72; line-height: 1.6;">{activity.get('description', '')}</p>
+                            <p style="margin: 0.5rem 0; font-style: italic; color: #2ecc71;">✨ {rec['reason']}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+
+                        # Quick details
+                        detail_col1, detail_col2, detail_col3 = st.columns(3)
+                        with detail_col1:
+                            st.markdown(f"**💰 Cost:** {activity.get('cost_range', 'N/A')}")
+                        with detail_col2:
+                            st.markdown(f"**⏱️ Duration:** {rec['duration']}")
+                        with detail_col3:
+                            st.markdown(f"**⭐ Rating:** {activity.get('rating', 'N/A')}")
+
+                        # Add button for this recommendation
+                        if st.button(f"➕ Add to Schedule", key=f"ai_add_{selected_date_for_ai}_{rec['time']}_{activity['name']}", use_container_width=True):
+                            # Determine activity type
+                            activity_type = rec['type']
+
+                            # Extract cost
+                            cost = 0
+                            cost_str = activity.get('cost_range', '$0')
+                            try:
+                                cost = int(re.findall(r'\d+', cost_str.split('-')[0])[0])
+                            except:
+                                cost = 0
+
+                            # Day mapping
+                            date_to_day = {
+                                "2025-11-07": "Friday, Nov 7",
+                                "2025-11-08": "Saturday, Nov 8",
+                                "2025-11-09": "Sunday, Nov 9",
+                                "2025-11-10": "Monday, Nov 10",
+                                "2025-11-11": "Tuesday, Nov 11",
+                                "2025-11-12": "Wednesday, Nov 12"
+                            }
+                            selected_day = date_to_day.get(selected_date_for_ai)
+
+                            # Add to schedule
+                            success = add_activity_to_schedule(
+                                activity_name=activity['name'],
+                                activity_description=activity.get('description', ''),
+                                selected_day=selected_day,
+                                selected_time=rec['time'],
+                                duration=rec['duration'],
+                                activity_type=activity_type,
+                                cost=cost,
+                                location_name=activity.get('name', 'TBD')
+                            )
+
+                            if success:
+                                st.success(f"✅ Added {activity['name']} to schedule!")
+                                st.balloons()
+                                st.rerun()
+
+                        st.markdown("---")
+
+                    # Add all button
+                    if st.button("➕ Add All AI Recommendations", use_container_width=True, type="secondary"):
+                        added_count = 0
+
+                        for rec in recommendations:
+                            activity = rec['activity']
+                            activity_type = rec['type']
+
+                            cost = 0
+                            cost_str = activity.get('cost_range', '$0')
+                            try:
+                                cost = int(re.findall(r'\d+', cost_str.split('-')[0])[0])
+                            except:
+                                cost = 0
+
+                            date_to_day = {
+                                "2025-11-07": "Friday, Nov 7",
+                                "2025-11-08": "Saturday, Nov 8",
+                                "2025-11-09": "Sunday, Nov 9",
+                                "2025-11-10": "Monday, Nov 10",
+                                "2025-11-11": "Tuesday, Nov 11",
+                                "2025-11-12": "Wednesday, Nov 12"
+                            }
+                            selected_day = date_to_day.get(selected_date_for_ai)
+
+                            success = add_activity_to_schedule(
+                                activity_name=activity['name'],
+                                activity_description=activity.get('description', ''),
+                                selected_day=selected_day,
+                                selected_time=rec['time'],
+                                duration=rec['duration'],
+                                activity_type=activity_type,
+                                cost=cost,
+                                location_name=activity.get('name', 'TBD')
+                            )
+
+                            if success:
+                                added_count += 1
+
+                        if added_count > 0:
+                            st.success(f"✅ Added all {added_count} recommendations to your schedule!")
+                            st.balloons()
+                            st.rerun()
+                else:
+                    st.info("This day already has a full schedule! AI auto-scheduler skipped.")
 
     st.markdown("---")
 
