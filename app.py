@@ -142,6 +142,18 @@ def init_database():
         )
     ''')
 
+    # Manual TSA wait time updates
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS tsa_manual_updates (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            airport_code TEXT NOT NULL,
+            wait_minutes INTEGER NOT NULL,
+            reported_by TEXT,
+            notes TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
     # Set default preferences if they don't exist
     cursor.execute("SELECT COUNT(*) FROM john_preferences WHERE key = 'avoid_seafood_focused'")
     if cursor.fetchone()[0] == 0:
@@ -275,6 +287,62 @@ def load_john_preferences():
     except Exception as e:
         print(f"Error loading John's preferences: {e}")
         return {}
+
+def save_manual_tsa_update(airport_code, wait_minutes, reported_by="User", notes=""):
+    """Save a manual TSA wait time update"""
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO tsa_manual_updates (airport_code, wait_minutes, reported_by, notes, created_at) VALUES (?, ?, ?, ?, ?)",
+            (airport_code, wait_minutes, reported_by, notes, datetime.now().isoformat())
+        )
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"Error saving manual TSA update: {e}")
+        return False
+
+def get_latest_manual_tsa_update(airport_code, max_age_hours=2):
+    """Get the most recent manual TSA wait time update for an airport
+
+    Args:
+        airport_code: Airport code like "DCA", "JAX"
+        max_age_hours: Only return updates within this many hours (default 2)
+
+    Returns:
+        Dictionary with update info or None if no recent updates
+    """
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+
+        # Calculate cutoff time
+        cutoff = datetime.now() - timedelta(hours=max_age_hours)
+
+        cursor.execute("""
+            SELECT wait_minutes, reported_by, notes, created_at
+            FROM tsa_manual_updates
+            WHERE airport_code = ? AND created_at > ?
+            ORDER BY created_at DESC
+            LIMIT 1
+        """, (airport_code, cutoff.isoformat()))
+
+        row = cursor.fetchone()
+        conn.close()
+
+        if row:
+            return {
+                'wait_minutes': row[0],
+                'reported_by': row[1],
+                'notes': row[2],
+                'created_at': row[3]
+            }
+        return None
+    except Exception as e:
+        print(f"Error loading manual TSA update: {e}")
+        return None
 
 def mark_activity_completed(activity_id):
     """Mark an activity as completed"""
@@ -2213,6 +2281,129 @@ def get_flight_status(flight_number, flight_date):
     }
 
 
+def get_tsa_wait_times(airport_code):
+    """Get TSA security checkpoint wait times using historical data and manual updates
+
+    Args:
+        airport_code: e.g., "DCA", "JAX"
+
+    Returns:
+        Dictionary with wait time estimates (manual override if available, else historical)
+    """
+    # Check for manual updates first (within last 2 hours)
+    manual_update = get_latest_manual_tsa_update(airport_code, max_age_hours=2)
+
+    if manual_update:
+        # Use manual update if available
+        wait_minutes = manual_update['wait_minutes']
+
+        # Determine wait level and recommendations
+        if wait_minutes < 10:
+            wait_level = 'Short'
+            wait_emoji = '🟢'
+            recommendation = 'Arrive 1.5 hours early'
+        elif wait_minutes < 20:
+            wait_level = 'Moderate'
+            wait_emoji = '🟡'
+            recommendation = 'Arrive 2 hours early'
+        else:
+            wait_level = 'Long'
+            wait_emoji = '🔴'
+            recommendation = 'Arrive 2.5 hours early'
+
+        # Calculate how long ago the update was
+        update_time = datetime.fromisoformat(manual_update['created_at'])
+        minutes_ago = int((datetime.now() - update_time).total_seconds() / 60)
+
+        return {
+            'airport': airport_code,
+            'wait_time_minutes': wait_minutes,
+            'wait_level': wait_level,
+            'wait_emoji': wait_emoji,
+            'recommendation': recommendation,
+            'status': 'MANUAL',
+            'message': f'Real-time update from {manual_update["reported_by"]} ({minutes_ago} min ago)',
+            'data_source': 'Manual update (MyTSA app or live report)',
+            'updated_at': manual_update['created_at'],
+            'notes': manual_update.get('notes', '')
+        }
+
+    # Airport-specific historical data (from research: iFly.com, official sources)
+    # Data source: Historical TSA records and passenger volume analysis
+    airport_data = {
+        'DCA': {
+            'average': 14,  # 13-15 min average (Reagan National)
+            'peak_hours': [(5, 30), (9, 30)],  # 5:30 AM - 9:30 AM business travelers
+            'peak_multiplier': 1.4,  # 20-25 min during peak
+            'notes': 'DCA sees heavy business travel during weekday mornings'
+        },
+        'JAX': {
+            'average': 10,  # 5-15 min average (Jacksonville)
+            'peak_hours': [(4, 0), (7, 0), (16, 30), (19, 30)],  # Morning & evening peaks
+            'peak_multiplier': 1.3,  # 13-15 min during peak
+            'notes': 'JAX is a smaller regional airport with generally short waits'
+        }
+    }
+
+    # Get current time to estimate if it's peak hours
+    current_hour = datetime.now().hour
+    current_minute = datetime.now().minute
+    current_time_decimal = current_hour + (current_minute / 60)
+
+    # Get airport-specific data or use generic default
+    if airport_code in airport_data:
+        data = airport_data[airport_code]
+        base_wait = data['average']
+
+        # Check if current time is in peak hours
+        is_peak = False
+        peak_ranges = data.get('peak_hours', [])
+        for i in range(0, len(peak_ranges), 2):
+            if i + 1 < len(peak_ranges):
+                start_hour, start_min = peak_ranges[i]
+                end_hour, end_min = peak_ranges[i + 1]
+                start_decimal = start_hour + (start_min / 60)
+                end_decimal = end_hour + (end_min / 60)
+
+                if start_decimal <= current_time_decimal <= end_decimal:
+                    is_peak = True
+                    break
+
+        # Adjust wait time for peak hours
+        if is_peak:
+            wait_minutes = int(base_wait * data.get('peak_multiplier', 1.3))
+        else:
+            wait_minutes = base_wait
+    else:
+        # Generic fallback for other airports
+        wait_minutes = 15
+
+    # Determine wait level and recommendations
+    if wait_minutes < 10:
+        wait_level = 'Short'
+        wait_emoji = '🟢'
+        recommendation = 'Arrive 1.5 hours early'
+    elif wait_minutes < 20:
+        wait_level = 'Moderate'
+        wait_emoji = '🟡'
+        recommendation = 'Arrive 2 hours early'
+    else:
+        wait_level = 'Long'
+        wait_emoji = '🔴'
+        recommendation = 'Arrive 2.5 hours early'
+
+    return {
+        'airport': airport_code,
+        'wait_time_minutes': wait_minutes,
+        'wait_level': wait_level,
+        'wait_emoji': wait_emoji,
+        'recommendation': recommendation,
+        'status': 'HISTORICAL',
+        'message': f'Based on historical TSA data for {airport_code}',
+        'data_source': 'Historical averages from TSA records and passenger volume analysis'
+    }
+
+
 def render_flight_status_widget(flight_number, flight_date, compact=False):
     """Render a live flight status widget
 
@@ -2305,6 +2496,142 @@ def render_traffic_widget(origin, destination, label=""):
 </div>
 </div>
 </div>""", unsafe_allow_html=True)
+
+
+def render_tsa_wait_widget(airport_code):
+    """Render TSA security wait times widget with manual update capability
+
+    Args:
+        airport_code: Airport code like "DCA", "JAX"
+    """
+    wait_data = get_tsa_wait_times(airport_code)
+
+    # Determine color based on wait level
+    if wait_data['wait_level'] == 'Short':
+        color = '#4caf50'
+    elif wait_data['wait_level'] == 'Moderate':
+        color = '#ff9800'
+    else:
+        color = '#f44336'
+
+    # Data source indicator
+    if wait_data.get('status') == 'MANUAL':
+        data_source_badge = f"<span style='background: #2196f3; color: white; padding: 0.25rem 0.5rem; border-radius: 8px; font-size: 0.75rem;'>📱 {wait_data['message']}</span>"
+    else:
+        data_source_badge = f"<span style='background: #9e9e9e; color: white; padding: 0.25rem 0.5rem; border-radius: 8px; font-size: 0.75rem;'>📊 Historical estimate</span>"
+
+    st.markdown(f"""<div class="ultimate-card" style="border-left: 4px solid {color};">
+<div class="card-body">
+<h4 style="margin: 0 0 0.5rem 0;">🛂 TSA Security Wait Time - {airport_code}</h4>
+<div style="display: flex; justify-content: space-between; align-items: center;">
+<div>
+<p style="margin: 0.25rem 0;">
+<strong>Estimated Wait:</strong> ~{wait_data['wait_time_minutes']} minutes<br>
+<strong>Recommendation:</strong> {wait_data['recommendation']}<br>
+<span style="font-size: 0.85rem; opacity: 0.8;">{data_source_badge}</span>
+</p>
+</div>
+<div style="text-align: right;">
+<div style="background: {color}; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-weight: bold;">
+{wait_data.get('wait_emoji', '🟡')} {wait_data['wait_level']}
+</div>
+</div>
+</div>
+</div>
+</div>""", unsafe_allow_html=True)
+
+    # Manual update form
+    with st.expander("📱 Update with real-time data from MyTSA app"):
+        st.markdown(f"**Report Current Wait Time for {airport_code}**")
+        st.caption("Check the MyTSA app or ask TSA staff for current wait times. Updates expire after 2 hours.")
+
+        col1, col2 = st.columns([2, 1])
+        with col1:
+            manual_wait = st.number_input(
+                "Wait time (minutes):",
+                min_value=0,
+                max_value=120,
+                value=wait_data['wait_time_minutes'],
+                step=1,
+                key=f"manual_wait_{airport_code}"
+            )
+            manual_notes = st.text_input(
+                "Notes (optional):",
+                placeholder="e.g., 'Checkpoint B is faster'",
+                key=f"manual_notes_{airport_code}"
+            )
+
+        with col2:
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button(f"💾 Save Update", key=f"save_tsa_{airport_code}", use_container_width=True):
+                if save_manual_tsa_update(airport_code, manual_wait, reported_by="Manual Entry", notes=manual_notes):
+                    st.success("✅ Wait time updated!")
+                    st.rerun()
+                else:
+                    st.error("❌ Failed to save update")
+
+
+def calculate_trip_budget(activities_data):
+    """Calculate total trip budget with spending breakdown
+
+    Returns:
+        Dictionary with budget totals and categories
+    """
+    total_cost = 0
+    category_costs = {}
+
+    for activity in activities_data:
+        cost = activity.get('cost', 0)
+        category = activity.get('category', 'Other')
+
+        total_cost += cost
+
+        if category not in category_costs:
+            category_costs[category] = 0
+        category_costs[category] += cost
+
+    return {
+        'total': total_cost,
+        'by_category': category_costs,
+        'categories': sorted(category_costs.items(), key=lambda x: x[1], reverse=True)
+    }
+
+
+def render_budget_widget(activities_data, show_sensitive=True):
+    """Render budget tracking widget"""
+    if not show_sensitive:
+        st.info("💰 Budget information hidden in public mode")
+        return
+
+    budget_data = calculate_trip_budget(activities_data)
+
+    st.markdown(f"""<div class="ultimate-card" style="border-left: 4px solid #4caf50;">
+<div class="card-body">
+<h4 style="margin: 0 0 0.5rem 0;">💰 Trip Budget Overview</h4>
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-top: 0.75rem;">
+<div>
+<strong>Total Budget:</strong><br>
+<span style="font-size: 1.5rem; color: #4caf50;">${budget_data['total']:,.0f}</span>
+</div>
+<div>
+<strong>Top Category:</strong><br>
+<span style="font-size: 1.2rem;">{budget_data['categories'][0][0] if budget_data['categories'] else 'N/A'}</span><br>
+<span style="font-size: 0.9rem; color: #666;">${budget_data['categories'][0][1]:,.0f}</span>
+</div>
+<div>
+<strong>Activities:</strong><br>
+<span style="font-size: 1.2rem;">{len(activities_data)} items</span>
+</div>
+</div>
+</div>
+</div>""", unsafe_allow_html=True)
+
+    # Show category breakdown
+    if budget_data['categories']:
+        with st.expander("📊 See Detailed Breakdown"):
+            for category, amount in budget_data['categories']:
+                percentage = (amount / budget_data['total'] * 100) if budget_data['total'] > 0 else 0
+                st.markdown(f"**{category}:** ${amount:,.0f} ({percentage:.1f}%)")
 
 
 # ============================================================================
@@ -5156,6 +5483,95 @@ def render_explore_activities():
         """, unsafe_allow_html=True)
 
 # ============================================================================
+# TRAVEL DASHBOARD
+# ============================================================================
+
+def render_travel_dashboard(activities_data, show_sensitive=True):
+    """Render comprehensive travel dashboard with all critical info"""
+    st.markdown("## 🎯 Travel Dashboard")
+    st.markdown("Your real-time trip command center with live updates")
+
+    # Get today's date and trip dates
+    from datetime import datetime, date
+    today = date.today()
+    trip_start = date(2025, 11, 7)
+    trip_end = date(2025, 11, 12)
+    johns_arrival = date(2025, 11, 8)
+    johns_departure = date(2025, 11, 11)
+
+    # Days until trip
+    days_until = (trip_start - today).days
+
+    # Dashboard metrics row
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        if days_until > 0:
+            st.metric("⏳ Days Until Trip", f"{days_until} days")
+        elif days_until == 0:
+            st.metric("⏳ Trip Status", "TODAY!")
+        else:
+            st.metric("⏳ Trip Status", "In Progress")
+
+    with col2:
+        budget_data = calculate_trip_budget(activities_data)
+        st.metric("💰 Total Budget", f"${budget_data['total']:,.0f}")
+
+    with col3:
+        st.metric("📅 Total Days", "5 nights")
+
+    with col4:
+        st.metric("🎯 Activities", len(activities_data))
+
+    st.markdown("---")
+
+    # Live Flight Tracking (Day-Of Only)
+    if today == date(2025, 11, 7) or today == johns_arrival:
+        st.markdown("### ✈️ Live Flight Tracking")
+        st.info("🔴 **LIVE** - Real-time flight updates active!")
+
+        # Michael's departure flight (Nov 7)
+        if today == date(2025, 11, 7):
+            st.markdown("#### Michael's Departure - AA2434")
+            render_flight_status_widget('AA2434', '2025-11-07', compact=False)
+            st.markdown("**🛂 TSA Security Wait Time**")
+            render_tsa_wait_widget('DCA')
+
+        # John's arrival flight (Nov 8)
+        if today == johns_arrival:
+            st.markdown("#### John's Arrival - AA1585")
+            render_flight_status_widget('AA1585', '2025-11-08', compact=False)
+
+    elif today == johns_departure or today == trip_end:
+        st.markdown("### ✈️ Live Flight Tracking")
+        st.info("🔴 **LIVE** - Real-time flight updates active!")
+
+        # John's departure (Nov 11)
+        if today == johns_departure:
+            st.markdown("#### John's Departure - AA1586")
+            render_flight_status_widget('AA1586', '2025-11-11', compact=False)
+            st.markdown("**🛂 TSA Security Wait Time**")
+            render_tsa_wait_widget('JAX')
+
+        # Michael's return (Nov 12)
+        if today == trip_end:
+            st.markdown("#### Michael's Return - AA2435")
+            render_flight_status_widget('AA2435', '2025-11-12', compact=False)
+            st.markdown("**🛂 TSA Security Wait Time**")
+            render_tsa_wait_widget('JAX')
+    else:
+        st.info("✈️ Live flight tracking will activate on travel days (Nov 7, 8, 11, 12)")
+
+    # Budget Overview
+    st.markdown("---")
+    render_budget_widget(activities_data, show_sensitive)
+
+    # Weather widget could go here
+    st.markdown("---")
+    st.markdown("### 🌤️ Weather Forecast")
+    st.info("Average: 75°F • Partly cloudy • Perfect beach weather!")
+
+
+# ============================================================================
 # JOHN'S PAGE
 # ============================================================================
 
@@ -5195,11 +5611,26 @@ def render_johns_page(df, activities_data, show_sensitive):
     john_arrival = next((a for a in activities_data if a.get('id') == 'arr002'), None)
     john_departure = next((a for a in activities_data if a.get('id') == 'dep001'), None)
 
+    # Check if it's travel day
+    from datetime import date
+    today = date.today()
+    is_arrival_day = (today == date(2025, 11, 8))
+    is_departure_day = (today == date(2025, 11, 11))
+
     if john_arrival:
-        # Live flight tracking
+        # Live flight tracking (only on travel day)
         st.markdown("#### 🛬 Arrival Flight - Nov 8")
-        if john_arrival.get('flight_number'):
-            render_flight_status_widget(john_arrival['flight_number'], '2025-11-08', compact=False)
+
+        if is_arrival_day:
+            st.success("🔴 **LIVE TRACKING ACTIVE** - Your flight today!")
+            if john_arrival.get('flight_number'):
+                render_flight_status_widget(john_arrival['flight_number'], '2025-11-08', compact=False)
+            # TSA wait times at DCA
+            st.markdown("**🛂 TSA Security Wait Time - DCA**")
+            render_tsa_wait_widget('DCA')
+        else:
+            if john_arrival.get('flight_number'):
+                render_flight_status_widget(john_arrival['flight_number'], '2025-11-08', compact=False)
 
         col1, col2 = st.columns([2, 1])
 
@@ -5228,16 +5659,25 @@ def render_johns_page(df, activities_data, show_sensitive):
     # John's departure flight
     if john_departure:
         st.markdown("#### 🛫 Departure Flight - Nov 11")
-        if john_departure.get('flight_number'):
-            render_flight_status_widget(john_departure['flight_number'], '2025-11-11', compact=False)
 
-            # Traffic to airport
-            st.markdown("**🚗 Traffic to Airport**")
-            render_traffic_widget(
-                "4750 Amelia Island Parkway, Amelia Island, FL",
-                "2400 Yankee Clipper Dr, Jacksonville, FL 32218",
-                "Hotel → JAX Airport"
-            )
+        if is_departure_day:
+            st.success("🔴 **LIVE TRACKING ACTIVE** - Your departure today!")
+            if john_departure.get('flight_number'):
+                render_flight_status_widget(john_departure['flight_number'], '2025-11-11', compact=False)
+            # TSA wait times at JAX
+            st.markdown("**🛂 TSA Security Wait Time - JAX**")
+            render_tsa_wait_widget('JAX')
+        else:
+            if john_departure.get('flight_number'):
+                render_flight_status_widget(john_departure['flight_number'], '2025-11-11', compact=False)
+
+        # Traffic to airport (always show, but emphasize on day-of)
+        st.markdown("**🚗 Traffic to Airport**")
+        render_traffic_widget(
+            "4750 Amelia Island Parkway, Amelia Island, FL",
+            "2400 Yankee Clipper Dr, Jacksonville, FL 32218",
+            "Hotel → JAX Airport"
+        )
 
         st.info(f"💡 **Pro Tip:** Leave hotel by 8:20 AM for {john_departure.get('flight_departure_time', '11:05 AM')} flight (45 min drive + 2 hrs early)")
 
@@ -6169,7 +6609,7 @@ def main():
         # Navigation
         # Check if nav override is set (from Getting Ready button)
         if st.session_state.get('nav_to_packing', False):
-            default_index = 5  # Packing List
+            default_index = 6  # Packing List (updated for new Travel Dashboard)
             st.session_state['nav_to_packing'] = False
         else:
             default_index = 0
@@ -6178,6 +6618,7 @@ def main():
             "Navigate to:",
             [
                 "🏠 Dashboard",
+                "🎯 Travel Dashboard",
                 "📅 Today",
                 "🗓️ Full Schedule",
                 "🎯 Explore & Plan",
@@ -6259,7 +6700,10 @@ def main():
     # Page routing
     if page == "🏠 Dashboard":
         render_dashboard_ultimate(df, activities_data, weather_data, show_sensitive)
-    
+
+    elif page == "🎯 Travel Dashboard":
+        render_travel_dashboard(activities_data, show_sensitive)
+
     elif page == "📅 Today":
         render_today_view(df, activities_data, weather_data, show_sensitive)
     
