@@ -1981,6 +1981,300 @@ def get_tide_recommendation(activity_start_time, activity_type, date_str, tide_d
     return result
 
 # ============================================================================
+# TRAFFIC & FLIGHT TRACKING APIS
+# ============================================================================
+
+@st.cache_data(ttl=300)  # Cache for 5 minutes (traffic changes frequently)
+def get_traffic_data(origin, destination, departure_time=None):
+    """Get real-time traffic data using Google Maps Distance Matrix API
+
+    Args:
+        origin: Starting address or coordinates
+        destination: Ending address or coordinates
+        departure_time: Unix timestamp for departure (optional, defaults to now)
+
+    Returns:
+        Dictionary with duration, duration_in_traffic, distance, and traffic level
+    """
+    api_key = os.getenv('GOOGLE_MAPS_API_KEY', '')
+
+    if not api_key:
+        # Return fallback data
+        return {
+            'distance': {'text': '45 miles', 'value': 72420},
+            'duration': {'text': '45 mins', 'value': 2700},
+            'duration_in_traffic': {'text': '45 mins', 'value': 2700},
+            'traffic_level': 'Unknown',
+            'status': 'FALLBACK',
+            'message': 'Set GOOGLE_MAPS_API_KEY for real-time traffic'
+        }
+
+    try:
+        # If departure_time not specified, use current time
+        if departure_time is None:
+            departure_time = int(datetime.now().timestamp())
+
+        url = "https://maps.googleapis.com/maps/api/distancematrix/json"
+        params = {
+            'origins': origin,
+            'destinations': destination,
+            'departure_time': departure_time,
+            'traffic_model': 'best_guess',
+            'key': api_key
+        }
+
+        resp = requests.get(url, params=params, timeout=10)
+
+        if resp.status_code == 200:
+            data = resp.json()
+
+            if data['status'] == 'OK' and data['rows'][0]['elements'][0]['status'] == 'OK':
+                element = data['rows'][0]['elements'][0]
+
+                # Calculate traffic level
+                normal_duration = element['duration']['value']
+                traffic_duration = element.get('duration_in_traffic', {}).get('value', normal_duration)
+
+                delay_minutes = (traffic_duration - normal_duration) / 60
+
+                if delay_minutes < 5:
+                    traffic_level = 'Light'
+                    traffic_emoji = '🟢'
+                elif delay_minutes < 15:
+                    traffic_level = 'Moderate'
+                    traffic_emoji = '🟡'
+                else:
+                    traffic_level = 'Heavy'
+                    traffic_emoji = '🔴'
+
+                return {
+                    'distance': element['distance'],
+                    'duration': element['duration'],
+                    'duration_in_traffic': element.get('duration_in_traffic', element['duration']),
+                    'traffic_level': traffic_level,
+                    'traffic_emoji': traffic_emoji,
+                    'delay_minutes': round(delay_minutes, 1),
+                    'status': 'OK'
+                }
+    except Exception as e:
+        print(f"Traffic API error: {e}")
+
+    # Fallback on error
+    return {
+        'distance': {'text': '45 miles', 'value': 72420},
+        'duration': {'text': '45 mins', 'value': 2700},
+        'duration_in_traffic': {'text': '45 mins', 'value': 2700},
+        'traffic_level': 'Unknown',
+        'status': 'ERROR',
+        'message': 'Traffic data unavailable'
+    }
+
+
+@st.cache_data(ttl=300)  # Cache for 5 minutes
+def get_flight_status(flight_number, flight_date):
+    """Get live flight status from AviationStack API
+
+    Args:
+        flight_number: e.g., "AA2434"
+        flight_date: Date in YYYY-MM-DD format
+
+    Returns:
+        Dictionary with flight status, gate info, delays, etc.
+    """
+    api_key = os.getenv('AVIATIONSTACK_API_KEY', '')
+
+    if not api_key:
+        # Return fallback data
+        return {
+            'status': 'scheduled',
+            'departure': {
+                'airport': 'DCA' if 'AA2434' in flight_number or 'AA1585' in flight_number else 'JAX',
+                'scheduled': None,
+                'actual': None,
+                'gate': 'TBD',
+                'terminal': 'TBD'
+            },
+            'arrival': {
+                'airport': 'JAX' if 'AA2434' in flight_number or 'AA1585' in flight_number else 'DCA',
+                'scheduled': None,
+                'actual': None,
+                'gate': 'TBD',
+                'terminal': 'TBD'
+            },
+            'live_status': 'FALLBACK',
+            'message': 'Set AVIATIONSTACK_API_KEY for live tracking'
+        }
+
+    try:
+        # Extract airline code and flight number
+        # AA2434 -> airline: AA, flight: 2434
+        airline_code = flight_number[:2]
+        flight_num = flight_number[2:]
+
+        url = "http://api.aviationstack.com/v1/flights"
+        params = {
+            'access_key': api_key,
+            'flight_iata': flight_number
+        }
+
+        resp = requests.get(url, params=params, timeout=10)
+
+        if resp.status_code == 200:
+            data = resp.json()
+
+            if data.get('data') and len(data['data']) > 0:
+                flight = data['data'][0]
+
+                # Determine status emoji and message
+                status = flight.get('flight_status', 'scheduled').lower()
+                if status == 'active' or status == 'en-route':
+                    status_emoji = '✈️'
+                    status_text = 'In Flight'
+                elif status == 'landed':
+                    status_emoji = '🛬'
+                    status_text = 'Landed'
+                elif status == 'scheduled':
+                    status_emoji = '🕐'
+                    status_text = 'On Time'
+                elif status == 'cancelled':
+                    status_emoji = '❌'
+                    status_text = 'Cancelled'
+                elif status == 'delayed':
+                    status_emoji = '⏰'
+                    status_text = 'Delayed'
+                else:
+                    status_emoji = '🛫'
+                    status_text = status.title()
+
+                return {
+                    'status': status,
+                    'status_emoji': status_emoji,
+                    'status_text': status_text,
+                    'flight_number': flight.get('flight', {}).get('iata', flight_number),
+                    'departure': {
+                        'airport': flight.get('departure', {}).get('iata', ''),
+                        'scheduled': flight.get('departure', {}).get('scheduled', ''),
+                        'actual': flight.get('departure', {}).get('actual', ''),
+                        'gate': flight.get('departure', {}).get('gate', 'TBD'),
+                        'terminal': flight.get('departure', {}).get('terminal', 'TBD'),
+                        'delay': flight.get('departure', {}).get('delay', 0)
+                    },
+                    'arrival': {
+                        'airport': flight.get('arrival', {}).get('iata', ''),
+                        'scheduled': flight.get('arrival', {}).get('scheduled', ''),
+                        'actual': flight.get('arrival', {}).get('actual', ''),
+                        'gate': flight.get('arrival', {}).get('gate', 'TBD'),
+                        'terminal': flight.get('arrival', {}).get('terminal', 'TBD'),
+                        'delay': flight.get('arrival', {}).get('delay', 0)
+                    },
+                    'live_status': 'OK'
+                }
+    except Exception as e:
+        print(f"Flight API error: {e}")
+
+    # Fallback on error
+    return {
+        'status': 'scheduled',
+        'status_emoji': '🕐',
+        'status_text': 'Scheduled',
+        'flight_number': flight_number,
+        'departure': {
+            'airport': 'DCA' if 'AA2434' in flight_number or 'AA1585' in flight_number else 'JAX',
+            'scheduled': None,
+            'gate': 'TBD',
+            'terminal': 'TBD'
+        },
+        'arrival': {
+            'airport': 'JAX' if 'AA2434' in flight_number or 'AA1585' in flight_number else 'DCA',
+            'scheduled': None,
+            'gate': 'TBD',
+            'terminal': 'TBD'
+        },
+        'live_status': 'ERROR',
+        'message': 'Flight tracking unavailable'
+    }
+
+
+def render_flight_status_widget(flight_number, flight_date, compact=False):
+    """Render a live flight status widget
+
+    Args:
+        flight_number: e.g., "AA2434"
+        flight_date: Date in YYYY-MM-DD format
+        compact: If True, show minimal info
+    """
+    status = get_flight_status(flight_number, flight_date)
+
+    if compact:
+        # Compact version for cards
+        st.markdown(f"""
+        <div style="background: #f0f7ff; padding: 0.75rem; border-radius: 8px; border-left: 4px solid #2196f3;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <strong>{status.get('status_emoji', '✈️')} {status.get('status_text', 'Scheduled')}</strong>
+                </div>
+                <div style="text-align: right; font-size: 0.9rem;">
+                    {f"Gate {status['departure']['gate']}" if status['departure']['gate'] != 'TBD' else 'Gate TBD'}
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        # Full version
+        st.markdown(f"""
+        <div class="ultimate-card" style="border-left: 4px solid #2196f3;">
+            <div class="card-body">
+                <h4 style="margin: 0 0 0.5rem 0;">{status.get('status_emoji', '✈️')} Flight {flight_number} - {status.get('status_text', 'Scheduled')}</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.75rem;">
+                    <div>
+                        <strong>🛫 Departure:</strong> {status['departure']['airport']}<br>
+                        <span style="font-size: 0.9rem;">Gate: {status['departure']['gate']} • Terminal: {status['departure']['terminal']}</span>
+                    </div>
+                    <div>
+                        <strong>🛬 Arrival:</strong> {status['arrival']['airport']}<br>
+                        <span style="font-size: 0.9rem;">Gate: {status['arrival']['gate']} • Terminal: {status['arrival']['terminal']}</span>
+                    </div>
+                </div>
+                {f"<p style='margin: 0.5rem 0 0 0; color: #f44336;'><strong>⚠️ Delay:</strong> {status['departure'].get('delay', 0)} minutes</p>" if status['departure'].get('delay', 0) > 0 else ""}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+
+def render_traffic_widget(origin, destination, label=""):
+    """Render a traffic status widget
+
+    Args:
+        origin: Starting location
+        destination: Ending location
+        label: Display label for the route
+    """
+    traffic = get_traffic_data(origin, destination)
+
+    st.markdown(f"""
+    <div class="ultimate-card" style="border-left: 4px solid {('#4caf50' if traffic['traffic_level'] == 'Light' else '#ff9800' if traffic['traffic_level'] == 'Moderate' else '#f44336')};">
+        <div class="card-body">
+            <h4 style="margin: 0 0 0.5rem 0;">🚗 {label if label else 'Route Traffic'}</h4>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <p style="margin: 0.25rem 0;">
+                        <strong>Distance:</strong> {traffic['distance']['text']}<br>
+                        <strong>Duration:</strong> {traffic['duration_in_traffic']['text']}
+                    </p>
+                </div>
+                <div style="text-align: right;">
+                    <div style="background: {('#4caf50' if traffic['traffic_level'] == 'Light' else '#ff9800' if traffic['traffic_level'] == 'Moderate' else '#f44336')}; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-weight: bold;">
+                        {traffic.get('traffic_emoji', '🚗')} {traffic['traffic_level']}
+                    </div>
+                    {f"<p style='margin: 0.5rem 0 0 0; font-size: 0.85rem;'>+{traffic['delay_minutes']} min delay</p>" if traffic.get('delay_minutes', 0) > 0 else ""}
+                </div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+# ============================================================================
 # STEP 3-12: SMART INTELLIGENCE FUNCTIONS
 # ============================================================================
 
@@ -3472,35 +3766,81 @@ def render_today_view(df, activities_data, weather_data, show_sensitive):
         
     elif trip_start <= today <= trip_end:
         st.markdown('<div class="today-badge">📍 YOU\'RE ON YOUR TRIP!</div>', unsafe_allow_html=True)
-        
+
         # Get today's activities
         today_activities = [a for a in activities_data if pd.to_datetime(a['date']).date() == today]
-        
+        today_str = today.strftime('%Y-%m-%d')
+
+        # Check if today is a travel day (has flights or airport transport)
+        travel_activities = [a for a in today_activities if a['type'] == 'transport' and
+                           ('flight' in a.get('activity', '').lower() or 'airport' in a.get('activity', '').lower() or 'arrival' in a.get('activity', '').lower())]
+
         if today_activities:
             st.markdown(f"### Today is {today.strftime('%A, %B %d, %Y')}")
-            
+
+            # FLIGHT TRACKING for travel days
+            if travel_activities:
+                st.markdown("### ✈️ Live Flight Status")
+
+                for travel_act in travel_activities:
+                    if travel_act.get('flight_number'):
+                        flight_num = travel_act.get('flight_number')
+                        st.markdown(f"**{flight_num}** - {travel_act['activity']}")
+                        render_flight_status_widget(flight_num, today_str, compact=False)
+
+                        # Add traffic for airport trips
+                        if 'departure' in travel_act.get('activity', '').lower() or 'drop' in travel_act.get('activity', '').lower():
+                            st.markdown("#### 🚗 Traffic to Airport")
+                            render_traffic_widget(
+                                "4750 Amelia Island Parkway, Amelia Island, FL",
+                                "2400 Yankee Clipper Dr, Jacksonville, FL 32218",
+                                "Hotel → Jacksonville Airport (JAX)"
+                            )
+                        elif 'arrival' in travel_act.get('activity', '').lower() and 'DCA' in travel_act.get('notes', ''):
+                            st.markdown("#### 🚗 Traffic from DCA")
+                            st.info("Check traffic conditions before heading to airport")
+
+                st.markdown("---")
+
             # Morning briefing
             st.markdown("""
             <div class="ultimate-card fade-in">
                 <div class="card-header">🌅 Morning Briefing</div>
                 <div class="card-body">
             """, unsafe_allow_html=True)
-            
+
             # Weather for today
             current = weather_data['current']
             st.write(f"**Weather:** {current['temperature']}°F, {current['condition']}")
+            st.write(f"**UV Index:** {current['uv_index']} - {'⚠️ High - Use SPF 50+' if current['uv_index'] > 6 else '✅ Moderate'}")
+            st.write(f"**Wind:** {current['wind_speed']} mph")
             st.write(f"**Activities Scheduled:** {len(today_activities)}")
-            
+
+            # Tide info for beach days
+            tide_data = get_tide_data()
+            if today_str in tide_data:
+                day_tides = tide_data[today_str]
+                if day_tides.get('high'):
+                    high_tide = day_tides['high'][0]
+                    st.write(f"**🌊 High Tide:** {high_tide['time']} ({high_tide['height']}ft)")
+
             st.markdown("</div></div>", unsafe_allow_html=True)
-            
+
             # Timeline of today's activities
             st.markdown("### 📋 Today's Schedule")
-            
+
             for activity in sorted(today_activities, key=lambda x: x['time']):
-                activity_time = datetime.strptime(activity['time'], '%H:%M').time()
+                try:
+                    activity_time = datetime.strptime(activity['time'], '%I:%M %p').time()
+                except:
+                    try:
+                        activity_time = datetime.strptime(activity['time'], '%H:%M').time()
+                    except:
+                        activity_time = datetime.strptime('12:00 PM', '%I:%M %p').time()
+
                 activity_datetime = datetime.combine(today, activity_time)
                 time_until = (activity_datetime - datetime.now()).total_seconds() / 60
-                
+
                 if time_until > 0 and time_until < 60:
                     next_badge = '<span class="today-badge">⏰ COMING UP SOON!</span>'
                 elif time_until <= 0:
@@ -3508,7 +3848,18 @@ def render_today_view(df, activities_data, weather_data, show_sensitive):
                 else:
                     hours_until = int(time_until / 60)
                     next_badge = f'<span class="status-pending">In {hours_until}h {int(time_until % 60)}m</span>'
-                
+
+                # Add weather/UV warnings for outdoor activities
+                activity_warning = ""
+                if activity['type'] in ['beach', 'activity'] and current['uv_index'] > 7:
+                    activity_warning = "<br><small style='color: #ff9800;'>⚠️ High UV - Bring sunscreen SPF 50+</small>"
+                elif activity['type'] == 'beach':
+                    # Add tide info
+                    if today_str in tide_data:
+                        tide_rec = get_tide_recommendation(activity['time'], 'beach', today_str, tide_data)
+                        if tide_rec and tide_rec.get('recommendation'):
+                            activity_warning = f"<br><small style='color: #2196f3;'>{tide_rec['recommendation']}</small>"
+
                 st.markdown(f"""
                 <div class="ultimate-card today-card fade-in">
                     <div class="card-body">
@@ -3516,7 +3867,7 @@ def render_today_view(df, activities_data, weather_data, show_sensitive):
                             <div>
                                 <h3 style="margin: 0 0 0.5rem 0;">{activity['activity']}</h3>
                                 <p style="margin: 0.25rem 0;"><b>🕐 {activity['time']}</b></p>
-                                <p style="margin: 0.25rem 0;">📍 {activity['location']['name']}</p>
+                                <p style="margin: 0.25rem 0;">📍 {activity['location']['name']}{activity_warning}</p>
                             </div>
                             <div>{next_badge}</div>
                         </div>
@@ -4669,17 +5020,23 @@ def render_johns_page(df, activities_data, show_sensitive):
     st.markdown("### ✈️ Your Flight & Arrival")
 
     john_arrival = next((a for a in activities_data if a.get('id') == 'arr002'), None)
+    john_departure = next((a for a in activities_data if a.get('id') == 'dep001'), None)
+
     if john_arrival:
+        # Live flight tracking
+        st.markdown("#### 🛬 Arrival Flight - Nov 8")
+        if john_arrival.get('flight_number'):
+            render_flight_status_widget(john_arrival['flight_number'], '2025-11-08', compact=False)
+
         col1, col2 = st.columns([2, 1])
 
         with col1:
             st.markdown(f"""
-            <div class="ultimate-card" style="border-left: 4px solid #2196f3;">
+            <div class="ultimate-card" style="border-left: 4px solid #4caf50; margin-top: 1rem;">
                 <div class="card-body">
-                    <h4 style="margin: 0 0 0.5rem 0;">🛬 {john_arrival.get('flight_number', 'Flight')} to Jacksonville (JAX)</h4>
-                    <p style="margin: 0.25rem 0; font-size: 1.1rem;"><strong>Saturday, November 8, 2025</strong></p>
+                    <h4 style="margin: 0 0 0.5rem 0;">📍 Arrival Details</h4>
                     <p style="margin: 0.5rem 0;">
-                        ✈️ <strong>Lands:</strong> {john_arrival.get('estimated_flight_arrival', '10:40 AM')}<br>
+                        ✈️ <strong>Lands at JAX:</strong> {john_arrival.get('estimated_flight_arrival', '10:40 AM')}<br>
                         🏨 <strong>Hotel Arrival:</strong> ~{john_arrival.get('estimated_hotel_arrival', '12:00 PM')}<br>
                         🚗 <strong>Ground Transport:</strong> {john_arrival['notes']}
                     </p>
@@ -4696,6 +5053,22 @@ def render_johns_page(df, activities_data, show_sensitive):
             - ✅ Text when landing
             - ✅ 45 min drive to hotel
             """)
+
+    # John's departure flight
+    if john_departure:
+        st.markdown("#### 🛫 Departure Flight - Nov 11")
+        if john_departure.get('flight_number'):
+            render_flight_status_widget(john_departure['flight_number'], '2025-11-11', compact=False)
+
+            # Traffic to airport
+            st.markdown("**🚗 Traffic to Airport**")
+            render_traffic_widget(
+                "4750 Amelia Island Parkway, Amelia Island, FL",
+                "2400 Yankee Clipper Dr, Jacksonville, FL 32218",
+                "Hotel → JAX Airport"
+            )
+
+        st.info(f"💡 **Pro Tip:** Leave hotel by 8:20 AM for {john_departure.get('flight_departure_time', '11:05 AM')} flight (45 min drive + 2 hrs early)")
 
     # ============ DAY-BY-DAY SCHEDULE ============
     st.markdown("---")
