@@ -2368,6 +2368,17 @@ def ai_auto_scheduler(target_date_str, existing_activities, weather_data, tide_d
     # Check what's already scheduled for this day
     day_activities = [a for a in existing_activities if a['date'] == target_date_str]
 
+    # SPECIAL HANDLING: Skip arrival/departure days if they have flights
+    is_arrival_day = target_date_str == "2025-11-07"
+    is_departure_day = target_date_str == "2025-11-12"
+
+    # Check for flights/transport on this day
+    has_flight = any(a.get('type') == 'transport' and ('flight' in a.get('activity', '').lower() or 'arrival' in a.get('activity', '').lower() or 'departure' in a.get('activity', '').lower()) for a in day_activities)
+
+    # Skip AI scheduling for arrival/departure days with flights
+    if (is_arrival_day or is_departure_day) and has_flight:
+        return []  # Don't auto-schedule on travel days
+
     # Convert date string to day name
     date_obj = pd.to_datetime(target_date_str)
     day_name = date_obj.strftime('%A, %B %d')
@@ -3022,7 +3033,8 @@ def render_ultimate_header():
     now = datetime.now()
     trip_start = TRIP_CONFIG['start_date']
     trip_end = TRIP_CONFIG['end_date']
-    days_until = (trip_start - now).days
+    # Use .date() for consistent day counting across all countdowns
+    days_until = (trip_start.date() - now.date()).days
     
     # Determine trip phase
     if days_until > 0:
@@ -3072,7 +3084,8 @@ def render_dashboard_ultimate(df, activities_data, weather_data, show_sensitive)
         """, unsafe_allow_html=True)
     
     with col2:
-        days_until = (TRIP_CONFIG['start_date'] - datetime.now()).days
+        # Use .date() for consistent day counting across all countdowns
+        days_until = (TRIP_CONFIG['start_date'].date() - datetime.now().date()).days
         st.markdown(f"""
         <div class="metric-card fade-in" style="animation-delay: 0.2s; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
             <div class="metric-value">{max(0, days_until)}</div>
@@ -4585,9 +4598,9 @@ def render_birthday_page():
     </div>
     """, unsafe_allow_html=True)
 
-    # Birthday countdown
+    # Birthday countdown - use .date() for consistent day counting
     birthday_date = TRIP_CONFIG['birthday_date']
-    days_until_birthday = (birthday_date - datetime.now()).days
+    days_until_birthday = (birthday_date.date() - datetime.now().date()).days
 
     if days_until_birthday > 0:
         st.markdown(f"""
@@ -5174,7 +5187,8 @@ def main():
         else:
             st.success("✅ All bookings set!")
         
-        days_until = (TRIP_CONFIG['start_date'] - datetime.now()).days
+        # Use .date() for consistent day counting across all countdowns
+        days_until = (TRIP_CONFIG['start_date'].date() - datetime.now().date()).days
         if days_until > 0:
             st.info(f"🗓️ {days_until} days until trip")
         elif days_until == 0:
