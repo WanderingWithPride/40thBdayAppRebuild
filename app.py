@@ -2237,6 +2237,12 @@ def render_flight_status_widget(flight_number, flight_date, compact=False):
         """, unsafe_allow_html=True)
     else:
         # Full version
+        # Build delay text if needed
+        delay_text = ""
+        if status['departure'].get('delay', 0) > 0:
+            delay_minutes = status['departure'].get('delay', 0)
+            delay_text = f"<p style='margin: 0.5rem 0 0 0; color: #f44336;'><strong>⚠️ Delay:</strong> {delay_minutes} minutes</p>"
+
         st.markdown(f"""
         <div class="ultimate-card" style="border-left: 4px solid #2196f3;">
             <div class="card-body">
@@ -2251,7 +2257,7 @@ def render_flight_status_widget(flight_number, flight_date, compact=False):
                         <span style="font-size: 0.9rem;">Gate: {status['arrival']['gate']} • Terminal: {status['arrival']['terminal']}</span>
                     </div>
                 </div>
-                {f"<p style='margin: 0.5rem 0 0 0; color: #f44336;'><strong>⚠️ Delay:</strong> {status['departure'].get('delay', 0)} minutes</p>" if status['departure'].get('delay', 0) > 0 else ""}
+                {delay_text}
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -2267,8 +2273,21 @@ def render_traffic_widget(origin, destination, label=""):
     """
     traffic = get_traffic_data(origin, destination)
 
+    # Determine traffic color
+    if traffic['traffic_level'] == 'Light':
+        color = '#4caf50'
+    elif traffic['traffic_level'] == 'Moderate':
+        color = '#ff9800'
+    else:
+        color = '#f44336'
+
+    # Build delay text if needed
+    delay_text = ""
+    if traffic.get('delay_minutes', 0) > 0:
+        delay_text = f"<p style='margin: 0.5rem 0 0 0; font-size: 0.85rem;'>+{traffic['delay_minutes']} min delay</p>"
+
     st.markdown(f"""
-    <div class="ultimate-card" style="border-left: 4px solid {('#4caf50' if traffic['traffic_level'] == 'Light' else '#ff9800' if traffic['traffic_level'] == 'Moderate' else '#f44336')};">
+    <div class="ultimate-card" style="border-left: 4px solid {color};">
         <div class="card-body">
             <h4 style="margin: 0 0 0.5rem 0;">🚗 {label if label else 'Route Traffic'}</h4>
             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -2279,10 +2298,10 @@ def render_traffic_widget(origin, destination, label=""):
                     </p>
                 </div>
                 <div style="text-align: right;">
-                    <div style="background: {('#4caf50' if traffic['traffic_level'] == 'Light' else '#ff9800' if traffic['traffic_level'] == 'Moderate' else '#f44336')}; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-weight: bold;">
+                    <div style="background: {color}; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-weight: bold;">
                         {traffic.get('traffic_emoji', '🚗')} {traffic['traffic_level']}
                     </div>
-                    {f"<p style='margin: 0.5rem 0 0 0; font-size: 0.85rem;'>+{traffic['delay_minutes']} min delay</p>" if traffic.get('delay_minutes', 0) > 0 else ""}
+                    {delay_text}
                 </div>
             </div>
         </div>
@@ -5448,8 +5467,14 @@ def render_johns_page(df, activities_data, show_sensitive):
     with col2:
         # Get weather
         weather = get_weather_ultimate()
-        if weather:
-            avg_temp = sum([w.get('temp', 75) for w in weather]) / len(weather) if weather else 75
+        if weather and 'forecast' in weather:
+            # Calculate average temp from forecast
+            forecast = weather['forecast']
+            if forecast:
+                avg_temp = sum([day.get('temp', 75) for day in forecast]) / len(forecast)
+            else:
+                avg_temp = weather.get('current', {}).get('temperature', 75)
+
             st.markdown(f"""
             <div class="ultimate-card">
                 <div class="card-body">
@@ -5458,6 +5483,23 @@ def render_johns_page(df, activities_data, show_sensitive):
                         <strong>Average:</strong> {avg_temp:.0f}°F<br>
                         <strong>Conditions:</strong> Partly cloudy<br>
                         <strong>What to Expect:</strong> Pleasant beach weather!
+                    </p>
+                    <p style="margin: 0.5rem 0 0 0; font-style: italic; font-size: 0.85rem;">
+                        Pack sunscreen and light layers.
+                    </p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            # Fallback if weather API unavailable
+            st.markdown("""
+            <div class="ultimate-card">
+                <div class="card-body">
+                    <h4 style="margin: 0 0 0.5rem 0;">🌤️ Weather Forecast</h4>
+                    <p style="margin: 0.25rem 0;">
+                        <strong>Average:</strong> 75°F<br>
+                        <strong>Conditions:</strong> Pleasant<br>
+                        <strong>What to Expect:</strong> Nice beach weather!
                     </p>
                     <p style="margin: 0.5rem 0 0 0; font-style: italic; font-size: 0.85rem;">
                         Pack sunscreen and light layers.
