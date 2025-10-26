@@ -154,6 +154,19 @@ def init_database():
         )
     ''')
 
+    # Meal proposals and voting
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS meal_proposals (
+            meal_id TEXT PRIMARY KEY,
+            restaurant_options TEXT NOT NULL,
+            status TEXT DEFAULT 'proposed',
+            john_vote TEXT,
+            final_choice INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
     # Set default preferences if they don't exist
     cursor.execute("SELECT COUNT(*) FROM john_preferences WHERE key = 'avoid_seafood_focused'")
     if cursor.fetchone()[0] == 0:
@@ -287,6 +300,75 @@ def load_john_preferences():
     except Exception as e:
         print(f"Error loading John's preferences: {e}")
         return {}
+
+def save_meal_proposal(meal_id, restaurant_options):
+    """Save Michael's meal proposal with 3 restaurant options
+
+    Args:
+        meal_id: String like "fri_dinner", "sat_lunch", etc.
+        restaurant_options: List of restaurant dicts with name, cost, booking_url, etc.
+    """
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    import json
+    cursor.execute(
+        "INSERT OR REPLACE INTO meal_proposals (meal_id, restaurant_options, status, created_at) VALUES (?, ?, ?, ?)",
+        (meal_id, json.dumps(restaurant_options), "proposed", datetime.now().isoformat())
+    )
+    conn.commit()
+    conn.close()
+
+def get_meal_proposal(meal_id):
+    """Get meal proposal for a specific meal"""
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute("SELECT restaurant_options, status, john_vote FROM meal_proposals WHERE meal_id = ?", (meal_id,))
+        row = cursor.fetchone()
+        conn.close()
+        if row:
+            import json
+            return {
+                "restaurant_options": json.loads(row[0]),
+                "status": row[1],
+                "john_vote": row[2]
+            }
+        return None
+    except Exception as e:
+        print(f"Error loading meal proposal: {e}")
+        return None
+
+def save_john_meal_vote(meal_id, restaurant_choice):
+    """Save John's vote for a meal
+
+    Args:
+        meal_id: String like "fri_dinner"
+        restaurant_choice: Index (0-2) of chosen restaurant, or "none" if none work
+    """
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute(
+        "UPDATE meal_proposals SET john_vote = ?, status = ? WHERE meal_id = ?",
+        (restaurant_choice, "voted", meal_id)
+    )
+    conn.commit()
+    conn.close()
+
+def finalize_meal_choice(meal_id, final_choice_index):
+    """Finalize meal choice and mark as confirmed
+
+    Args:
+        meal_id: String like "fri_dinner"
+        final_choice_index: Index (0-2) of final restaurant choice
+    """
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute(
+        "UPDATE meal_proposals SET final_choice = ?, status = ? WHERE meal_id = ?",
+        (final_choice_index, "confirmed", meal_id)
+    )
+    conn.commit()
+    conn.close()
 
 def save_manual_tsa_update(airport_code, wait_minutes, reported_by="User", notes=""):
     """Save a manual TSA wait time update"""
@@ -1537,6 +1619,53 @@ def get_smart_packing_list():
             {"item": "Umbrella (November can be rainy)", "checked": False, "priority": "medium"},
             {"item": "Laundry bag for dirty clothes", "checked": False, "priority": "low"},
         ]
+    }
+
+def get_restaurant_details():
+    """Get enhanced restaurant details including dress code, menu URLs, etc.
+
+    Returns a dict mapping restaurant name to additional details
+    """
+    return {
+        "Le Clos": {"dress_code": "Business Casual", "menu_url": "N/A"},
+        "Espana Restaurant & Tapas": {"dress_code": "Casual", "menu_url": "N/A"},
+        "Burlingame": {"dress_code": "Smart Casual", "menu_url": "N/A"},
+        "Lagniappe": {"dress_code": "Smart Casual", "menu_url": "N/A"},
+        "Cucina South": {"dress_code": "Business Casual", "menu_url": "N/A"},
+        "Brett's Waterway Cafe": {"dress_code": "Casual", "menu_url": "N/A"},
+        "Salty Pelican Bar & Grill": {"dress_code": "Casual", "menu_url": "https://saltypelican.com"},
+        "Sandbar": {"dress_code": "Resort Casual", "menu_url": "https://sandbaramelia.com"},
+        "The Boat House": {"dress_code": "Casual", "menu_url": "https://boathouseamelia.com"},
+        "Down Under": {"dress_code": "Very Casual", "menu_url": "N/A"},
+        "Timoti's Seafood Shak": {"dress_code": "Very Casual", "menu_url": "https://timotis.com"},
+        "Salt Life Food Shack": {"dress_code": "Casual", "menu_url": "https://www.saltlifefoodshack.com"},
+        "Ciao Italian Eatery": {"dress_code": "Casual", "menu_url": "https://ciaoitalianeats.com"},
+        "Arte Pizza": {"dress_code": "Very Casual", "menu_url": "https://artepizzabar.com"},
+        "Mezcal Spirit of Oaxaca": {"dress_code": "Casual", "menu_url": "N/A"},
+        "Tortuga Jacks": {"dress_code": "Very Casual", "menu_url": "N/A"},
+        "Wicked Bao": {"dress_code": "Casual", "menu_url": "N/A"},
+        "Akari Sushi": {"dress_code": "Casual", "menu_url": "N/A"},
+        "Hana Sushi": {"dress_code": "Casual", "menu_url": "N/A"},
+        "29 South": {"dress_code": "Smart Casual", "menu_url": "N/A"},
+        "Beach Diner": {"dress_code": "Very Casual", "menu_url": "N/A"},
+        "Sliders Seaside Grill": {"dress_code": "Beachwear/Casual", "menu_url": "N/A"},
+        "Fantastic Fudge": {"dress_code": "Any", "menu_url": "N/A"},
+        "Café Karibo": {"dress_code": "Casual", "menu_url": "N/A"},
+        "Amelia Island Coffee": {"dress_code": "Any", "menu_url": "N/A"},
+        "First Drop Coffee": {"dress_code": "Resort Casual", "menu_url": "N/A"},
+        "Mocama Coffee": {"dress_code": "Casual", "menu_url": "N/A"},
+        "Hola Cuban Cafe": {"dress_code": "Casual", "menu_url": "N/A"},
+        "Nana Teresa's Bake Shop": {"dress_code": "Any", "menu_url": "N/A"},
+        "Aloha Bagel and Deli": {"dress_code": "Casual", "menu_url": "https://aloha-bagel.com"},
+        "4th Street Deli": {"dress_code": "Casual", "menu_url": "N/A"},
+        "Salt (AAA Five Diamond)": {"dress_code": "Resort Elegant (jackets optional, no shorts/flip-flops)", "menu_url": "https://www.ritzcarlton.com/en/hotels/jaxab-the-ritz-carlton-amelia-island/dining"},
+        "Coast": {"dress_code": "Resort Casual", "menu_url": "https://www.ritzcarlton.com/en/hotels/jaxab-the-ritz-carlton-amelia-island/dining"},
+        "Coquina": {"dress_code": "Beachwear/Casual", "menu_url": "N/A"},
+        "Tidewater Grill": {"dress_code": "Resort Casual", "menu_url": "N/A"},
+        "Lobby Bar": {"dress_code": "Resort Casual", "menu_url": "N/A"},
+        "Dune Bar": {"dress_code": "Beachwear/Casual", "menu_url": "N/A"},
+        "Pogo's": {"dress_code": "Casual", "menu_url": "N/A"},
+        "David's Restaurant & Lounge": {"dress_code": "Business Casual (no shorts/flip-flops)", "menu_url": "N/A"},
     }
 
 def get_optional_activities():
@@ -3877,7 +4006,7 @@ def get_smart_recommendations(gap, weather_data, optional_activities):
     # Sort by score (highest first)
     recommendations.sort(key=lambda x: x['score'], reverse=True)
 
-    return recommendations[:8]  # Return top 8 recommendations
+    return recommendations[:20]  # Return top 20 recommendations
 
 
 # ============================================================================
@@ -5334,9 +5463,9 @@ def render_explore_activities():
             recommendations = get_smart_recommendations(gap, weather_data, optional_activities)
 
             if recommendations:
-                st.markdown(f"**Top {len(recommendations)} Recommended Activities:**")
+                st.markdown(f"**Top {min(len(recommendations), 20)} Recommended Activities:**")
 
-                for i, rec in enumerate(recommendations[:5], 1):  # Show top 5
+                for i, rec in enumerate(recommendations[:20], 1):  # Show top 20
                     activity = rec['activity']
 
                     # Use Streamlit container for clean card display
