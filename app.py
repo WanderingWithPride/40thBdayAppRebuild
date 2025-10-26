@@ -4972,24 +4972,24 @@ def render_full_schedule(df, activities_data, show_sensitive):
                 safe_notes = html.escape(mask_info(activity.get('notes', ''), show_sensitive))
                 safe_notes = safe_notes.replace('\n', '<br>')
 
-                st.markdown(f"""
-                <div class="timeline-item {status_class}" style="margin: 1rem 0;">
-                    <div class="ultimate-card">
-                        <div class="card-body">
-                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-                                <h4 style="margin: 0;">{safe_activity_name} {custom_badge}</h4>
-                                <span class="status-{status_class}">{safe_status}</span>
-                            </div>
-                            <p style="margin: 0.5rem 0;"><b>🕐 {safe_time_display}</b> {f'({safe_duration})' if activity.get('duration') else ''}</p>
-                            <p style="margin: 0.5rem 0;">📍 {safe_location}</p>
-                            <p style="margin: 0.5rem 0;">📞 {safe_phone}</p>
-                            <p style="margin: 0.5rem 0;">💰 {safe_cost}</p>
-                            <p style="margin: 0.5rem 0; font-style: italic;">{safe_notes}</p>
-                            {john_status_badge}
-                        </div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+                # Build HTML with minimal indentation to avoid Streamlit rendering issues
+                activity_html = f"""<div class="timeline-item {status_class}" style="margin: 1rem 0;">
+<div class="ultimate-card">
+<div class="card-body">
+<div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+<h4 style="margin: 0;">{safe_activity_name} {custom_badge}</h4>
+<span class="status-{status_class}">{safe_status}</span>
+</div>
+<p style="margin: 0.5rem 0;"><b>🕐 {safe_time_display}</b> {f'({safe_duration})' if activity.get('duration') else ''}</p>
+<p style="margin: 0.5rem 0;">📍 {safe_location}</p>
+<p style="margin: 0.5rem 0;">📞 {safe_phone}</p>
+<p style="margin: 0.5rem 0;">💰 {safe_cost}</p>
+<p style="margin: 0.5rem 0; font-style: italic;">{safe_notes}</p>
+{john_status_badge}
+</div>
+</div>
+</div>"""
+                st.markdown(activity_html, unsafe_allow_html=True)
 
                 # Display additional details (dress code, what to bring, tips) below the card
                 if activity.get('dress_code'):
