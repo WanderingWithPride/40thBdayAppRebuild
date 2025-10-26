@@ -1501,6 +1501,273 @@ def get_tide_recommendation(activity_start_time, activity_type, date_str, tide_d
 
     return result
 
+# ============================================================================
+# STEP 3-12: SMART INTELLIGENCE FUNCTIONS
+# ============================================================================
+
+def detect_meal_gaps(activities_data):
+    """Detect missing meals (breakfast, lunch, dinner) for each day
+
+    Returns:
+        List of missing meals with suggested times
+    """
+    from collections import defaultdict
+
+    # Group activities by date
+    days = defaultdict(list)
+    for activity in activities_data:
+        date_str = activity['date']
+        days[date_str].append(activity)
+
+    missing_meals = []
+
+    for date_str, day_activities in sorted(days.items()):
+        date_obj = pd.to_datetime(date_str)
+        day_name = date_obj.strftime('%A, %B %d')
+
+        # Check for meals
+        meals_found = {
+            'breakfast': False,
+            'lunch': False,
+            'dinner': False
+        }
+
+        for activity in day_activities:
+            activity_lower = activity['activity'].lower()
+            time_str = activity['time']
+
+            # Try to parse time
+            try:
+                time_obj = datetime.strptime(time_str, "%I:%M %p")
+                hour = time_obj.hour
+
+                # Classify by time and activity type
+                if activity['type'] == 'dining' or 'lunch' in activity_lower or 'breakfast' in activity_lower or 'dinner' in activity_lower:
+                    if 6 <= hour < 11:
+                        meals_found['breakfast'] = True
+                    elif 11 <= hour < 16:
+                        meals_found['lunch'] = True
+                    elif 16 <= hour < 23:
+                        meals_found['dinner'] = True
+            except:
+                pass
+
+        # Report missing meals
+        if not meals_found['breakfast']:
+            missing_meals.append({
+                'date': date_str,
+                'day_name': day_name,
+                'meal_type': 'breakfast',
+                'suggested_time': '8:00 AM',
+                'priority': 'medium'
+            })
+
+        if not meals_found['lunch']:
+            missing_meals.append({
+                'date': date_str,
+                'day_name': day_name,
+                'meal_type': 'lunch',
+                'suggested_time': '12:30 PM',
+                'priority': 'high'
+            })
+
+        if not meals_found['dinner']:
+            missing_meals.append({
+                'date': date_str,
+                'day_name': day_name,
+                'meal_type': 'dinner',
+                'suggested_time': '6:30 PM',
+                'priority': 'high'
+            })
+
+    return missing_meals
+
+def detect_conflicts(activities_data):
+    """Detect scheduling conflicts (overlaps, tight timings, impossible logistics)
+
+    Returns:
+        List of conflicts with severity and recommendations
+    """
+    conflicts = []
+
+    # Sort activities by date and time
+    sorted_activities = sorted(activities_data, key=lambda x: (x['date'], x.get('time', '12:00 PM')))
+
+    for i in range(len(sorted_activities) - 1):
+        current = sorted_activities[i]
+        next_act = sorted_activities[i + 1]
+
+        # Only check same-day activities
+        if current['date'] != next_act['date']:
+            continue
+
+        try:
+            # Get end time of current activity
+            if current.get('duration'):
+                current_end = calculate_end_time(current['time'], current['duration'])
+                if not current_end:
+                    continue
+
+                current_end_obj = datetime.strptime(current_end, "%I:%M %p")
+                next_start_obj = datetime.strptime(next_act['time'], "%I:%M %p")
+
+                # Calculate gap in minutes
+                gap_minutes = (next_start_obj - current_end_obj).total_seconds() / 60
+
+                if gap_minutes < 0:
+                    # OVERLAP!
+                    conflicts.append({
+                        'type': 'overlap',
+                        'severity': 'critical',
+                        'date': current['date'],
+                        'activity1': current['activity'],
+                        'activity2': next_act['activity'],
+                        'end_time': current_end,
+                        'start_time': next_act['time'],
+                        'message': f"🔴 OVERLAP: {current['activity']} ends {current_end}, but {next_act['activity']} starts {next_act['time']}",
+                        'suggestion': f"Reschedule {next_act['activity']} to start after {current_end}"
+                    })
+                elif gap_minutes < 15:
+                    # TOO TIGHT
+                    conflicts.append({
+                        'type': 'tight_timing',
+                        'severity': 'warning',
+                        'date': current['date'],
+                        'activity1': current['activity'],
+                        'activity2': next_act['activity'],
+                        'gap_minutes': int(gap_minutes),
+                        'message': f"🟡 TIGHT: Only {int(gap_minutes)} min between {current['activity']} and {next_act['activity']}",
+                        'suggestion': f"Consider adding 15-30 min buffer"
+                    })
+                elif gap_minutes > 240:  # More than 4 hours
+                    # LARGE GAP - opportunity!
+                    conflicts.append({
+                        'type': 'large_gap',
+                        'severity': 'info',
+                        'date': current['date'],
+                        'gap_start': current_end,
+                        'gap_end': next_act['time'],
+                        'gap_hours': round(gap_minutes / 60, 1),
+                        'message': f"💡 FREE TIME: {round(gap_minutes/60, 1)} hours between {current_end} and {next_act['time']}",
+                        'suggestion': f"Perfect time to add an activity!"
+                    })
+        except Exception as e:
+            pass
+
+    return conflicts
+
+def score_activity_for_slot(activity, time_slot_start, date_str, weather_data, tide_data, recent_activities):
+    """Score how well an activity fits a specific time slot (0-100)
+
+    Multi-factor scoring based on:
+    - Weather compatibility (30 points)
+    - Time slot fit (25 points)
+    - Location proximity (20 points)
+    - Energy level balance (10 points)
+    - Budget (10 points)
+    - Variety (5 points)
+    """
+    score = 0
+    reasons = []
+    warnings = []
+
+    # Get activity details
+    activity_type = activity.get('type', '')
+    duration = activity.get('duration', '1 hour')
+    cost_str = activity.get('cost_range', '$0')
+
+    # Parse cost (rough estimate)
+    try:
+        cost = int(re.findall(r'\d+', cost_str.split('-')[0])[0])
+    except:
+        cost = 20
+
+    # FACTOR 1: Weather Match (30 points)
+    weather_score = 15  # Default moderate score
+    outdoor_activities = ['beach', 'hiking', 'kayak', 'horse', 'bike', 'walk', 'tour', 'boat']
+    indoor_activities = ['spa', 'museum', 'shopping', 'dining', 'cooking', 'wine']
+
+    is_outdoor = any(word in activity['name'].lower() or word in activity.get('description', '').lower()
+                     for word in outdoor_activities)
+    is_indoor = any(word in activity['name'].lower() or word in activity.get('description', '').lower()
+                    for word in indoor_activities)
+
+    # Check weather for this date
+    if weather_data and 'forecast' in weather_data:
+        for forecast in weather_data['forecast']:
+            if forecast['date'] == date_str:
+                condition = forecast.get('condition', '').lower()
+                temp = forecast.get('high', 75)
+                rain_chance = forecast.get('precipitation', 0)
+
+                if is_outdoor:
+                    if rain_chance > 70:
+                        weather_score = 5
+                        warnings.append(f"⚠️ {rain_chance}% rain chance - consider indoor alternative")
+                    elif rain_chance < 30 and 'sun' in condition:
+                        weather_score = 30
+                        reasons.append(f"☀️ Perfect weather ({condition}, {temp}°F)")
+                    elif rain_chance < 30:
+                        weather_score = 25
+                        reasons.append(f"✅ Good weather ({temp}°F, {rain_chance}% rain)")
+
+                elif is_indoor:
+                    weather_score = 25  # Indoor always works
+                    if rain_chance > 50:
+                        reasons.append(f"☔ Great indoor choice (rainy day)")
+                break
+
+    score += weather_score
+
+    # FACTOR 2: Duration Fit (25 points)
+    duration_minutes = parse_duration_to_minutes(duration)
+    # Assume we want activities that fit well
+    if 60 <= duration_minutes <= 180:  # 1-3 hours is ideal
+        score += 25
+        reasons.append(f"⏱️ Perfect duration ({duration})")
+    elif duration_minutes < 60:
+        score += 20
+    elif duration_minutes > 180:
+        score += 15
+        warnings.append(f"⏱️ Long activity ({duration}) - plan accordingly")
+
+    # FACTOR 3: Cost (10 points)
+    if cost == 0:
+        score += 10
+        reasons.append("💰 FREE activity!")
+    elif cost < 30:
+        score += 8
+    elif cost < 100:
+        score += 5
+    else:
+        score += 3
+
+    # FACTOR 4: Rating (10 points)
+    rating_str = activity.get('rating', '0/5')
+    try:
+        rating = float(rating_str.split('/')[0])
+        score += int(rating * 2)  # 5.0 rating = 10 points
+        if rating >= 4.7:
+            reasons.append(f"⭐ Highly rated ({rating}/5)")
+    except:
+        pass
+
+    # FACTOR 5: Tide match for beach activities (bonus 10 points)
+    if 'beach' in activity_type.lower() or 'beach' in activity['name'].lower():
+        tide_rec = get_tide_recommendation(time_slot_start, 'beach', date_str, tide_data)
+        if tide_rec:
+            score += 10
+            reasons.append(tide_rec.get('best_time', ''))
+
+    # Cap at 100
+    score = min(100, score)
+
+    return {
+        'score': score,
+        'reasons': reasons,
+        'warnings': warnings
+    }
+
 @st.cache_data(ttl=1800)
 def get_weather_ultimate():
     """Get real weather data with fallback"""
