@@ -1192,9 +1192,9 @@ def get_ultimate_trip_data():
                 "phone": "904-277-1100"
             },
             "status": "Confirmed",
-            "cost": 50,
+            "cost": 25,
             "category": "Dining",
-            "notes": "Quick lunch after airport pickup - either at hotel restaurant or nearby casual spot",
+            "notes": "Quick lunch after arriving at hotel - either at hotel restaurant or nearby casual spot. Going Dutch (each pays own meal).",
             "what_to_bring": [],
             "tips": ["Coast restaurant at hotel is convenient for breakfast/lunch", "Salt Life Food Shack nearby for casual beachfront", "Keep it light before boat tour"],
             "priority": 2
@@ -1214,9 +1214,9 @@ def get_ultimate_trip_data():
                 "phone": "904-753-7631"
             },
             "status": "URGENT",
-            "cost": 270,
+            "cost": 135,
             "category": "Activity",
-            "notes": "BOOK NOW! 2.5 hour eco tour - call 904-753-7631",
+            "notes": "BOOK FOR 2 PEOPLE ($270 total / $135 per person). John needs to opt-in. Each pays own share. Call 904-753-7631 to book.",
             "what_to_bring": ["Sunscreen SPF 50+", "Sunglasses", "Camera", "Water bottle", "Light jacket (can be windy)"],
             "tips": ["Best at golden hour", "Bring motion sickness meds if prone", "Wear non-slip shoes"],
             "priority": 1
@@ -1365,7 +1365,7 @@ def get_ultimate_trip_data():
             "id": "dep001",
             "date": "2025-11-11",
             "time": "8:20 AM",
-            "activity": "Drop John at Airport",
+            "activity": "John Departs to Airport (Uber)",
             "type": "transport",
             "location": {
                 "name": "Jacksonville International Airport (JAX)",
@@ -1377,7 +1377,7 @@ def get_ultimate_trip_data():
             "status": "Confirmed",
             "cost": 65,
             "category": "Transport",
-            "notes": "AA1586 to DCA departs 11:05 AM. Leave hotel 8:20am (45min drive) to arrive by 9:05am (2 hours before flight).",
+            "notes": "AA1586 to DCA departs 11:05 AM. John will take Uber from hotel at 8:20am (45min drive) to arrive by 9:05am (2 hours before flight).",
             "flight_number": "AA1586",
             "what_to_bring": ["ID", "Boarding pass"],
             "tips": ["Check traffic before leaving", "Allow 45 min drive", "Arrive 2 hours early for domestic flight"],
@@ -2085,14 +2085,16 @@ def get_traffic_data(origin, destination, departure_time=None):
     api_key = os.getenv('GOOGLE_MAPS_API_KEY', '')
 
     if not api_key:
-        # Return fallback data
+        # Return fallback data (typical/historical estimates)
         return {
             'distance': {'text': '45 miles', 'value': 72420},
             'duration': {'text': '45 mins', 'value': 2700},
             'duration_in_traffic': {'text': '45 mins', 'value': 2700},
-            'traffic_level': 'Unknown',
+            'traffic_level': 'Light',
+            'traffic_emoji': '🟢',
+            'delay_minutes': 0,
             'status': 'FALLBACK',
-            'message': 'Set GOOGLE_MAPS_API_KEY for real-time traffic'
+            'message': 'Typical drive time (Set GOOGLE_MAPS_API_KEY for live traffic)'
         }
 
     try:
@@ -2150,7 +2152,9 @@ def get_traffic_data(origin, destination, departure_time=None):
         'distance': {'text': '45 miles', 'value': 72420},
         'duration': {'text': '45 mins', 'value': 2700},
         'duration_in_traffic': {'text': '45 mins', 'value': 2700},
-        'traffic_level': 'Unknown',
+        'traffic_level': 'Light',
+        'traffic_emoji': '🟢',
+        'delay_minutes': 0,
         'status': 'ERROR',
         'message': 'Traffic data unavailable'
     }
@@ -5601,8 +5605,9 @@ def render_johns_page(df, activities_data, show_sensitive):
         st.metric("✈️ Flight Lands", f"Sat {flight_lands}", delta=f"Hotel ~{hotel_arrival}", delta_color="off")
     with col4:
         departure_activity = next((a for a in activities_data if a.get('id') == 'dep001'), None)
-        depart_time = departure_activity.get('flight_departure_time', '11:05 AM') if departure_activity else "11:05 AM"
-        st.metric("🛫 Flight Departs", f"Tue {depart_time}")
+        flight_departs = departure_activity.get('flight_departure_time', '11:05 AM') if departure_activity else "11:05 AM"
+        hotel_depart = departure_activity.get('time', '8:20 AM') if departure_activity else "8:20 AM"
+        st.metric("🛫 Flight Departs", f"Tue {flight_departs}", delta=f"Leave hotel ~{hotel_depart}", delta_color="off")
 
     # ============ YOUR FLIGHT & ARRIVAL ============
     st.markdown("---")
@@ -5779,15 +5784,62 @@ def render_johns_page(df, activities_data, show_sensitive):
                 </div>
                 """, unsafe_allow_html=True)
 
-    # ============ OPTIONAL SPA SERVICES FOR JOHN ============
+    # ============ OPTIONAL SERVICES & ACTIVITIES FOR JOHN ============
     st.markdown("---")
-    st.markdown("### 💆 Optional Services You Can Add")
-    st.markdown("These are spa treatments scheduled during Michael's spa time. You can opt-in if you'd like to book them for yourself!")
+    st.markdown("### 🎯 Optional Services & Activities")
+    st.markdown("These are spa treatments and shared activities you can opt into. Each person pays their own share.")
 
     # Load John's preferences
     john_prefs = load_john_preferences()
 
+    # Get shared activities that need opt-in (like Backwater Cat Tour)
+    shared_activities_needing_optin = [a for a in johns_activities if a.get('id') == 'act001']  # Backwater Cat Tour
+
+    # Show shared activities first
+    if shared_activities_needing_optin:
+        st.markdown("#### 🚤 Shared Activities (Each Pays Own Share)")
+        for activity in shared_activities_needing_optin:
+            activity_id = activity.get('id', '')
+            pref_key = f"activity_opt_in_{activity_id}"
+            current_status = john_prefs.get(pref_key, "not_decided")
+
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.markdown(f"""
+                <div class="ultimate-card" style="margin-bottom: 1rem; border-left: 4px solid #2196f3;">
+                    <div class="card-body">
+                        <h4 style="margin: 0 0 0.5rem 0;">{activity['activity']}</h4>
+                        <p style="margin: 0.25rem 0;"><strong>⏰</strong> {activity['time']} • {activity.get('duration', 'N/A')}</p>
+                        <p style="margin: 0.25rem 0;"><strong>💰</strong> ${activity.get('cost', 'TBD')} per person (you pay your half)</p>
+                        <p style="margin: 0.25rem 0;"><strong>📍</strong> {activity['location'].get('name', 'N/A')}</p>
+                        <p style="margin: 0.25rem 0;"><strong>📞</strong> {activity['location'].get('phone', 'N/A')}</p>
+                        <p style="margin: 0.5rem 0; font-style: italic; font-size: 0.9rem;">{activity.get('notes', '')}</p>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+            with col2:
+                st.markdown("<br>", unsafe_allow_html=True)
+                if st.button(f"✅ Count Me In!", key=f"opt_in_{activity_id}", use_container_width=True):
+                    save_john_preference(pref_key, "interested")
+                    st.success("Great! You're in!")
+                    st.rerun()
+
+                if st.button(f"❌ Not for Me", key=f"opt_out_{activity_id}", use_container_width=True):
+                    save_john_preference(pref_key, "not_interested")
+                    st.info("Noted!")
+                    st.rerun()
+
+                # Show current status
+                if current_status == "interested":
+                    st.markdown("✅ **You're In!**")
+                elif current_status == "not_interested":
+                    st.markdown("❌ **Not interested**")
+                else:
+                    st.markdown("❓ **Decide later**")
+
     # Get Michael's solo spa treatments
+    st.markdown("#### 💆 Optional Spa Services (During Michael's Spa Time)")
     michaels_solo_spa = [a for a in johns_activities if a['type'] == 'spa' and 'Couples' not in a.get('activity', '')]
 
     if michaels_solo_spa:
