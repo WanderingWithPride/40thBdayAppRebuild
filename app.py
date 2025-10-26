@@ -5180,12 +5180,13 @@ def render_johns_page(df, activities_data, show_sensitive):
         st.metric("🏨 Hotel Nights", "3 nights")
     with col3:
         arrival_activity = next((a for a in activities_data if a.get('id') == 'arr002'), None)
-        arrival_time = arrival_activity['estimated_hotel_arrival'] if arrival_activity else "12:00 PM"
-        st.metric("✈️ You Arrive", f"Sat {arrival_time}")
+        flight_lands = arrival_activity.get('estimated_flight_arrival', '10:40 AM') if arrival_activity else "10:40 AM"
+        hotel_arrival = arrival_activity.get('estimated_hotel_arrival', '12:00 PM') if arrival_activity else "12:00 PM"
+        st.metric("✈️ Flight Lands", f"Sat {flight_lands}", delta=f"Hotel ~{hotel_arrival}", delta_color="off")
     with col4:
         departure_activity = next((a for a in activities_data if a.get('id') == 'dep001'), None)
-        depart_time = departure_activity['flight_departure_time'] if departure_activity else "11:05 AM"
-        st.metric("🛫 You Depart", f"Tue {depart_time}")
+        depart_time = departure_activity.get('flight_departure_time', '11:05 AM') if departure_activity else "11:05 AM"
+        st.metric("🛫 Flight Departs", f"Tue {depart_time}")
 
     # ============ YOUR FLIGHT & ARRIVAL ============
     st.markdown("---")
@@ -5266,12 +5267,18 @@ def render_johns_page(df, activities_data, show_sensitive):
                 is_john_activity = False
                 activity_note = ""
 
+                # Check if it's a couples spa activity
+                is_couples_spa = activity['type'] == 'spa' and 'Couples' in activity.get('activity', '')
+
                 if activity['type'] in ['transport', 'dining']:
                     is_john_activity = True
                     activity_note = "✅ Included"
                 elif activity['type'] == 'activity' or activity['type'] == 'beach':
                     is_john_activity = True
                     activity_note = "🎯 Shared Activity"
+                elif is_couples_spa:
+                    is_john_activity = True
+                    activity_note = "✅ Included - Already Covered"
                 elif activity['type'] == 'spa':
                     activity_note = "💆 Michael's Spa Time (Your Free Time!)"
 
@@ -5288,7 +5295,11 @@ def render_johns_page(df, activities_data, show_sensitive):
 
                 # Clean up notes for John's view
                 activity_notes = activity.get('notes', '')
-                if activity['type'] == 'spa':
+                if is_couples_spa:
+                    # For couples massage, replace payment language
+                    activity_notes = activity_notes.replace('YOU\'RE PAYING for both ($245 each = $490 total)', 'Included - already covered for both of you')
+                    activity_notes = activity_notes.replace('YOU\'RE PAYING', 'Included - already covered')
+                elif activity['type'] == 'spa':
                     # Replace confusing language in spa notes - remove entire optional phrases
                     activity_notes = activity_notes.replace('John can pay for this if he wants (OR he can relax at pool/beach while you\'re getting pampered). ', '')
                     activity_notes = activity_notes.replace('John can pay for this if he wants (OR he can relax at pool/beach). ', '')
@@ -5327,6 +5338,56 @@ def render_johns_page(df, activities_data, show_sensitive):
                     <strong>💡 Free Time Ideas:</strong> While Michael is at the spa, enjoy the pool, hot tub, beach, or book your own spa treatment below!
                 </div>
                 """, unsafe_allow_html=True)
+
+    # ============ OPTIONAL SPA SERVICES FOR JOHN ============
+    st.markdown("---")
+    st.markdown("### 💆 Optional Services You Can Add")
+    st.markdown("These are spa treatments scheduled during Michael's spa time. You can opt-in if you'd like to book them for yourself!")
+
+    # Load John's preferences
+    john_prefs = load_john_preferences()
+
+    # Get Michael's solo spa treatments
+    michaels_solo_spa = [a for a in johns_activities if a['type'] == 'spa' and 'Couples' not in a.get('activity', '')]
+
+    if michaels_solo_spa:
+        for spa_activity in michaels_solo_spa:
+            spa_id = spa_activity.get('id', '')
+            pref_key = f"spa_opt_in_{spa_id}"
+            current_status = john_prefs.get(pref_key, "not_decided")
+
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.markdown(f"""
+                <div class="ultimate-card" style="margin-bottom: 1rem;">
+                    <div class="card-body">
+                        <h4 style="margin: 0 0 0.5rem 0;">{spa_activity['activity'].replace('(for you)', '').replace('(For You)', '').strip()}</h4>
+                        <p style="margin: 0.25rem 0;"><strong>⏰</strong> {spa_activity['time']} • {spa_activity.get('duration', 'N/A')}</p>
+                        <p style="margin: 0.25rem 0;"><strong>💰</strong> ${spa_activity.get('cost', 'TBD')} (at your own expense)</p>
+                        <p style="margin: 0.25rem 0;"><strong>📞</strong> {spa_activity['location'].get('phone', '904-277-1087')}</p>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+            with col2:
+                st.markdown("<br>", unsafe_allow_html=True)
+                if st.button(f"✅ I'm Interested", key=f"opt_in_{spa_id}", use_container_width=True):
+                    save_john_preference(pref_key, "interested")
+                    st.success("Marked as interested!")
+                    st.rerun()
+
+                if st.button(f"❌ Not for Me", key=f"opt_out_{spa_id}", use_container_width=True):
+                    save_john_preference(pref_key, "not_interested")
+                    st.info("Marked as not interested")
+                    st.rerun()
+
+                # Show current status
+                if current_status == "interested":
+                    st.markdown("✅ **Interested**")
+                elif current_status == "not_interested":
+                    st.markdown("❌ **Not interested**")
+                else:
+                    st.markdown("❓ **Not decided**")
 
     # ============ THINGS TO DO (FREE TIME) ============
     st.markdown("---")
