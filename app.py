@@ -1847,6 +1847,148 @@ def add_activity_to_schedule(activity_name, activity_description, selected_day, 
 
     return True
 
+def auto_fill_meals(meal_gaps, weather_data):
+    """Automatically fill missing meals with smart restaurant recommendations
+
+    Args:
+        meal_gaps: List of missing meal gaps from detect_meal_gaps()
+        weather_data: Weather data for smart recommendations
+
+    Returns:
+        List of activities that were added
+    """
+    # Get dining options
+    optional_activities = get_optional_activities()
+    dining_options = optional_activities.get('🍽️ Fine Dining', []) + \
+                     optional_activities.get('🍽️ Casual Dining', []) + \
+                     optional_activities.get('🥞 Breakfast & Brunch', [])
+
+    added_activities = []
+
+    for gap in meal_gaps:
+        # Find best restaurant for this meal
+        meal_type = gap['meal_type']
+        date_str = gap['date']
+        suggested_time = gap['suggested_time']
+
+        # Filter restaurants by meal type
+        if meal_type == 'breakfast':
+            candidates = [r for r in dining_options if 'breakfast' in r.get('name', '').lower() or 'brunch' in r.get('name', '').lower()]
+            if not candidates:
+                candidates = [r for r in dining_options if 'cafe' in r.get('name', '').lower() or 'coffee' in r.get('name', '').lower()]
+        elif meal_type == 'lunch':
+            candidates = [r for r in dining_options if 'casual' in r.get('description', '').lower() or 'lunch' in r.get('description', '').lower()]
+            if not candidates:
+                candidates = dining_options[:10]  # First 10 as fallback
+        elif meal_type == 'dinner':
+            candidates = [r for r in dining_options if 'dinner' in r.get('description', '').lower() or 'fine' in r.get('description', '').lower()]
+            if not candidates:
+                candidates = dining_options[:10]
+
+        if not candidates:
+            candidates = dining_options
+
+        # Score each candidate
+        best_restaurant = None
+        best_score = 0
+
+        for restaurant in candidates:
+            score = 0
+
+            # Rating score (40 points)
+            rating_str = restaurant.get('rating', '0/5')
+            try:
+                rating = float(rating_str.split('/')[0])
+                score += int(rating * 8)  # 5.0 = 40 points
+            except:
+                pass
+
+            # Cost appropriateness (30 points)
+            cost_str = restaurant.get('cost_range', '$0')
+            try:
+                cost = int(re.findall(r'\d+', cost_str.split('-')[0])[0])
+                if meal_type == 'breakfast' and cost < 20:
+                    score += 30
+                elif meal_type == 'lunch' and cost < 40:
+                    score += 30
+                elif meal_type == 'dinner' and cost >= 40:
+                    score += 30
+                else:
+                    score += 15
+            except:
+                score += 15
+
+            # Weather appropriateness (30 points)
+            if weather_data and 'forecast' in weather_data:
+                for forecast in weather_data['forecast']:
+                    if forecast['date'] == date_str:
+                        rain_chance = forecast.get('precipitation', 0)
+                        # Indoor restaurants better in rain
+                        if rain_chance > 50:
+                            score += 30
+                        else:
+                            # Outdoor seating nice in good weather
+                            if 'outdoor' in restaurant.get('description', '').lower() or 'patio' in restaurant.get('description', '').lower():
+                                score += 30
+                            else:
+                                score += 20
+                        break
+
+            if score > best_score:
+                best_score = score
+                best_restaurant = restaurant
+
+        # Add the meal to schedule
+        if best_restaurant:
+            # Convert day name
+            day_to_date = {
+                "2025-11-07": "Friday, Nov 7",
+                "2025-11-08": "Saturday, Nov 8",
+                "2025-11-09": "Sunday, Nov 9",
+                "2025-11-10": "Monday, Nov 10",
+                "2025-11-11": "Tuesday, Nov 11",
+                "2025-11-12": "Wednesday, Nov 12"
+            }
+
+            selected_day = day_to_date.get(date_str)
+
+            # Extract cost
+            cost = 0
+            cost_str = best_restaurant.get('cost_range', '$0')
+            try:
+                cost = int(re.findall(r'\d+', cost_str.split('-')[0])[0])
+            except:
+                cost = 0
+
+            # Determine duration based on meal type
+            duration = "1 hour"
+            if meal_type == 'breakfast':
+                duration = "45 minutes"
+            elif meal_type == 'dinner':
+                duration = "1.5 hours"
+
+            # Add to schedule
+            success = add_activity_to_schedule(
+                activity_name=f"{meal_type.title()} at {best_restaurant['name']}",
+                activity_description=best_restaurant.get('description', ''),
+                selected_day=selected_day,
+                selected_time=suggested_time,
+                duration=duration,
+                activity_type='dining',
+                cost=cost,
+                location_name=best_restaurant.get('name', 'TBD')
+            )
+
+            if success:
+                added_activities.append({
+                    'meal_type': meal_type,
+                    'restaurant': best_restaurant['name'],
+                    'day': gap['day_name'],
+                    'time': suggested_time
+                })
+
+    return added_activities
+
 @st.cache_data(ttl=1800)
 def get_weather_ultimate():
     """Get real weather data with fallback"""
@@ -2828,6 +2970,24 @@ def render_full_schedule(df, activities_data, show_sensitive):
                 st.warning(f"**🍽️ {len(meal_gaps)} Missing Meals**")
                 for gap in meal_gaps[:5]:  # Show first 5
                     st.markdown(f"• {gap['day_name']}: {gap['meal_type'].title()} at {gap['suggested_time']}")
+
+                # Auto-fill button
+                if st.button("🤖 Auto-Fill All Missing Meals", use_container_width=True, type="primary"):
+                    with st.spinner("🍽️ AI selecting best restaurants for missing meals..."):
+                        added = auto_fill_meals(meal_gaps, weather_data)
+
+                        if added:
+                            st.success(f"✅ Added {len(added)} meals to your schedule!")
+                            st.balloons()
+
+                            # Show what was added
+                            for meal in added:
+                                st.markdown(f"• **{meal['meal_type'].title()}** on {meal['day']} at {meal['time']}: {meal['restaurant']}")
+
+                            st.info("💡 Scroll down to see your updated schedule with new meals!")
+                            st.rerun()
+                        else:
+                            st.error("❌ Failed to add meals. Please try adding manually.")
             else:
                 st.success("✅ All meals scheduled!")
 
