@@ -1716,18 +1716,34 @@ def get_optional_activities():
             {"name": "Birdwatching Tours", "description": "Naturalist-led birdwatching experiences", "cost_range": "FREE (hotel guests)", "duration": "1-2 hours", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Bring binoculars if you have them", "rating": "4.8/5"},
             {"name": "Ecology Field Trips", "description": "Customizable nature experiences tailored to your interests", "cost_range": "Varies", "duration": "2-3 hours", "phone": "904-277-1100", "booking_url": "N/A", "tips": "New program! Can customize to specific interests like marine life, birds, plants, etc.", "rating": "4.9/5"},
         ],
-        "🏊 Resort Pools, Beach & Free Activities": [
-            {"name": "Two Resort Pools", "description": "Multiple pools including one with kids splash pad", "cost_range": "FREE (hotel guests)", "duration": "All day", "phone": "N/A", "booking_url": "N/A", "tips": "Kids splash pad is perfect for little ones!", "rating": "4.9/5"},
+        "🏖️ Casual Beach & Free Activities (Anytime!)": [
+            {"name": "Beach Walk/Stroll", "description": "Leisurely walk along the beautiful Amelia Island shoreline - can be done anytime", "cost_range": "FREE", "duration": "30min-2 hours", "phone": "N/A", "booking_url": "N/A", "tips": "1.5 miles of private beach! Perfect morning, afternoon, or evening activity. Repeatable!", "rating": "5.0/5", "is_repeatable": True},
+            {"name": "Sunrise Viewing", "description": "Watch the sun rise over the Atlantic Ocean - magical start to your day", "cost_range": "FREE", "duration": "30-45 minutes", "phone": "N/A", "booking_url": "N/A", "tips": "Sunrise ~6:45am in November. Bring coffee and camera. Best spot: east-facing beach", "rating": "5.0/5", "is_repeatable": True},
+            {"name": "Sunset Viewing", "description": "Watch gorgeous sunset from the shore with changing colors across the sky", "cost_range": "FREE", "duration": "30-60 minutes", "phone": "N/A", "booking_url": "N/A", "tips": "Sunset ~5:30pm in November. Bring camera and beach blanket. Best spot: west side or pier", "rating": "5.0/5", "is_repeatable": True},
+            {"name": "Seashell Hunting", "description": "Search for unique shells, sand dollars, starfish, and sea glass treasures", "cost_range": "FREE", "duration": "1-2 hours", "phone": "N/A", "booking_url": "N/A", "tips": "BEST at low tide! Early morning has most finds. Bring a bag. Check tide times in app!", "rating": "4.9/5", "is_repeatable": True},
+            {"name": "Tide Pool Exploring", "description": "Discover crabs, small fish, and marine life in shallow tide pools at low tide", "cost_range": "FREE", "duration": "1-1.5 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Only accessible at LOW tide - check tide times! Fort Clinch has best tide pools", "rating": "4.8/5", "is_repeatable": True},
+            {"name": "Beach Photography", "description": "Capture amazing photos - sunrise, sunset, wildlife, landscapes, or fun candids", "cost_range": "FREE", "duration": "30min-2 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Golden hour (sunrise/sunset) for best light. Try Big Talbot's driftwood beach!", "rating": "5.0/5", "is_repeatable": True},
+            {"name": "Beach Reading & Relaxing", "description": "Read a book, journal, or simply relax in a beach chair with ocean sounds", "cost_range": "FREE", "duration": "1-3 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Chairs & umbrellas provided at Ritz. Bring sunscreen and water. So peaceful!", "rating": "5.0/5", "is_repeatable": True},
+            {"name": "Cloud Watching", "description": "Lay back and watch clouds drift by - meditative and fun", "cost_range": "FREE", "duration": "30min-1 hour", "phone": "N/A", "booking_url": "N/A", "tips": "Best on partly cloudy days. Bring beach blanket. Great for clearing your mind!", "rating": "4.5/5", "is_repeatable": True},
+            {"name": "Beach Picnic", "description": "Pack snacks or lunch and enjoy a meal on the beach", "cost_range": "Cost of food", "duration": "1-2 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Pick up food from hotel or nearby shops. Bring blanket and drinks. Watch for birds!", "rating": "4.8/5", "is_repeatable": True},
+            {"name": "Sandcastle Building", "description": "Build creative sandcastles, sculptures, or beach art", "cost_range": "FREE", "duration": "1-2 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Best when sand is slightly damp. Buckets available at hotel. Fun & creative!", "rating": "4.6/5", "is_repeatable": True},
+            {"name": "Beach Meditation/Yoga", "description": "Practice meditation or do your own yoga session on the beach", "cost_range": "FREE", "duration": "20-45 minutes", "phone": "N/A", "booking_url": "N/A", "tips": "Early morning is quietest. Ocean sounds are perfect for meditation. Bring mat!", "rating": "4.9/5", "is_repeatable": True},
+            {"name": "Bird Watching from Beach", "description": "Spot pelicans, seagulls, sandpipers, herons, and seasonal migratory birds", "cost_range": "FREE", "duration": "30min-1.5 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Bring binoculars if you have them. Early morning or late afternoon best", "rating": "4.7/5", "is_repeatable": True},
+            {"name": "Beach Journaling", "description": "Write in a journal, reflect on your trip, or capture memories", "cost_range": "FREE", "duration": "30min-1 hour", "phone": "N/A", "booking_url": "N/A", "tips": "Bring notebook and pen. Beach chair + ocean = perfect journaling spot!", "rating": "4.7/5", "is_repeatable": True},
+            {"name": "Collect Driftwood", "description": "Find interesting driftwood pieces for souvenirs or decor", "cost_range": "FREE", "duration": "30min-1 hour", "phone": "N/A", "booking_url": "N/A", "tips": "Big Talbot Island has incredible driftwood beach! Best for unique pieces", "rating": "4.6/5", "is_repeatable": True},
+            {"name": "Watch Dolphins from Shore", "description": "Spot dolphins swimming past the beach - often visible from shore!", "cost_range": "FREE", "duration": "30min-1 hour", "phone": "N/A", "booking_url": "N/A", "tips": "Look for fins in the water. Morning and late afternoon best. Be patient!", "rating": "4.8/5", "is_repeatable": True},
+        ],
+        "🏊 Resort Pools & Hotel Activities": [
+            {"name": "Two Resort Pools", "description": "Multiple pools including one with kids splash pad", "cost_range": "FREE (hotel guests)", "duration": "All day", "phone": "N/A", "booking_url": "N/A", "tips": "Kids splash pad is perfect for little ones!", "rating": "4.9/5", "is_repeatable": True},
             {"name": "Private Beach Cabanas", "description": "Reserve private poolside or beachside cabanas for ultimate luxury", "cost_range": "Varies (call for pricing)", "duration": "Half day or full day", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Book early - these go fast! Includes shade, seating, and service", "rating": "5.0/5"},
-            {"name": "1.5 Miles Private Beach Access", "description": "Exclusive access to pristine private beaches with summer service", "cost_range": "FREE (hotel guests)", "duration": "All day", "phone": "N/A", "booking_url": "N/A", "tips": "Beach chairs and umbrellas provided in summer season", "rating": "5.0/5"},
-            {"name": "Resort Pool Day", "description": "Relax at multiple Ritz-Carlton pools and hot tubs", "cost_range": "FREE (hotel guests)", "duration": "2-4 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Reserve a cabana for ultimate luxury relaxation", "rating": "4.8/5"},
-            {"name": "Beach Sunset Viewing", "description": "Watch gorgeous sunset from the shore", "cost_range": "FREE", "duration": "30-60 minutes", "phone": "N/A", "booking_url": "N/A", "tips": "Check sunset time, bring camera and beach blanket", "rating": "5.0/5"},
+            {"name": "1.5 Miles Private Beach Access", "description": "Exclusive access to pristine private beaches with summer service", "cost_range": "FREE (hotel guests)", "duration": "All day", "phone": "N/A", "booking_url": "N/A", "tips": "Beach chairs and umbrellas provided in summer season", "rating": "5.0/5", "is_repeatable": True},
+            {"name": "Resort Pool Day", "description": "Relax at multiple Ritz-Carlton pools and hot tubs", "cost_range": "FREE (hotel guests)", "duration": "2-4 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Reserve a cabana for ultimate luxury relaxation", "rating": "4.8/5", "is_repeatable": True},
+            {"name": "Hot Tub Relaxation", "description": "Unwind in resort hot tubs with ocean views", "cost_range": "FREE (hotel guests)", "duration": "30min-1 hour", "phone": "N/A", "booking_url": "N/A", "tips": "Perfect after activities or before dinner. Very relaxing!", "rating": "4.9/5", "is_repeatable": True},
             {"name": "Yoga on the Beach", "description": "Morning yoga classes on the beach at resort", "cost_range": "$20-35", "duration": "1 hour", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Hotel offers classes, check schedule", "rating": "4.6/5"},
             {"name": "Beach Bonfires", "description": "Private or group beach bonfire with s'mores", "cost_range": "$150-300", "duration": "2 hours", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Perfect for special celebrations, book ahead", "rating": "4.9/5"},
-            {"name": "Fitness Center Access", "description": "State-of-the-art gym with ocean views", "cost_range": "FREE (hotel guests)", "duration": "Flexible", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Open 24/7, personal trainers available", "rating": "4.7/5"},
-            {"name": "FREE Bike Rentals", "description": "Complimentary bicycle rentals through fitness center", "cost_range": "FREE (hotel guests)", "duration": "By hour or full day", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Bike paths nearby, great for exploring the island!", "rating": "4.8/5"},
-            {"name": "Beach Volleyball", "description": "Courts available at resort and Main Beach Park", "cost_range": "FREE", "duration": "1-2 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Bring your own equipment or join pickup games", "rating": "4.4/5"},
-            {"name": "Shelling & Beach Combing", "description": "Search for shells, sand dollars, and sea glass", "cost_range": "FREE", "duration": "1-2 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Best at low tide, early morning for best finds", "rating": "4.6/5"},
+            {"name": "Fitness Center Access", "description": "State-of-the-art gym with ocean views", "cost_range": "FREE (hotel guests)", "duration": "Flexible", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Open 24/7, personal trainers available", "rating": "4.7/5", "is_repeatable": True},
+            {"name": "FREE Bike Rentals", "description": "Complimentary bicycle rentals through fitness center", "cost_range": "FREE (hotel guests)", "duration": "By hour or full day", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Bike paths nearby, great for exploring the island!", "rating": "4.8/5", "is_repeatable": True},
+            {"name": "Beach Volleyball", "description": "Courts available at resort and Main Beach Park", "cost_range": "FREE", "duration": "1-2 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Bring your own equipment or join pickup games", "rating": "4.4/5", "is_repeatable": True},
         ],
         "🎾 Ritz-Carlton Tennis & Pickleball": [
             {"name": "Patrick Mouratoglou Signature Tennis Center", "description": "World-renowned coach's signature tennis center with newly renovated clay courts", "cost_range": "Court fees + optional lessons", "duration": "By hour", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Training camps, private lessons, and retreats available", "rating": "5.0/5"},
@@ -2540,6 +2556,145 @@ def score_activity_for_slot(activity, time_slot_start, date_str, weather_data, t
         'reasons': reasons,
         'warnings': warnings
     }
+
+def get_smart_duration_default(activity_name, activity_type='activity'):
+    """Get smart default duration for an activity based on its name and type
+
+    Returns:
+        String like "2 hours" or "45 minutes"
+    """
+    activity_lower = activity_name.lower()
+
+    # Quick activities (15-30 min)
+    if any(word in activity_lower for word in ['coffee', 'ice cream', 'fudge', 'bagel']):
+        return "30 minutes"
+
+    # Short activities (45min-1hr)
+    if any(word in activity_lower for word in ['sunrise', 'sunset', 'cloud watch', 'meditation', 'journal']):
+        return "45 minutes"
+
+    # Medium activities (1-2 hours)
+    if any(word in activity_lower for word in ['walk', 'stroll', 'read', 'relax', 'photography', 'beach', 'pool', 'seashell', 'tide pool', 'bird watch', 'driftwood', 'dolphin']):
+        return "1.5 hours"
+
+    # Dining
+    if activity_type in ['dining', 'Dining']:
+        if 'breakfast' in activity_lower or 'brunch' in activity_lower:
+            return "1.5 hours"
+        elif 'fine dining' in activity_lower or 'dinner' in activity_lower:
+            return "2 hours"
+        else:
+            return "1 hour"
+
+    # Spa
+    if activity_type in ['spa', 'Spa'] or 'massage' in activity_lower or 'facial' in activity_lower:
+        if 'couple' in activity_lower:
+            return "2 hours"
+        else:
+            return "1 hour"
+
+    # Activities/Adventures
+    if any(word in activity_lower for word in ['tour', 'kayak', 'paddleboard', 'horseback', 'segway', 'golf', 'tennis', 'hike', 'fishing']):
+        return "3 hours"
+
+    # Default
+    return "2 hours"
+
+
+def check_time_conflict(new_date, new_time_str, new_duration, existing_activities):
+    """Check if a new activity conflicts with existing scheduled activities
+
+    Args:
+        new_date: Date string like "2025-11-07"
+        new_time_str: Time string like "10:00 AM"
+        new_duration: Duration string like "2 hours" or "90 minutes"
+        existing_activities: List of already scheduled activities
+
+    Returns:
+        tuple: (has_conflict: bool, conflicting_activity: dict or None)
+    """
+    from datetime import datetime, timedelta
+
+    # Parse new activity time
+    try:
+        new_time = datetime.strptime(new_time_str, "%I:%M %p")
+    except:
+        try:
+            new_time = datetime.strptime(new_time_str, "%H:%M")
+        except:
+            return (False, None)  # Can't parse time, skip conflict check
+
+    # Parse new activity duration
+    try:
+        if 'hour' in new_duration.lower():
+            hours = float(new_duration.lower().split('hour')[0].strip())
+            new_end_time = new_time + timedelta(hours=hours)
+        elif 'min' in new_duration.lower():
+            minutes = int(new_duration.lower().split('min')[0].strip())
+            new_end_time = new_time + timedelta(minutes=minutes)
+        else:
+            new_end_time = new_time + timedelta(hours=2)  # Default 2 hours
+    except:
+        new_end_time = new_time + timedelta(hours=2)  # Default 2 hours
+
+    # Check against existing activities on same date
+    for activity in existing_activities:
+        if activity['date'] != new_date:
+            continue
+
+        # Parse existing activity time
+        try:
+            existing_time = datetime.strptime(activity['time'], "%I:%M %p")
+        except:
+            try:
+                existing_time = datetime.strptime(activity['time'], "%H:%M")
+            except:
+                continue  # Can't parse, skip
+
+        # Parse existing activity duration
+        existing_duration = activity.get('duration', '2 hours')
+        try:
+            if 'hour' in existing_duration.lower():
+                hours = float(existing_duration.lower().split('hour')[0].strip())
+                existing_end_time = existing_time + timedelta(hours=hours)
+            elif 'min' in existing_duration.lower():
+                minutes = int(existing_duration.lower().split('min')[0].strip())
+                existing_end_time = existing_time + timedelta(minutes=minutes)
+            else:
+                existing_end_time = existing_time + timedelta(hours=2)
+        except:
+            existing_end_time = existing_time + timedelta(hours=2)
+
+        # Check for overlap
+        # Conflict if: new starts before existing ends AND new ends after existing starts
+        if new_time < existing_end_time and new_end_time > existing_time:
+            return (True, activity)
+
+    return (False, None)
+
+
+def is_activity_already_scheduled(activity_name, activities_data):
+    """Check if a unique activity is already in the schedule
+
+    Args:
+        activity_name: Name of the activity to check
+        activities_data: List of all scheduled activities
+
+    Returns:
+        bool: True if activity is already scheduled
+    """
+    # Normalize name for comparison
+    activity_name_lower = activity_name.lower()
+
+    for activity in activities_data:
+        scheduled_name_lower = activity['activity'].lower()
+
+        # Check for exact or very similar match
+        if activity_name_lower in scheduled_name_lower or scheduled_name_lower in activity_name_lower:
+            return True
+
+    return False
+
 
 def add_activity_to_schedule(activity_name, activity_description, selected_day, selected_time, duration, activity_type='activity', cost=0, location_name='TBD'):
     """Add a custom activity to the user's schedule
