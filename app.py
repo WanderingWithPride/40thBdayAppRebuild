@@ -653,7 +653,7 @@ def get_ultimate_trip_data():
         {
             "id": "arr001",
             "date": "2025-11-07",
-            "time": "18:01",
+            "time": "6:01 PM",
             "activity": "Arrival at Jacksonville",
             "type": "transport",
             "location": {
@@ -675,7 +675,7 @@ def get_ultimate_trip_data():
         {
             "id": "arr002",
             "date": "2025-11-08",
-            "time": "10:40",
+            "time": "10:40 AM",
             "activity": "John Arrives at JAX",
             "type": "transport",
             "location": {
@@ -692,14 +692,14 @@ def get_ultimate_trip_data():
             "flight_number": "AA1585",
             "what_to_bring": ["Track flight on FlightAware", "Phone charged for coordination"],
             "tips": ["Leave hotel by 10:00am to arrive on time", "Text when boarding/landing", "Account for traffic on A1A", "Plan lunch after arrival at hotel"],
-            "estimated_pickup_time": "11:15",
-            "estimated_hotel_arrival": "12:00",
+            "estimated_pickup_time": "11:15 AM",
+            "estimated_hotel_arrival": "12:00 PM",
             "priority": 3
         },
         {
             "id": "arr002b",
             "date": "2025-11-08",
-            "time": "12:00",
+            "time": "12:00 PM",
             "activity": "Back at Hotel + Lunch",
             "type": "dining",
             "location": {
@@ -720,7 +720,7 @@ def get_ultimate_trip_data():
         {
             "id": "act001",
             "date": "2025-11-08",
-            "time": "15:30",
+            "time": "3:30 PM",
             "activity": "Backwater Cat Tour",
             "type": "activity",
             "location": {
@@ -741,7 +741,7 @@ def get_ultimate_trip_data():
         {
             "id": "spa001",
             "date": "2025-11-09",
-            "time": "10:00",
+            "time": "10:00 AM",
             "activity": "Heaven in a Hammock Massage",
             "type": "spa",
             "location": {
@@ -764,7 +764,7 @@ def get_ultimate_trip_data():
         {
             "id": "spa002",
             "date": "2025-11-09",
-            "time": "12:00",
+            "time": "12:00 PM",
             "activity": "HydraFacial Treatment",
             "type": "spa",
             "location": {
@@ -786,7 +786,7 @@ def get_ultimate_trip_data():
         {
             "id": "din001",
             "date": "2025-11-09",
-            "time": "19:00",
+            "time": "7:00 PM",
             "activity": "40th Birthday Dinner",
             "type": "dining",
             "location": {
@@ -809,7 +809,7 @@ def get_ultimate_trip_data():
         {
             "id": "bch001",
             "date": "2025-11-10",
-            "time": "10:00",
+            "time": "10:00 AM",
             "activity": "Beach Day",
             "type": "beach",
             "location": {
@@ -830,7 +830,7 @@ def get_ultimate_trip_data():
         {
             "id": "din002",
             "date": "2025-11-10",
-            "time": "18:00",
+            "time": "6:00 PM",
             "activity": "Casual Dinner",
             "type": "dining",
             "location": {
@@ -853,7 +853,7 @@ def get_ultimate_trip_data():
         {
             "id": "dep001",
             "date": "2025-11-11",
-            "time": "11:05",
+            "time": "11:05 AM",
             "activity": "John Departs",
             "type": "transport",
             "location": {
@@ -875,7 +875,7 @@ def get_ultimate_trip_data():
         {
             "id": "dep002",
             "date": "2025-11-12",
-            "time": "14:39",
+            "time": "2:39 PM",
             "activity": "Your Departure",
             "type": "transport",
             "location": {
