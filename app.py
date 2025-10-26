@@ -2324,6 +2324,246 @@ def get_weather_ultimate():
         "source": "Sample Data (Set OPENWEATHER_API_KEY for real data)"
     }
 
+@st.cache_data(ttl=1800)  # Cache for 30 minutes
+def get_flight_status(flight_number, flight_date):
+    """Get live flight status from AviationStack API
+
+    Args:
+        flight_number: Flight number like "AA2434"
+        flight_date: Date string like "2025-11-07"
+
+    Returns:
+        Dict with flight status, delays, gate info, or fallback data
+    """
+    api_key = os.getenv('AVIATIONSTACK_API_KEY', '')
+
+    if api_key:
+        try:
+            url = f"http://api.aviationstack.com/v1/flights?access_key={api_key}&flight_iata={flight_number}&flight_date={flight_date}"
+            resp = requests.get(url, timeout=10)
+
+            if resp.status_code == 200:
+                data = resp.json()
+                if data.get('data') and len(data['data']) > 0:
+                    flight = data['data'][0]
+
+                    departure = flight.get('departure', {})
+                    arrival = flight.get('arrival', {})
+
+                    return {
+                        'flight_number': flight_number,
+                        'status': flight.get('flight_status', 'scheduled'),
+                        'departure': {
+                            'airport': departure.get('airport', 'N/A'),
+                            'scheduled': departure.get('scheduled', 'N/A'),
+                            'actual': departure.get('actual'),
+                            'delay': departure.get('delay', 0),
+                            'terminal': departure.get('terminal'),
+                            'gate': departure.get('gate')
+                        },
+                        'arrival': {
+                            'airport': arrival.get('airport', 'N/A'),
+                            'scheduled': arrival.get('scheduled', 'N/A'),
+                            'actual': arrival.get('actual'),
+                            'delay': arrival.get('delay', 0),
+                            'terminal': arrival.get('terminal'),
+                            'gate': arrival.get('gate')
+                        },
+                        'live': True,
+                        'source': 'AviationStack API'
+                    }
+        except Exception as e:
+            print(f"Flight API error: {e}")
+
+    # Fallback data for your flights
+    fallback_flights = {
+        'AA2434': {
+            'flight_number': 'AA2434',
+            'status': 'scheduled',
+            'departure': {
+                'airport': 'DCA (Washington Reagan)',
+                'scheduled': '3:51 PM',
+                'actual': None,
+                'delay': 0,
+                'terminal': 'B',
+                'gate': 'TBD'
+            },
+            'arrival': {
+                'airport': 'JAX (Jacksonville)',
+                'scheduled': '6:01 PM',
+                'actual': None,
+                'delay': 0,
+                'terminal': 'Main',
+                'gate': 'TBD'
+            },
+            'live': False,
+            'source': 'Static Schedule (Set AVIATIONSTACK_API_KEY for live tracking)'
+        },
+        'AA1585': {
+            'flight_number': 'AA1585',
+            'status': 'scheduled',
+            'departure': {
+                'airport': 'DCA (Washington Reagan)',
+                'scheduled': '8:50 AM',
+                'actual': None,
+                'delay': 0,
+                'terminal': 'B',
+                'gate': 'TBD'
+            },
+            'arrival': {
+                'airport': 'JAX (Jacksonville)',
+                'scheduled': '10:40 AM',
+                'actual': None,
+                'delay': 0,
+                'terminal': 'Main',
+                'gate': 'TBD'
+            },
+            'live': False,
+            'source': 'Static Schedule (Set AVIATIONSTACK_API_KEY for live tracking)'
+        },
+        'AA1586': {
+            'flight_number': 'AA1586',
+            'status': 'scheduled',
+            'departure': {
+                'airport': 'JAX (Jacksonville)',
+                'scheduled': '11:05 AM',
+                'actual': None,
+                'delay': 0,
+                'terminal': 'Main',
+                'gate': 'TBD'
+            },
+            'arrival': {
+                'airport': 'DCA (Washington Reagan)',
+                'scheduled': '12:50 PM',
+                'actual': None,
+                'delay': 0,
+                'terminal': 'B',
+                'gate': 'TBD'
+            },
+            'live': False,
+            'source': 'Static Schedule (Set AVIATIONSTACK_API_KEY for live tracking)'
+        },
+        'AA5590': {
+            'flight_number': 'AA5590',
+            'status': 'scheduled',
+            'departure': {
+                'airport': 'JAX (Jacksonville)',
+                'scheduled': '2:39 PM',
+                'actual': None,
+                'delay': 0,
+                'terminal': 'Main',
+                'gate': 'TBD'
+            },
+            'arrival': {
+                'airport': 'DCA (Washington Reagan)',
+                'scheduled': '4:25 PM',
+                'actual': None,
+                'delay': 0,
+                'terminal': 'B',
+                'gate': 'TBD'
+            },
+            'live': False,
+            'source': 'Static Schedule (Set AVIATIONSTACK_API_KEY for live tracking)'
+        }
+    }
+
+    return fallback_flights.get(flight_number, {
+        'flight_number': flight_number,
+        'status': 'unknown',
+        'departure': {},
+        'arrival': {},
+        'live': False,
+        'source': 'No data available'
+    })
+
+@st.cache_data(ttl=600)  # Cache for 10 minutes (traffic changes frequently)
+def get_travel_time(origin_lat, origin_lon, dest_lat, dest_lon, departure_time=None):
+    """Get live travel time with traffic from OpenRouteService API
+
+    Args:
+        origin_lat, origin_lon: Starting point coordinates
+        dest_lat, dest_lon: Destination coordinates
+        departure_time: Optional datetime for traffic prediction
+
+    Returns:
+        Dict with duration in minutes, distance, traffic status
+    """
+    api_key = os.getenv('OPENROUTESERVICE_API_KEY', '')
+
+    if api_key:
+        try:
+            url = "https://api.openrouteservice.org/v2/directions/driving-car"
+
+            headers = {
+                'Authorization': api_key,
+                'Content-Type': 'application/json'
+            }
+
+            body = {
+                'coordinates': [[origin_lon, origin_lat], [dest_lon, dest_lat]],
+                'preference': 'recommended',  # Considers traffic
+                'units': 'mi'
+            }
+
+            resp = requests.post(url, json=body, headers=headers, timeout=10)
+
+            if resp.status_code == 200:
+                data = resp.json()
+                if data.get('routes') and len(data['routes']) > 0:
+                    route = data['routes'][0]
+                    summary = route.get('summary', {})
+
+                    duration_minutes = summary.get('duration', 0) / 60
+                    distance_miles = summary.get('distance', 0) / 1609.34  # meters to miles
+
+                    # Determine traffic level based on duration
+                    base_duration = distance_miles * 1.5  # Rough estimate: 40mph average
+                    traffic_ratio = duration_minutes / base_duration if base_duration > 0 else 1.0
+
+                    if traffic_ratio > 1.5:
+                        traffic_status = 'heavy'
+                    elif traffic_ratio > 1.2:
+                        traffic_status = 'moderate'
+                    else:
+                        traffic_status = 'light'
+
+                    return {
+                        'duration_minutes': round(duration_minutes),
+                        'distance_miles': round(distance_miles, 1),
+                        'traffic_status': traffic_status,
+                        'live': True,
+                        'source': 'OpenRouteService API with live traffic'
+                    }
+        except Exception as e:
+            print(f"Traffic API error: {e}")
+
+    # Fallback: Calculate simple distance-based estimate
+    from math import radians, sin, cos, sqrt, atan2
+
+    # Haversine formula for distance
+    R = 3959  # Earth radius in miles
+
+    lat1, lon1 = radians(origin_lat), radians(origin_lon)
+    lat2, lon2 = radians(dest_lat), radians(dest_lon)
+
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1-a))
+    distance_miles = R * c
+
+    # Estimate duration at 35 mph average (conservative)
+    duration_minutes = (distance_miles / 35) * 60
+
+    return {
+        'duration_minutes': round(duration_minutes),
+        'distance_miles': round(distance_miles, 1),
+        'traffic_status': 'unknown',
+        'live': False,
+        'source': 'Distance estimate (Set OPENROUTESERVICE_API_KEY for live traffic)'
+    }
+
 def get_weather_emoji(condition):
     """Get emoji for weather condition"""
     condition_lower = condition.lower()
@@ -3335,6 +3575,72 @@ def render_full_schedule(df, activities_data, show_sensitive):
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
+
+                # ✈️ FLIGHT STATUS INTEGRATION (for transport activities with flight numbers)
+                if activity.get('type') == 'transport' and activity.get('flight_number'):
+                    flight_info = get_flight_status(activity['flight_number'], activity['date'])
+
+                    if flight_info:
+                        # Determine status color
+                        status_emoji = "✅"
+                        status_color = "#4caf50"
+                        if flight_info.get('status') == 'delayed':
+                            status_emoji = "⚠️"
+                            status_color = "#ff9800"
+                        elif flight_info.get('status') == 'cancelled':
+                            status_emoji = "❌"
+                            status_color = "#f44336"
+
+                        delay_info = ""
+                        if flight_info.get('departure', {}).get('delay', 0) > 0:
+                            delay_info = f"<span style='color: #ff9800; font-weight: bold;'>+{flight_info['departure']['delay']} min delay</span>"
+
+                        st.markdown(f"""
+                        <div style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 1rem; border-radius: 8px; border-left: 4px solid {status_color}; margin: 0.5rem 0;">
+                            <p style="margin: 0; font-weight: bold; color: #1976d2;">{status_emoji} Flight Status: {flight_info.get('status', 'unknown').upper()}</p>
+                            <p style="margin: 0.5rem 0;">
+                                <strong>Departure:</strong> {flight_info.get('departure', {}).get('airport', 'N/A')} at {flight_info.get('departure', {}).get('scheduled', 'N/A')}
+                                {f" → {flight_info['departure'].get('actual', 'TBD')}" if flight_info.get('departure', {}).get('actual') else ''}
+                                {delay_info}
+                            </p>
+                            <p style="margin: 0.5rem 0;">
+                                <strong>Arrival:</strong> {flight_info.get('arrival', {}).get('airport', 'N/A')} at {flight_info.get('arrival', {}).get('scheduled', 'N/A')}
+                                {f" → {flight_info['arrival'].get('actual', 'TBD')}" if flight_info.get('arrival', {}).get('actual') else ''}
+                            </p>
+                            {f"<p style='margin: 0.5rem 0;'><strong>Gate:</strong> {flight_info.get('departure', {}).get('gate', 'TBD')} | <strong>Terminal:</strong> {flight_info.get('departure', {}).get('terminal', 'TBD')}</p>" if flight_info.get('departure', {}).get('gate') or flight_info.get('departure', {}).get('terminal') else ''}
+                            <p style="margin: 0.5rem 0 0 0; font-size: 0.85rem; opacity: 0.8;">📡 {flight_info.get('source', 'Unknown source')}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+
+                # 🚗 TRAFFIC INTEGRATION (for transport activities going to/from airport)
+                if activity.get('type') == 'transport' and ('airport' in activity['activity'].lower() or 'drop' in activity['activity'].lower() or 'leave hotel' in activity['activity'].lower()):
+                    # Hotel coordinates
+                    hotel_lat, hotel_lon = 30.6074, -81.4493
+                    # JAX Airport coordinates
+                    airport_lat, airport_lon = 30.4941, -81.6879
+
+                    traffic_info = get_travel_time(hotel_lat, hotel_lon, airport_lat, airport_lon)
+
+                    if traffic_info:
+                        # Determine traffic color
+                        traffic_color = "#4caf50"  # green
+                        traffic_emoji = "🟢"
+                        if traffic_info.get('traffic_status') == 'moderate':
+                            traffic_color = "#ff9800"
+                            traffic_emoji = "🟡"
+                        elif traffic_info.get('traffic_status') == 'heavy':
+                            traffic_color = "#f44336"
+                            traffic_emoji = "🔴"
+
+                        st.markdown(f"""
+                        <div style="background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); padding: 1rem; border-radius: 8px; border-left: 4px solid {traffic_color}; margin: 0.5rem 0;">
+                            <p style="margin: 0; font-weight: bold; color: #e65100;">{traffic_emoji} Current Traffic: {traffic_info.get('traffic_status', 'unknown').upper()}</p>
+                            <p style="margin: 0.5rem 0;">
+                                <strong>Drive Time:</strong> {traffic_info.get('duration_minutes', 'N/A')} minutes ({traffic_info.get('distance_miles', 'N/A')} miles)
+                            </p>
+                            <p style="margin: 0.5rem 0 0 0; font-size: 0.85rem; opacity: 0.8;">🚗 {traffic_info.get('source', 'Unknown source')}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
 
                 # Display additional details (dress code, what to bring, tips) below the card
                 if activity.get('dress_code'):
