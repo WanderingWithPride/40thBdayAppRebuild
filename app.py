@@ -1145,7 +1145,7 @@ def get_ultimate_trip_data():
             "id": "spa001",
             "date": "2025-11-09",
             "time": "10:00 AM",
-            "activity": "Heaven in a Hammock Massage",
+            "activity": "Heaven in a Hammock Massage (Couples)",
             "type": "spa",
             "duration": "1.5 hours",
             "location": {
@@ -1153,23 +1153,23 @@ def get_ultimate_trip_data():
                 "address": "4750 Amelia Island Parkway",
                 "lat": 30.6074,
                 "lon": -81.4493,
-                "phone": "904-277-1100"
+                "phone": "904-277-1087"
             },
             "status": "URGENT",
-            "cost": 245,
+            "cost": 490,
             "category": "Spa",
-            "notes": "BIRTHDAY SPA DAY! Couples beachside massage - book ASAP",
-            "what_to_bring": ["Arrive 15 min early", "Robe provided", "Clean feet"],
-            "tips": ["Hydrate before", "Communicate pressure preferences", "No heavy meal before"],
-            "dress_code": "Spa attire provided",
-            "booking_url": "https://www.ritzcarlton.com/en/hotels/ameliarc/spa",
+            "notes": "🎉 BIRTHDAY SPA DAY! Couples beachside massage in swaying hammocks - YOU'RE PAYING for both ($245 each = $490 total). Call 904-277-1087 to book ASAP! Arrive 30 min early to enjoy saltwater pool. Signature treatment!",
+            "what_to_bring": ["Arrive 30 min early for saltwater pool", "Spa robes provided", "Bring swimsuit for pool", "Camera for beach setup"],
+            "tips": ["Hydrate well before", "Communicate pressure preferences", "No heavy meal 2 hrs before", "Most unique massage experience!", "Literally on the beach with ocean sounds"],
+            "dress_code": "Spa attire provided - they give you everything",
+            "booking_url": "https://www.ritzcarlton.com/en/hotels/jaxam-the-ritz-carlton-amelia-island/spa/",
             "priority": 1
         },
         {
             "id": "spa002",
             "date": "2025-11-09",
             "time": "12:00 PM",
-            "activity": "HydraFacial Treatment",
+            "activity": "HydraFacial Treatment (for you)",
             "type": "spa",
             "duration": "1 hour",
             "location": {
@@ -1177,15 +1177,38 @@ def get_ultimate_trip_data():
                 "address": "4750 Amelia Island Parkway",
                 "lat": 30.6074,
                 "lon": -81.4493,
-                "phone": "904-277-1100"
+                "phone": "904-277-1087"
             },
             "status": "URGENT",
             "cost": 195,
             "category": "Spa",
-            "notes": "Advanced facial - book with massage for package deal",
-            "what_to_bring": ["Clean face (no makeup)", "Hair tie", "Empty stomach OK"],
-            "tips": ["Ask about serums for your skin type", "Great for pre-dinner glow"],
-            "booking_url": "https://www.ritzcarlton.com/en/hotels/ameliarc/spa",
+            "notes": "Advanced HydraFacial for glowing skin - perfect before birthday dinner! John can pay for this if he wants (OR he can relax at pool/beach). Call 904-277-1087 to book.",
+            "what_to_bring": ["Clean face (no makeup)", "Hair tie if needed", "Arrive on time from massage"],
+            "tips": ["Immediate results - perfect timing before dinner!", "Ask about serums for your skin type", "Hydrating and gentle"],
+            "booking_url": "https://www.ritzcarlton.com/en/hotels/jaxam-the-ritz-carlton-amelia-island/spa/",
+            "priority": 1
+        },
+        {
+            "id": "spa003",
+            "date": "2025-11-09",
+            "time": "1:30 PM",
+            "activity": "Mani-Pedi Combo (for you)",
+            "type": "spa",
+            "duration": "2 hours",
+            "location": {
+                "name": "Ritz-Carlton Spa",
+                "address": "4750 Amelia Island Parkway",
+                "lat": 30.6074,
+                "lon": -81.4493,
+                "phone": "904-277-1087"
+            },
+            "status": "URGENT",
+            "cost": 150,
+            "category": "Spa",
+            "notes": "Complete mani-pedi combo with everything! John can pay for this if he wants (OR he can relax at pool/beach while you're getting pampered). Call 904-277-1087 to book. Perfect timing after facial!",
+            "what_to_bring": ["Flip flops", "Let nails dry before dinner prep", "Choose neutral or birthday colors!"],
+            "tips": ["Includes sugar scrub and paraffin treatment", "Takes about 2 hours total", "Perfect for birthday photos!", "Schedule gives you time before getting ready for dinner at 7pm"],
+            "booking_url": "https://www.ritzcarlton.com/en/hotels/jaxam-the-ritz-carlton-amelia-island/spa/",
             "priority": 1
         },
         {
