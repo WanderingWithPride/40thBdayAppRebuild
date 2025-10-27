@@ -3134,7 +3134,7 @@ def render_budget_widget(activities_data, show_sensitive=True, view_mode='michae
 <div>
 <strong>Top Category:</strong><br>
 <span style="font-size: 1.0rem;">{budget_data['categories'][0][0] if budget_data['categories'] else 'N/A'}</span><br>
-<span style="font-size: 0.9rem; color: #666;">${budget_data['categories'][0][1]:,.0f}</span>
+<span style="font-size: 0.9rem; color: #666;">{'$' + str(int(budget_data['categories'][0][1])) if budget_data['categories'] else '$0'}</span>
 </div>
 </div>
 </div>
