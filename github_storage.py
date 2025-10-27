@@ -16,10 +16,23 @@ GITHUB_REPO = "40thBdayAppRebuild"
 GITHUB_DATA_PATH = "data/trip_data.json"
 
 # Get GitHub token from Streamlit secrets (cloud) or environment variable (local)
+GITHUB_TOKEN = None
 try:
-    GITHUB_TOKEN = st.secrets.get("GITHUB_TOKEN", None)
-except:
+    # Try Streamlit secrets first (for Streamlit Cloud)
+    if hasattr(st, 'secrets'):
+        GITHUB_TOKEN = st.secrets.get("GITHUB_TOKEN", None)
+        if GITHUB_TOKEN:
+            print(f"✅ GitHub token loaded from st.secrets (length: {len(GITHUB_TOKEN)})")
+except Exception as e:
+    print(f"⚠️ Could not load from st.secrets: {e}")
+
+# Fallback to environment variable (for local development)
+if not GITHUB_TOKEN:
     GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
+    if GITHUB_TOKEN:
+        print(f"✅ GitHub token loaded from environment variable")
+    else:
+        print(f"❌ No GitHub token found in secrets or environment")
 
 # Local fallback
 LOCAL_DATA_FILE = "trip_data_local.json"
