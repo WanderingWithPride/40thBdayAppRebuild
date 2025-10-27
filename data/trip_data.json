@@ -251,6 +251,48 @@
       "submitted_by": "Michael",
       "created_at": "2025-10-27T21:15:41.879173",
       "updated_at": "2025-10-27T21:15:41.879181"
+    },
+    "tue_breakfast": {
+      "meal_id": "tue_breakfast",
+      "restaurant_options": [
+        {
+          "name": "Nana Teresa's Bake Shop",
+          "description": "Fresh baked goods, pastries, coffee, and breakfast items",
+          "cost_range": "$5-12",
+          "duration": "30min",
+          "phone": "904-206-0133",
+          "booking_url": "N/A",
+          "tips": "Early morning opening, perfect for breakfast treats",
+          "rating": "4.7/5"
+        },
+        {
+          "name": "First Drop Coffee",
+          "description": "Ritz-Carlton coffee shop with espresso, specialty drinks, and light bites",
+          "cost_range": "$5-10",
+          "duration": "15-30min",
+          "phone": "904-277-1100",
+          "booking_url": "N/A",
+          "tips": "Open 7am-7pm daily, convenient for hotel guests",
+          "rating": "4.6/5"
+        },
+        {
+          "name": "Mocama Coffee",
+          "description": "Premium espressos, drips, pour-overs with state-of-the-art equipment, under same roof as Mocama Beer Company",
+          "cost_range": "$4-8",
+          "duration": "20-30min",
+          "phone": "904-310-3749",
+          "booking_url": "N/A",
+          "tips": "Coffee by day, beer by night at same location",
+          "rating": "4.7/5"
+        }
+      ],
+      "status": "proposed",
+      "john_vote": null,
+      "final_choice": null,
+      "meal_time": null,
+      "submitted_by": "Michael",
+      "created_at": "2025-10-27T21:16:01.315404",
+      "updated_at": "2025-10-27T21:16:01.315411"
     }
   },
   "activity_proposals": {},
@@ -265,5 +307,5 @@
   "completed_activities": [],
   "notifications": [],
   "tsa_updates": [],
-  "last_updated": "2025-10-27T21:15:41.879192"
+  "last_updated": "2025-10-27T21:16:01.315420"
 }
