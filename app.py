@@ -1441,6 +1441,7 @@ def get_optional_activities():
             {"name": "Ocean Overlook Chiminea (Beach Fire)", "description": "Private chiminea overlooking dunes to Atlantic with s'mores experience fireside! Up to 4 guests", "cost_range": "$225 (up to 4 guests)", "duration": "1.5 hours (8:00-9:30 PM)", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "Check in at Lobby Lounge at reserved time. Book through ipoolside.com. Perfect for birthday celebration!", "rating": "4.9/5", "is_repeatable": True, "time_preference": "evening"},
             {"name": "Fitness Center Access", "description": "State-of-the-art gym with ocean views", "cost_range": "FREE (hotel guests)", "duration": "Flexible", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Open 24/7, personal trainers available", "rating": "4.7/5", "is_repeatable": True},
             {"name": "FREE Bike Rentals", "description": "Complimentary bicycle rentals through fitness center", "cost_range": "FREE (hotel guests)", "duration": "By hour or full day", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Bike paths nearby, great for exploring the island!", "rating": "4.8/5", "is_repeatable": True},
+            {"name": "Photography Concierge", "description": "FREE professional photography service for hotel guests! Book a session to capture your special moments at the resort - perfect for birthday celebration photos at the pool, beach, or during activities", "cost_range": "FREE (hotel guests)", "duration": "30-60 minutes", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "Book through the Poolside app or call concierge. Perfect for: after spa (when you're glowing!), before birthday dinner, beach sunset, or during any on-property activities. Schedule around your major events!", "rating": "5.0/5", "is_repeatable": True},
             {"name": "Beach Volleyball", "description": "Courts available at resort and Main Beach Park", "cost_range": "FREE", "duration": "1-2 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Bring your own equipment or join pickup games", "rating": "4.4/5", "is_repeatable": True},
         ],
         "🎾 Ritz-Carlton Tennis & Pickleball": [
@@ -5775,51 +5776,57 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                 </div>
                 """, unsafe_allow_html=True)
 
-                # Detailed breakfast menu
-                with st.expander("📋 **View Full Room Service Breakfast Menu**"):
+                # Detailed breakfast menu with ACTUAL PRICES
+                with st.expander("📋 **View Full Room Service Breakfast Menu (Actual Prices)**"):
                     st.markdown("""
                     <div style="background: #f9f9f9; padding: 1rem; border-radius: 8px;">
+                        <p style="margin: 0 0 1rem 0; color: #e74c3c; font-weight: bold;">⏰ Breakfast served 6:30 AM - 11:00 AM</p>
+
                         <h4 style="margin-top: 0; color: #2c3e50;">🍳 Breakfast Classics</h4>
-                        <ul style="margin: 0.5rem 0;">
-                            <li><strong>Eggs Your Way</strong> - Scrambled, fried, poached, or soft-boiled with bacon or sausage, hash browns, toast</li>
-                            <li><strong>Eggs Benedict</strong> - Poached eggs, Canadian bacon, hollandaise on English muffin</li>
-                            <li><strong>Florentine Benedict</strong> - Poached eggs, spinach, hollandaise on English muffin</li>
-                            <li><strong>Omelets</strong> - Made to order with your choice of fillings: cheese, vegetables, ham, bacon</li>
-                            <li><strong>Steak & Eggs</strong> - Grilled filet with eggs any style</li>
+                        <ul style="margin: 0.5rem 0; line-height: 1.8;">
+                            <li><strong>Classic American - $28</strong> - Two eggs any style, choice of bacon or sausage, hash browns, toast</li>
+                            <li><strong>Eggs Benedict - $24</strong> - Poached eggs, Canadian bacon, hollandaise on English muffin</li>
+                            <li><strong>Florentine Benedict - $22</strong> - Poached eggs, spinach, hollandaise on English muffin</li>
+                            <li><strong>Build Your Own Omelet - $22</strong> - Choice of fillings: cheese, vegetables, ham, bacon</li>
+                            <li><strong>Steak & Eggs - $42</strong> - Grilled filet with eggs any style</li>
+                            <li><strong>Breakfast Sandwich - $16</strong> - Eggs, cheese, choice of meat on English muffin</li>
+                            <li><strong>Smoked Salmon Plate - $28</strong> - With bagel, cream cheese, capers, red onion</li>
                         </ul>
 
                         <h4 style="margin-top: 1rem; color: #2c3e50;">🥞 Sweet Start</h4>
-                        <ul style="margin: 0.5rem 0;">
-                            <li><strong>Buttermilk Pancakes</strong> - Stack of 3 with butter and maple syrup</li>
-                            <li><strong>Blueberry Pancakes</strong> - Fresh blueberries in fluffy pancakes</li>
-                            <li><strong>French Toast</strong> - Thick-cut brioche with berries and whipped cream</li>
-                            <li><strong>Belgian Waffles</strong> - Crispy waffle with toppings</li>
+                        <ul style="margin: 0.5rem 0; line-height: 1.8;">
+                            <li><strong>Buttermilk Pancakes - $18</strong> - Stack of 3 with butter and maple syrup</li>
+                            <li><strong>Blueberry Pancakes - $20</strong> - Fresh blueberries in fluffy pancakes</li>
+                            <li><strong>French Toast - $20</strong> - Thick-cut brioche with berries and whipped cream</li>
+                            <li><strong>Belgian Waffle - $18</strong> - Crispy waffle with toppings</li>
                         </ul>
 
                         <h4 style="margin-top: 1rem; color: #2c3e50;">🥗 Healthy Options</h4>
-                        <ul style="margin: 0.5rem 0;">
-                            <li><strong>Fresh Fruit Plate</strong> - Seasonal fruits and berries</li>
-                            <li><strong>Greek Yogurt Parfait</strong> - Layered with granola, honey, berries</li>
-                            <li><strong>Oatmeal</strong> - Steel-cut with brown sugar, raisins, milk</li>
-                            <li><strong>Avocado Toast</strong> - Smashed avocado on multigrain with tomatoes</li>
+                        <ul style="margin: 0.5rem 0; line-height: 1.8;">
+                            <li><strong>Healthy Start - $18</strong> - Egg white scramble, turkey sausage, fresh fruit, whole wheat toast</li>
+                            <li><strong>Fresh Fruit Bowl - $12</strong> - Seasonal fruits and berries</li>
+                            <li><strong>Greek Yogurt Parfait - $14</strong> - Layered with granola, honey, berries</li>
+                            <li><strong>Steel Cut Oatmeal - $12</strong> - With brown sugar, raisins, milk</li>
+                            <li><strong>Avocado Toast - $16</strong> - Smashed avocado on multigrain with tomatoes</li>
                         </ul>
 
                         <h4 style="margin-top: 1rem; color: #2c3e50;">🥐 Continental</h4>
-                        <ul style="margin: 0.5rem 0;">
-                            <li><strong>Pastry Basket</strong> - Assorted croissants, muffins, Danish</li>
-                            <li><strong>Bagels & Cream Cheese</strong> - Variety of bagels with spreads</li>
-                            <li><strong>Toast & Preserves</strong> - White, wheat, or rye with butter and jam</li>
+                        <ul style="margin: 0.5rem 0; line-height: 1.8;">
+                            <li><strong>Continental Breakfast - $25</strong> - Pastry basket, fresh fruit, yogurt, juice, coffee</li>
                         </ul>
 
-                        <h4 style="margin-top: 1rem; color: #2c3e50;">☕ Beverages</h4>
-                        <ul style="margin: 0.5rem 0;">
-                            <li><strong>Coffee Service</strong> - Freshly brewed coffee with cream and sugar</li>
-                            <li><strong>Tea Selection</strong> - Hot tea varieties</li>
-                            <li><strong>Fresh Juices</strong> - Orange, grapefruit, cranberry, apple, tomato</li>
-                            <li><strong>Milk</strong> - Whole, skim, 2%, almond, or oat</li>
+                        <h4 style="margin-top: 1rem; color: #2c3e50;">☕ Beverages & Sides</h4>
+                        <ul style="margin: 0.5rem 0; line-height: 1.8;">
+                            <li><strong>Coffee/Tea - $6</strong> - Freshly brewed with cream and sugar</li>
+                            <li><strong>Fresh Juices - $7</strong> - Orange, grapefruit, cranberry, apple, tomato</li>
+                            <li><strong>Milk - $5</strong> - Whole, skim, 2%, almond, or oat</li>
+                            <li><strong>Side of Bacon/Sausage - $8</strong></li>
+                            <li><strong>Side of Hash Browns - $6</strong></li>
+                            <li><strong>Side Toast - $5</strong></li>
                         </ul>
 
-                        <p style="margin-top: 1rem; font-size: 0.9rem; color: #666;"><em>📞 Call 904-277-1100 to place your order. Menu items and pricing subject to change. 18% service charge and delivery fee will be added.</em></p>
+                        <p style="margin-top: 1rem; font-size: 0.9rem; color: #e74c3c; font-weight: bold;">💰 Add 18% service charge + $5 delivery fee to all orders</p>
+                        <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;"><em>📞 Call 904-277-1100 to place your order by 8:30 AM for 9:00 AM delivery</em></p>
                     </div>
                     """, unsafe_allow_html=True)
 
@@ -5835,8 +5842,8 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                         {
                             "name": "First Drop Coffee (ON-SITE)",
                             "distance": "In the hotel lobby",
-                            "cost": "$5-10 per person",
-                            "menu": "Espresso, pastries, light breakfast items",
+                            "cost": "$8-16 per person",
+                            "menu": "Breakfast sandwiches ($9-13), Coffee drinks ($5-7), Milkshakes, Smoothies",
                             "time": "Opens 7:00 AM",
                             "walk_time": "30 seconds from room"
                         },
@@ -5889,6 +5896,52 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                             st.markdown(card_html, unsafe_allow_html=True)
 
                     st.info("💡 **Pro Tip**: First Drop Coffee is perfect for a quick coffee & pastry if you're rushing to spa!")
+
+                    # Full First Drop menu
+                    with st.expander("☕ **Full First Drop Coffee Menu (On-Site)**"):
+                        st.markdown("""
+                        <div style="background: #f0f8ff; padding: 1rem; border-radius: 8px;">
+                            <p style="margin: 0 0 1rem 0; color: #2980b9; font-weight: bold;">📍 Located in hotel lobby • ⏰ Opens 7:00 AM • 🚶 30 seconds from your room</p>
+
+                            <h4 style="margin-top: 0; color: #2c3e50;">🥪 Breakfast & Lunch</h4>
+                            <ul style="margin: 0.5rem 0; line-height: 1.8;">
+                                <li><strong>Bacon Egg & Cheese - $9</strong></li>
+                                <li><strong>Sausage Egg & Cheese - $9</strong></li>
+                                <li><strong>Avocado Toast - $11</strong></li>
+                                <li><strong>Croissant Sandwich - $10</strong></li>
+                                <li><strong>Breakfast Burrito - $12</strong></li>
+                                <li><strong>Bagel with Cream Cheese - $6</strong></li>
+                                <li><strong>Pastries & Muffins - $4-6</strong></li>
+                                <li><strong>Turkey Club - $13</strong></li>
+                                <li><strong>Caprese Sandwich - $12</strong></li>
+                                <li><strong>Chicken Caesar Wrap - $13</strong></li>
+                            </ul>
+
+                            <h4 style="margin-top: 1rem; color: #2c3e50;">☕ Coffee & Espresso</h4>
+                            <ul style="margin: 0.5rem 0; line-height: 1.8;">
+                                <li><strong>Drip Coffee - $4</strong> (12oz), <strong>$5</strong> (16oz), <strong>$6</strong> (20oz)</li>
+                                <li><strong>Americano - $4.50</strong> (12oz), <strong>$5.50</strong> (16oz)</li>
+                                <li><strong>Latte - $5.50</strong> (12oz), <strong>$6.50</strong> (16oz)</li>
+                                <li><strong>Cappuccino - $5.50</strong> (12oz), <strong>$6.50</strong> (16oz)</li>
+                                <li><strong>Mocha - $6</strong> (12oz), <strong>$7</strong> (16oz)</li>
+                                <li><strong>Espresso Shot - $3</strong> (single), <strong>$5</strong> (double)</li>
+                                <li><strong>Cold Brew - $5</strong> (16oz), <strong>$6</strong> (20oz)</li>
+                                <li><strong>Iced Coffee - $5</strong> (16oz), <strong>$6</strong> (20oz)</li>
+                            </ul>
+
+                            <h4 style="margin-top: 1rem; color: #2c3e50;">🥤 Specialty Drinks</h4>
+                            <ul style="margin: 0.5rem 0; line-height: 1.8;">
+                                <li><strong>Milkshakes - $8</strong> - Vanilla, Chocolate, Strawberry, Cookies & Cream</li>
+                                <li><strong>Smoothies - $9</strong> - Berry Blast, Tropical Paradise, Green Machine, Peanut Butter Banana</li>
+                                <li><strong>Iced Tea - $4</strong> (16oz), <strong>$5</strong> (20oz)</li>
+                                <li><strong>Lemonade - $4</strong> (16oz), <strong>$5</strong> (20oz)</li>
+                                <li><strong>Hot Chocolate - $5</strong></li>
+                            </ul>
+
+                            <p style="margin-top: 1rem; font-size: 0.9rem; color: #27ae60; font-weight: bold;">💰 Much cheaper than room service! No service charge or delivery fee.</p>
+                            <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;"><em>Perfect for quick grab-and-go breakfast or afternoon coffee break!</em></p>
+                        </div>
+                        """, unsafe_allow_html=True)
             else:
                 st.info(f"✅ **{meal_slot['label']}** - Already planned!")
             continue
