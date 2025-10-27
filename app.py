@@ -6186,14 +6186,39 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                             safe_name = html.escape(restaurant['name'])
                             safe_desc = html.escape(restaurant.get('description', 'Great dining option'))
                             safe_cost = html.escape(restaurant.get('cost_range', 'N/A'))
-                            safe_dress = html.escape(rest_details.get('dress_code', 'Casual'))
+                            dress_code_raw = rest_details.get('dress_code', 'Casual')
+                            safe_dress = html.escape(dress_code_raw)
+
+                            # Dress code definitions for hover tooltips
+                            dress_code_definitions = {
+                                "Resort Elegant": "Dressy resort wear - Collared shirts, slacks, dresses, skirts. Jackets optional. NO shorts, t-shirts, flip-flops, or athletic wear.",
+                                "Business Casual": "Collared shirts, slacks, khakis, dresses, skirts. NO shorts, t-shirts, flip-flops, or overly casual wear.",
+                                "Smart Casual": "Neat, polished casual - Nice jeans OK, collared shirts, blouses, dress shoes. Avoid athletic wear and flip-flops.",
+                                "Resort Casual": "Relaxed resort wear - Nice shorts OK, polo shirts, sundresses, sandals. Clean and put-together but comfortable.",
+                                "Casual": "Comfortable everyday wear - Jeans, t-shirts, shorts, casual dresses, sandals all fine.",
+                                "Very Casual": "Any comfortable clothing - Beach attire, athletic wear, flip-flops all welcome.",
+                                "Beachwear/Casual": "Beach-friendly casual - Swimsuit cover-ups, shorts, tank tops, flip-flops all perfectly fine.",
+                                "Any": "No dress code - Wear whatever makes you comfortable!"
+                            }
+
+                            # Find matching dress code definition
+                            dress_tooltip = dress_code_definitions.get(dress_code_raw, "Dress comfortably and appropriately for the venue.")
+                            # For complex dress codes with parentheticals, try to match the base
+                            if dress_tooltip == "Dress comfortably and appropriately for the venue.":
+                                for key in dress_code_definitions:
+                                    if key in dress_code_raw:
+                                        dress_tooltip = dress_code_definitions[key]
+                                        break
+
+                            # Escape tooltip for HTML
+                            safe_dress_tooltip = html.escape(dress_tooltip)
 
                             # Get rating
                             rating = restaurant.get('rating', 'N/A')
 
-                            # Check for outdoor seating
+                            # Check for outdoor seating (only shown if weather is good - 75°F in November!)
                             has_outdoor = rest_details.get('outdoor_seating', False)
-                            outdoor_icon = "🌤️ Outdoor seating" if has_outdoor else ""
+                            outdoor_icon = "🌤️ Outdoor seating (perfect 75° weather!)" if has_outdoor else ""
 
                             # Build links
                             website_url = restaurant.get('booking_url', 'N/A')
@@ -6221,7 +6246,7 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
 <p style="margin: 0.3rem 0; font-size: 0.85rem; color: #ff9800;"><strong>⭐ {rating}</strong></p>
 <p style="margin: 0.5rem 0; font-size: 0.9rem; color: #666;">{safe_desc}</p>
 <p style="margin: 0.5rem 0;"><strong>💰</strong> {safe_cost}</p>
-<p style="margin: 0.5rem 0;"><strong>👔</strong> {safe_dress}</p>
+<p style="margin: 0.5rem 0; cursor: help;" title="{safe_dress_tooltip}"><strong>👔</strong> {safe_dress} <span style="font-size: 0.75rem; color: #999;">ⓘ</span></p>
 {f'<p style="margin: 0.5rem 0; font-size: 0.85rem; color: #2196f3;">{outdoor_icon}</p>' if has_outdoor else ''}
 <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #eee;">
 {links_html}
