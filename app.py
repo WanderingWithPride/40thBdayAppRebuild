@@ -6273,6 +6273,26 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
     # Define activity time slots with smart timeline awareness
     activity_slots = [
         {
+            "id": "fri_evening",
+            "label": "Friday Evening (Nov 7) - 👤 Michael Solo",
+            "date": "2025-11-07",
+            "time": "Evening",
+            "actual_availability": "6:00 PM - 10:00 PM",
+            "timeline": "Arrival → Check-in → Dinner → Free evening",
+            "notes": "👤 SOLO TIME - John hasn't arrived yet!",
+            "smart_tip": "First night solo! Options: Explore hotel, beach sunset walk, dinner at hotel, or rest after travel."
+        },
+        {
+            "id": "sat_morning",
+            "label": "Saturday Morning (Nov 8) - 👤 Michael Solo",
+            "date": "2025-11-08",
+            "time": "Morning",
+            "actual_availability": "8:00 AM - 12:00 PM",
+            "timeline": "Breakfast → Free morning until John arrives at 12:00 PM",
+            "notes": "👤 SOLO TIME - John arrives at noon! Plan breakfast solo, then activities after he arrives.",
+            "smart_tip": "~4 hours solo before John arrives. Perfect for: Sunrise beach walk, hotel breakfast, pool, or exploring grounds."
+        },
+        {
             "id": "sat_afternoon",
             "label": "Saturday Afternoon (Nov 8)",
             "date": "2025-11-08",
@@ -6330,8 +6350,8 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             "time": "Afternoon",
             "actual_availability": "12:00 PM - 6:30 PM",
             "timeline": "After lunch → Full afternoon free until dinner",
-            "notes": "Entire afternoon open - your last full day!",
-            "smart_tip": "~6 hours free! Options: Beach activities, explore Fort Clinch, downtown shopping, pool/spa, or multiple shorter activities."
+            "notes": "Last full day TOGETHER! John leaves Tuesday morning at 8:20 AM.",
+            "smart_tip": "~6 hours free! Options: Beach activities, explore Fort Clinch, downtown shopping, pool/spa, or multiple shorter activities. Make it count!"
         },
         {
             "id": "mon_evening",
@@ -6339,9 +6359,39 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             "date": "2025-11-10",
             "time": "After dinner",
             "actual_availability": "8:30 PM - 11:00 PM",
-            "timeline": "Dinner 7:00-8:30 PM → Last evening on the island!",
-            "notes": "Last night - make it memorable!",
-            "smart_tip": "🌙 Final evening! Perfect for: Beach bonfire, sunset at 5:30 PM (if early dinner), final beach walk, or celebratory drinks."
+            "timeline": "Dinner 7:00-8:30 PM → Last evening together!",
+            "notes": "🌙 Last night TOGETHER - John leaves tomorrow at 8:20 AM!",
+            "smart_tip": "Final evening together! Perfect for: Beach bonfire, final beach walk, or celebratory drinks. Make memories!"
+        },
+        {
+            "id": "tue_morning",
+            "label": "Tuesday Morning (Nov 11) - 👤 Michael Solo",
+            "date": "2025-11-11",
+            "time": "Morning",
+            "actual_availability": "9:00 AM - 12:00 PM",
+            "timeline": "John leaves at 8:20 AM → Breakfast solo → Free morning",
+            "notes": "👤 SOLO TIME - John departs at 8:20 AM for his 11:05 AM flight. Back to solo Michael time!",
+            "smart_tip": "~3 hours solo. Options: Sleep in after saying goodbye, solo breakfast, beach walk, pool, or pack for tomorrow's departure."
+        },
+        {
+            "id": "tue_afternoon",
+            "label": "Tuesday Afternoon (Nov 11) - 👤 Michael Solo",
+            "date": "2025-11-11",
+            "time": "Afternoon",
+            "actual_availability": "12:00 PM - 6:30 PM",
+            "timeline": "After lunch → Full solo afternoon",
+            "notes": "👤 SOLO TIME - Your last full afternoon on the island!",
+            "smart_tip": "~6 hours solo. Last chance to do: Beach activities, Fort Clinch, downtown exploring, final spa visit, or just relax by pool."
+        },
+        {
+            "id": "tue_evening",
+            "label": "Tuesday Evening (Nov 11) - 👤 Michael Solo",
+            "date": "2025-11-11",
+            "time": "After dinner",
+            "actual_availability": "8:30 PM - 11:00 PM",
+            "timeline": "Dinner → Final evening on the island",
+            "notes": "👤 SOLO TIME - Your last night! Leave tomorrow at 12:30 PM.",
+            "smart_tip": "🌙 Final solo evening! Perfect for: Beach bonfire, final sunset memories, packing, or special farewell dinner."
         },
     ]
 
