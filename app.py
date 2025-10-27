@@ -6645,6 +6645,199 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
 
         st.markdown("---")
 
+    # ============ ACTIVITY PLANNING SECTION ============
+    st.markdown("---")
+    st.markdown("### 🎯 Activity Planning")
+
+    st.markdown("""
+    <div class="info-box" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+        <h4 style="margin: 0; color: white;">🎯 Plan Your Free Time!</h4>
+        <p style="margin: 0.5rem 0 0 0; opacity: 0.95;">Fill your non-dining, non-spa time with fun activities! Propose 3 options for each slot, John votes, then confirm!</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Define activity time slots (avoiding meals and spa times)
+    activity_slots = [
+        {"id": "sat_afternoon", "label": "Saturday Afternoon (Nov 8)", "date": "2025-11-08", "time": "After lunch", "notes": "Boat tour at 3:30 PM already booked"},
+        {"id": "sat_evening", "label": "Saturday Evening (Nov 8)", "date": "2025-11-08", "time": "After dinner", "notes": "Relax at hotel or explore"},
+        {"id": "sun_afternoon", "label": "Sunday Afternoon (Nov 9)", "date": "2025-11-09", "time": "After spa", "notes": "Free time after mani-pedi (ends 3:00 PM)"},
+        {"id": "sun_evening", "label": "Sunday Evening (Nov 9)", "date": "2025-11-09", "time": "After dinner", "notes": "Birthday celebration time!"},
+        {"id": "mon_morning", "label": "Monday Morning (Nov 10)", "date": "2025-11-10", "time": "Morning", "notes": "Can sleep in - no schedule!"},
+        {"id": "mon_afternoon", "label": "Monday Afternoon (Nov 10)", "date": "2025-11-10", "time": "Afternoon", "notes": "Full day free!"},
+        {"id": "mon_evening", "label": "Monday Evening (Nov 10)", "date": "2025-11-10", "time": "After dinner", "notes": "Last night - make it count!"},
+    ]
+
+    # Get all non-dining optional activities
+    all_activities_dict = get_optional_activities()
+    available_activities = []
+    for category_name, items in all_activities_dict.items():
+        # Skip dining categories
+        if not any(word in category_name.lower() for word in ['dining', 'restaurant', 'breakfast', 'lunch', 'dinner', 'coffee', 'bar']):
+            available_activities.extend(items)
+
+    for activity_slot in activity_slots:
+        st.markdown(f"#### {activity_slot['label']}")
+
+        # Get existing proposal
+        proposal = get_activity_proposal(activity_slot['id'])
+
+        if proposal and proposal['status'] == 'confirmed':
+            # Activity is confirmed
+            final_idx = proposal.get('final_choice')
+            if final_idx is not None and final_idx < len(proposal['activity_options']):
+                final_activity = proposal['activity_options'][final_idx]
+                st.success(f"✅ **CONFIRMED:** {final_activity['name']}")
+                st.markdown(f"""
+                <div class="ultimate-card" style="border-left: 4px solid #4caf50;">
+                    <div class="card-body">
+                        <p><strong>🎯 Activity:</strong> {final_activity['name']}</p>
+                        <p><strong>💰 Cost:</strong> {final_activity.get('cost_range', 'N/A')}</p>
+                        <p><strong>⏰ Duration:</strong> {final_activity.get('duration', 'N/A')}</p>
+                        <p><strong>📍 Location:</strong> {final_activity.get('description', 'N/A')[:100]}...</p>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                if st.button(f"🔄 Change {activity_slot['label']}", key=f"change_activity_{activity_slot['id']}"):
+                    conn = sqlite3.connect(DB_FILE)
+                    cursor = conn.cursor()
+                    cursor.execute("UPDATE activity_proposals SET status = 'proposed', final_choice = NULL WHERE activity_slot_id = ?", (activity_slot['id'],))
+                    conn.commit()
+                    conn.close()
+                    st.rerun()
+
+        elif proposal and proposal['status'] == 'voted':
+            # John has voted
+            options = proposal['activity_options']
+            john_vote = proposal['john_vote']
+
+            st.info(f"🗳️ **John has voted!** Choice: {john_vote}")
+
+            for idx, activity in enumerate(options):
+                is_johns_choice = (str(idx) == str(john_vote))
+                border_color = "#4caf50" if is_johns_choice else "#ddd"
+
+                st.markdown(f"""
+                <div class="ultimate-card" style="border-left: 4px solid {border_color};">
+                    <div class="card-body">
+                        <h4 style="margin: 0;">{'✅ ' if is_johns_choice else ''}Option {idx + 1}: {activity['name']}</h4>
+                        <p style="margin: 0.5rem 0;"><strong>💰</strong> {activity.get('cost_range', 'N/A')} | <strong>⏰</strong> {activity.get('duration', 'N/A')}</p>
+                        <p style="margin: 0.5rem 0;"><strong>📍</strong> {activity.get('description', 'N/A')[:100]}...</p>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+            if john_vote == "none":
+                st.warning("❌ John said none of these work. Pick 3 new options!")
+                if st.button(f"Pick New Options for {activity_slot['label']}", key=f"repick_activity_{activity_slot['id']}"):
+                    conn = sqlite3.connect(DB_FILE)
+                    cursor = conn.cursor()
+                    cursor.execute("DELETE FROM activity_proposals WHERE activity_slot_id = ?", (activity_slot['id'],))
+                    conn.commit()
+                    conn.close()
+                    st.rerun()
+            else:
+                # Confirm button
+                if st.button(f"✅ Confirm & Add to Calendar", key=f"confirm_activity_{activity_slot['id']}", type="primary"):
+                    finalize_activity_choice(activity_slot['id'], int(john_vote))
+                    st.success("Activity confirmed and added to calendar!")
+                    st.rerun()
+
+        elif proposal and proposal['status'] == 'proposed':
+            # Waiting for John's vote
+            st.warning("🗳️ **Waiting for John to vote...**")
+
+            options = proposal['activity_options']
+            for idx, activity in enumerate(options):
+                st.markdown(f"""
+                <div class="ultimate-card">
+                    <div class="card-body">
+                        <h4 style="margin: 0;">Option {idx + 1}: {activity['name']}</h4>
+                        <p style="margin: 0.5rem 0;"><strong>💰</strong> {activity.get('cost_range', 'N/A')} | <strong>⏰</strong> {activity.get('duration', 'N/A')}</p>
+                        <p style="margin: 0.5rem 0;"><strong>📍</strong> {activity.get('description', 'N/A')[:100]}...</p>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+            if st.button(f"🔄 Pick Different Options", key=f"repick_proposed_{activity_slot['id']}"):
+                conn = sqlite3.connect(DB_FILE)
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM activity_proposals WHERE activity_slot_id = ?", (activity_slot['id'],))
+                conn.commit()
+                conn.close()
+                st.rerun()
+
+        else:
+            # No proposal yet - let Michael pick 3 activities
+            st.info(f"💡 **{activity_slot['notes']}**")
+
+            # Initialize selection state
+            selection_key = f"activity_selection_{activity_slot['id']}"
+            if selection_key not in st.session_state:
+                st.session_state[selection_key] = []
+
+            st.markdown(f"**Select 3 activities for this time slot ({len(st.session_state[selection_key])}/3):**")
+
+            # Show activities in a grid
+            cols = st.columns(3)
+            for idx, activity in enumerate(available_activities):
+                col = cols[idx % 3]
+                is_selected = activity['name'] in st.session_state[selection_key]
+
+                with col:
+                    import html
+                    safe_name = html.escape(activity['name'])
+                    safe_desc = html.escape(activity.get('description', '')[:60])
+                    safe_cost = html.escape(activity.get('cost_range', 'N/A'))
+
+                    border_color = "#4caf50" if is_selected else "#ddd"
+                    st.markdown(f"""
+<div class="ultimate-card" style="border-left: 4px solid {border_color}; min-height: 180px;">
+<div class="card-body">
+<h4 style="margin: 0 0 0.5rem 0; font-size: 0.95rem;">{'✅ ' if is_selected else ''}{safe_name}</h4>
+<p style="margin: 0.3rem 0; font-size: 0.85rem; color: #666;">{safe_desc}...</p>
+<p style="margin: 0.3rem 0; font-size: 0.85rem;"><strong>💰</strong> {safe_cost}</p>
+<p style="margin: 0.3rem 0; font-size: 0.85rem;"><strong>⏰</strong> {activity.get('duration', 'Varies')}</p>
+</div>
+</div>
+""", unsafe_allow_html=True)
+
+                    # Toggle button
+                    if is_selected:
+                        if st.button(f"Remove", key=f"activity_remove_{activity_slot['id']}_{idx}", use_container_width=True):
+                            st.session_state[selection_key].remove(activity['name'])
+                            st.rerun()
+                    else:
+                        if len(st.session_state[selection_key]) < 3:
+                            if st.button(f"Select", key=f"activity_select_{activity_slot['id']}_{idx}", use_container_width=True):
+                                st.session_state[selection_key].append(activity['name'])
+                                st.rerun()
+                        else:
+                            st.button(f"Max 3", key=f"activity_disabled_{activity_slot['id']}_{idx}", use_container_width=True, disabled=True)
+
+            # Send proposal button
+            if len(st.session_state[selection_key]) == 3:
+                st.markdown("---")
+                if st.button(f"✅ Send Proposal to John", key=f"propose_activity_{activity_slot['id']}", type="primary", use_container_width=True):
+                    # Get full activity data
+                    selected_activities = []
+                    for activity_name in st.session_state[selection_key]:
+                        for activity in available_activities:
+                            if activity['name'] == activity_name:
+                                selected_activities.append(activity)
+                                break
+
+                    save_activity_proposal(activity_slot['id'], selected_activities, activity_slot['date'], activity_slot['time'])
+                    st.session_state[selection_key] = []  # Clear selection
+                    st.success("✅ Activity proposal sent to John!")
+                    st.rerun()
+            elif len(st.session_state[selection_key]) > 0:
+                st.warning(f"⚠️ Please select {3 - len(st.session_state[selection_key])} more activit(y/ies)")
+            else:
+                st.info("👆 Select 3 activities from the cards above")
+
+        st.markdown("---")
+
 
 # ============================================================================
 # JOHN'S PAGE
@@ -7310,6 +7503,97 @@ def render_johns_page(df, activities_data, show_sensitive):
 
     if not has_proposals:
         st.info("👀 No meal proposals yet. Michael will add options soon!")
+
+    # ============ ACTIVITY VOTING SECTION ============
+    st.markdown("---")
+    st.markdown("### 🎯 Vote on Activity Options")
+
+    st.markdown("""
+    <div class="info-box" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+        <h4 style="margin: 0; color: white;">🎯 Your Input Needed!</h4>
+        <p style="margin: 0.5rem 0 0 0; opacity: 0.95;">Michael has proposed activity options. Vote on which ones work for you!</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Get all activity proposals
+    activity_slots = [
+        {"id": "sat_afternoon", "label": "Saturday Afternoon (Nov 8)"},
+        {"id": "sat_evening", "label": "Saturday Evening (Nov 8)"},
+        {"id": "sun_afternoon", "label": "Sunday Afternoon (Nov 9)"},
+        {"id": "sun_evening", "label": "Sunday Evening (Nov 9)"},
+        {"id": "mon_morning", "label": "Monday Morning (Nov 10)"},
+        {"id": "mon_afternoon", "label": "Monday Afternoon (Nov 10)"},
+        {"id": "mon_evening", "label": "Monday Evening (Nov 10)"},
+    ]
+
+    has_activity_proposals = False
+
+    for activity_slot in activity_slots:
+        proposal = get_activity_proposal(activity_slot['id'])
+
+        if proposal and proposal['status'] == 'proposed':
+            has_activity_proposals = True
+            st.markdown(f"#### {activity_slot['label']}")
+            st.markdown("**Michael proposed these 3 options. Which works for you?**")
+
+            options = proposal['activity_options']
+
+            # Display options
+            for idx, activity in enumerate(options):
+                st.markdown(f"""
+                <div class="ultimate-card">
+                    <div class="card-body">
+                        <h4 style="margin: 0 0 0.5rem 0;">Option {idx + 1}: {activity['name']}</h4>
+                        <p style="margin: 0.25rem 0;"><strong>📝 Description:</strong> {activity.get('description', 'N/A')[:120]}...</p>
+                        <p style="margin: 0.25rem 0;"><strong>💰 Cost:</strong> {activity.get('cost_range', 'N/A')}</p>
+                        <p style="margin: 0.25rem 0;"><strong>⏰ Duration:</strong> {activity.get('duration', 'N/A')}</p>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+            # Voting buttons
+            st.markdown("**Cast Your Vote:**")
+            col1, col2, col3, col4 = st.columns(4)
+
+            with col1:
+                if st.button(f"✅ Option 1", key=f"vote_activity_{activity_slot['id']}_0", use_container_width=True, type="primary"):
+                    save_john_activity_vote(activity_slot['id'], "0")
+                    st.success("Vote recorded!")
+                    st.rerun()
+
+            with col2:
+                if st.button(f"✅ Option 2", key=f"vote_activity_{activity_slot['id']}_1", use_container_width=True, type="primary"):
+                    save_john_activity_vote(activity_slot['id'], "1")
+                    st.success("Vote recorded!")
+                    st.rerun()
+
+            with col3:
+                if st.button(f"✅ Option 3", key=f"vote_activity_{activity_slot['id']}_2", use_container_width=True, type="primary"):
+                    save_john_activity_vote(activity_slot['id'], "2")
+                    st.success("Vote recorded!")
+                    st.rerun()
+
+            with col4:
+                if st.button(f"❌ None Work", key=f"vote_activity_{activity_slot['id']}_none", use_container_width=True):
+                    save_john_activity_vote(activity_slot['id'], "none")
+                    st.info("Michael will pick new options.")
+                    st.rerun()
+
+            st.markdown("---")
+
+        elif proposal and proposal['status'] == 'voted':
+            # Already voted
+            st.success(f"✅ **{activity_slot['label']}** - You voted! Waiting for Michael to confirm.")
+
+        elif proposal and proposal['status'] == 'confirmed':
+            # Confirmed
+            final_idx = proposal.get('final_choice')
+            if final_idx is not None and final_idx < len(proposal['activity_options']):
+                final_activity = proposal['activity_options'][final_idx]
+                st.success(f"✅ **{activity_slot['label']}** - Confirmed: {final_activity['name']}")
+
+    if not has_activity_proposals:
+        st.info("👀 No activity proposals yet. Michael will add options soon!")
 
     # Final tips
     st.markdown("---")
