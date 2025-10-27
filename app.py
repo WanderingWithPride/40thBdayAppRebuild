@@ -7273,6 +7273,91 @@ def render_johns_page(df, activities_data, show_sensitive):
         if not has_activity_proposals:
             st.info("👀 No activity proposals yet. Michael will add options soon!")
 
+        # ============ OPT-IN ACTIVITIES SECTION ============
+        st.markdown("---")
+        st.markdown("### 🎟️ Activities You Can Join")
+
+        st.markdown("""
+        <div class="info-box" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;">
+            <h4 style="margin: 0; color: white;">🎟️ Michael's Doing These - Want to Join?</h4>
+            <p style="margin: 0.5rem 0 0 0; opacity: 0.95;">These activities are happening either way. Let Michael know if you want to join him!</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Get opt-in activities from the schedule
+        optin_activities = [a for a in activities_data if a.get('id') in ['act001', 'spa002', 'spa003']]
+
+        if optin_activities:
+            for activity in optin_activities:
+                activity_id = activity.get('id')
+                pref_key = f"activity_opt_in_{activity_id}"
+                current_status = john_prefs.get(pref_key, "not_decided")
+
+                # Format the date nicely
+                date_obj = pd.to_datetime(activity['date'])
+                date_display = date_obj.strftime('%A, %B %d')
+
+                # Clean up activity name and notes for John's view
+                activity_name = activity['activity'].replace('(for you)', '(for Michael)').replace('(For You)', '(For Michael)')
+                activity_notes = activity.get('notes', '')
+
+                # Clean up notes based on activity type
+                if activity_id == 'act001':
+                    activity_notes = activity_notes.replace('You\'re doing this either way - John can pay for this if he wants to join ($135 per person = $270 total for 2). ', 'Michael is doing this either way - you can join for $135. ')
+                elif activity['type'] == 'spa':
+                    activity_notes = activity_notes.replace('John can pay for this if he wants (OR he can relax at pool/beach while you\'re getting pampered). ', '')
+                    activity_notes = activity_notes.replace('John can pay for this if he wants (OR he can relax at pool/beach). ', '')
+                    activity_notes = activity_notes.replace('you\'re getting pampered', 'Michael is getting pampered')
+                    activity_notes = activity_notes.replace('you\'re', 'Michael is')
+
+                # Escape HTML
+                import html
+                safe_activity_name = html.escape(activity_name)
+                safe_date = html.escape(date_display)
+                safe_time = html.escape(activity['time'])
+                safe_duration = html.escape(activity.get('duration', ''))
+                safe_notes = html.escape(activity_notes)
+                safe_cost = html.escape(f"${activity.get('cost', 0)}")
+
+                st.markdown(f"""
+                <div class="ultimate-card" style="border-left: 4px solid #fa709a;">
+                    <div class="card-body">
+                        <h4 style="margin: 0 0 0.5rem 0;">{safe_activity_name}</h4>
+                        <p style="margin: 0.25rem 0;"><strong>📅 When:</strong> {safe_date} at {safe_time}</p>
+                        <p style="margin: 0.25rem 0;"><strong>⏰ Duration:</strong> {safe_duration}</p>
+                        <p style="margin: 0.25rem 0;"><strong>💰 Cost:</strong> {safe_cost} per person (if you join)</p>
+                        <p style="margin: 0.5rem 0; font-style: italic; color: #636e72;">{safe_notes}</p>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                # Voting buttons
+                col1, col2, col3 = st.columns([1, 1, 2])
+
+                with col1:
+                    if st.button(f"✅ Count Me In!", key=f"optin_tab4_{activity_id}", use_container_width=True, type="primary"):
+                        save_john_preference(pref_key, "interested")
+                        st.success("You're in!")
+                        st.rerun()
+
+                with col2:
+                    if st.button(f"❌ Not for Me", key=f"optout_tab4_{activity_id}", use_container_width=True):
+                        save_john_preference(pref_key, "not_interested")
+                        st.info("Got it!")
+                        st.rerun()
+
+                with col3:
+                    if current_status == "interested":
+                        st.success("✅ **You're In!** - Michael will see this")
+                    elif current_status == "not_interested":
+                        st.info("❌ **Not Interested** - Michael will see this")
+                    else:
+                        st.warning("❓ **Please decide** - Michael needs to know")
+
+                st.markdown("---")
+        else:
+            st.info("No opt-in activities available at this time.")
+
         # Final tips
         st.markdown("---")
         st.markdown("""
