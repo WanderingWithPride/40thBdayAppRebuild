@@ -176,6 +176,21 @@ def init_database():
         # Column already exists, ignore
         pass
 
+    # Activity proposals and voting
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS activity_proposals (
+            activity_slot_id TEXT PRIMARY KEY,
+            activity_options TEXT NOT NULL,
+            status TEXT DEFAULT 'proposed',
+            john_vote TEXT,
+            final_choice INTEGER,
+            activity_time TEXT,
+            date TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
     # Set default preferences if they don't exist
     cursor.execute("SELECT COUNT(*) FROM john_preferences WHERE key = 'avoid_seafood_focused'")
     if cursor.fetchone()[0] == 0:
@@ -376,6 +391,80 @@ def finalize_meal_choice(meal_id, final_choice_index, meal_time=None):
     cursor.execute(
         "UPDATE meal_proposals SET final_choice = ?, status = ?, meal_time = ? WHERE meal_id = ?",
         (final_choice_index, "confirmed", meal_time, meal_id)
+    )
+    conn.commit()
+    conn.close()
+
+def save_activity_proposal(activity_slot_id, activity_options, date, time):
+    """Save Michael's activity proposal with 3 activity options
+
+    Args:
+        activity_slot_id: String like "sat_afternoon", "sun_morning", etc.
+        activity_options: List of activity dicts with name, cost, duration, etc.
+        date: Date string (e.g., "2025-11-08")
+        time: Time string (e.g., "2:00 PM")
+    """
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    import json
+    cursor.execute(
+        "INSERT OR REPLACE INTO activity_proposals (activity_slot_id, activity_options, date, activity_time, status, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+        (activity_slot_id, json.dumps(activity_options), date, time, "proposed", datetime.now().isoformat())
+    )
+    conn.commit()
+    conn.close()
+
+def get_activity_proposal(activity_slot_id):
+    """Get activity proposal for a specific time slot"""
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute("SELECT activity_options, status, john_vote, final_choice, activity_time, date FROM activity_proposals WHERE activity_slot_id = ?", (activity_slot_id,))
+        row = cursor.fetchone()
+        conn.close()
+        if row:
+            import json
+            return {
+                "activity_options": json.loads(row[0]),
+                "status": row[1],
+                "john_vote": row[2],
+                "final_choice": row[3],
+                "activity_time": row[4],
+                "date": row[5]
+            }
+        return None
+    except Exception as e:
+        print(f"Error loading activity proposal: {e}")
+        return None
+
+def save_john_activity_vote(activity_slot_id, activity_choice):
+    """Save John's vote for an activity
+
+    Args:
+        activity_slot_id: String like "sat_afternoon"
+        activity_choice: Index (0-2) of chosen activity, or "none" if none work
+    """
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute(
+        "UPDATE activity_proposals SET john_vote = ?, status = ? WHERE activity_slot_id = ?",
+        (activity_choice, "voted", activity_slot_id)
+    )
+    conn.commit()
+    conn.close()
+
+def finalize_activity_choice(activity_slot_id, final_choice_index):
+    """Finalize activity choice and mark as confirmed
+
+    Args:
+        activity_slot_id: String like "sat_afternoon"
+        final_choice_index: Index (0-2) of final activity choice
+    """
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute(
+        "UPDATE activity_proposals SET final_choice = ?, status = ? WHERE activity_slot_id = ?",
+        (final_choice_index, "confirmed", activity_slot_id)
     )
     conn.commit()
     conn.close()
@@ -2728,8 +2817,111 @@ def render_tsa_wait_widget(airport_code):
                     st.error("❌ Failed to save update")
 
 
+def parse_cost_range(cost_str):
+    """Parse cost range string to numeric value (uses midpoint of range)
+
+    Examples:
+        "$30-50 per person" -> 40
+        "$25" -> 25
+        "FREE" -> 0
+        "Included" -> 0
+    """
+    import re
+    if not cost_str or cost_str == 'N/A':
+        return 0
+
+    cost_str = str(cost_str).upper()
+
+    # Check for free/included
+    if 'FREE' in cost_str or 'INCLUDED' in cost_str or 'COMPLIMENTARY' in cost_str:
+        return 0
+
+    # Extract numbers
+    numbers = re.findall(r'\d+', cost_str)
+    if not numbers:
+        return 0
+
+    # If range (e.g., $30-50), take average
+    if len(numbers) >= 2:
+        return (int(numbers[0]) + int(numbers[1])) / 2
+    else:
+        return int(numbers[0])
+
+def get_confirmed_meals_budget():
+    """Get budget totals from all confirmed meals
+
+    Returns:
+        List of dicts with meal info and costs
+    """
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT meal_id, restaurant_options, final_choice, meal_time FROM meal_proposals WHERE status = 'confirmed'")
+    rows = cursor.fetchall()
+    conn.close()
+
+    meals = []
+    for row in rows:
+        meal_id, restaurant_options_json, final_choice, meal_time = row
+        try:
+            options = json.loads(restaurant_options_json)
+            if final_choice is not None and final_choice < len(options):
+                restaurant = options[final_choice]
+                cost_per_person = parse_cost_range(restaurant.get('cost_range', '0'))
+                # Assume 2 people (Michael + John)
+                total_cost = cost_per_person * 2
+
+                meals.append({
+                    'meal_id': meal_id,
+                    'name': restaurant['name'],
+                    'cost_per_person': cost_per_person,
+                    'total_cost': total_cost,
+                    'time': meal_time,
+                    'category': 'Dining'
+                })
+        except:
+            pass
+
+    return meals
+
+def get_confirmed_activities_budget():
+    """Get budget totals from all confirmed optional activities
+
+    Returns:
+        List of dicts with activity info and costs
+    """
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT activity_slot_id, activity_options, final_choice, activity_time, date FROM activity_proposals WHERE status = 'confirmed'")
+    rows = cursor.fetchall()
+    conn.close()
+
+    activities = []
+    for row in rows:
+        activity_slot_id, activity_options_json, final_choice, activity_time, date = row
+        try:
+            options = json.loads(activity_options_json)
+            if final_choice is not None and final_choice < len(options):
+                activity = options[final_choice]
+                cost_per_person = parse_cost_range(activity.get('cost_range', '0'))
+                # Assume 2 people (Michael + John), Michael pays for activities
+                total_cost = cost_per_person * 2
+
+                activities.append({
+                    'activity_slot_id': activity_slot_id,
+                    'name': activity['name'],
+                    'cost_per_person': cost_per_person,
+                    'total_cost': total_cost,
+                    'time': activity_time,
+                    'date': date,
+                    'category': 'Activities'
+                })
+        except:
+            pass
+
+    return activities
+
 def calculate_trip_budget(activities_data):
-    """Calculate total trip budget with spending breakdown
+    """Calculate total trip budget with spending breakdown including meals
 
     Returns:
         Dictionary with budget totals and categories
@@ -2737,6 +2929,7 @@ def calculate_trip_budget(activities_data):
     total_cost = 0
     category_costs = {}
 
+    # Add activities
     for activity in activities_data:
         cost = activity.get('cost', 0)
         category = activity.get('category', 'Other')
@@ -2747,37 +2940,90 @@ def calculate_trip_budget(activities_data):
             category_costs[category] = 0
         category_costs[category] += cost
 
+    # Add confirmed meals
+    confirmed_meals = get_confirmed_meals_budget()
+    for meal in confirmed_meals:
+        cost = meal['total_cost']
+        category = meal['category']
+
+        total_cost += cost
+
+        if category not in category_costs:
+            category_costs[category] = 0
+        category_costs[category] += cost
+
+    # Add confirmed optional activities
+    confirmed_activities = get_confirmed_activities_budget()
+    for activity in confirmed_activities:
+        cost = activity['total_cost']
+        category = activity['category']
+
+        total_cost += cost
+
+        if category not in category_costs:
+            category_costs[category] = 0
+        category_costs[category] += cost
+
     return {
         'total': total_cost,
         'by_category': category_costs,
-        'categories': sorted(category_costs.items(), key=lambda x: x[1], reverse=True)
+        'categories': sorted(category_costs.items(), key=lambda x: x[1], reverse=True),
+        'confirmed_meals': confirmed_meals,
+        'confirmed_meals_total': sum(m['total_cost'] for m in confirmed_meals),
+        'confirmed_activities': confirmed_activities,
+        'confirmed_activities_total': sum(a['total_cost'] for a in confirmed_activities)
     }
 
 
-def render_budget_widget(activities_data, show_sensitive=True):
-    """Render budget tracking widget"""
+def render_budget_widget(activities_data, show_sensitive=True, view_mode='michael'):
+    """Render budget tracking widget
+
+    Args:
+        activities_data: List of confirmed activities
+        show_sensitive: Whether to show actual costs
+        view_mode: 'michael' or 'john' to show appropriate share
+    """
     if not show_sensitive:
         st.info("💰 Budget information hidden in public mode")
         return
 
     budget_data = calculate_trip_budget(activities_data)
 
+    # Calculate shares (simplified: split dining costs 50/50, Michael pays for activities)
+    johns_share = budget_data.get('confirmed_meals_total', 0) / 2
+    michaels_share = budget_data['total'] - johns_share
+
+    if view_mode == 'john':
+        display_total = johns_share
+        share_label = "Your Share"
+    else:
+        display_total = michaels_share
+        share_label = "Your Total"
+
+    meals_count = len(budget_data.get('confirmed_meals', []))
+    meals_total = budget_data.get('confirmed_meals_total', 0)
+
     st.markdown(f"""<div class="ultimate-card" style="border-left: 4px solid #4caf50;">
 <div class="card-body">
 <h4 style="margin: 0 0 0.5rem 0;">💰 Trip Budget Overview</h4>
-<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-top: 0.75rem;">
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; margin-top: 0.75rem;">
 <div>
-<strong>Total Budget:</strong><br>
-<span style="font-size: 1.5rem; color: #4caf50;">${budget_data['total']:,.0f}</span>
+<strong>Total Trip:</strong><br>
+<span style="font-size: 1.3rem; color: #4caf50;">${budget_data['total']:,.0f}</span>
+</div>
+<div>
+<strong>{share_label}:</strong><br>
+<span style="font-size: 1.3rem; color: #2196f3;">${display_total:,.0f}</span>
+</div>
+<div>
+<strong>Confirmed Meals:</strong><br>
+<span style="font-size: 1.2rem;">{meals_count} meals</span><br>
+<span style="font-size: 0.9rem; color: #666;">${meals_total:,.0f}</span>
 </div>
 <div>
 <strong>Top Category:</strong><br>
-<span style="font-size: 1.2rem;">{budget_data['categories'][0][0] if budget_data['categories'] else 'N/A'}</span><br>
+<span style="font-size: 1.0rem;">{budget_data['categories'][0][0] if budget_data['categories'] else 'N/A'}</span><br>
 <span style="font-size: 0.9rem; color: #666;">${budget_data['categories'][0][1]:,.0f}</span>
-</div>
-<div>
-<strong>Activities:</strong><br>
-<span style="font-size: 1.2rem;">{len(activities_data)} items</span>
 </div>
 </div>
 </div>
@@ -2789,6 +3035,20 @@ def render_budget_widget(activities_data, show_sensitive=True):
             for category, amount in budget_data['categories']:
                 percentage = (amount / budget_data['total'] * 100) if budget_data['total'] > 0 else 0
                 st.markdown(f"**{category}:** ${amount:,.0f} ({percentage:.1f}%)")
+
+            # Show confirmed meals details
+            if budget_data.get('confirmed_meals'):
+                st.markdown("---")
+                st.markdown("**🍽️ Confirmed Meals:**")
+                for meal in budget_data['confirmed_meals']:
+                    st.markdown(f"- **{meal['name']}**: ${meal['cost_per_person']:.0f}/person × 2 = ${meal['total_cost']:.0f}")
+
+            # Show confirmed activities details
+            if budget_data.get('confirmed_activities'):
+                st.markdown("---")
+                st.markdown("**🎯 Confirmed Activities:**")
+                for activity in budget_data['confirmed_activities']:
+                    st.markdown(f"- **{activity['name']}**: ${activity['cost_per_person']:.0f}/person × 2 = ${activity['total_cost']:.0f}")
 
 
 # ============================================================================
@@ -5866,7 +6126,7 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
 
     # Budget Overview
     st.markdown("---")
-    render_budget_widget(activities_data, show_sensitive)
+    render_budget_widget(activities_data, show_sensitive, view_mode='michael')
 
     # Weather widget could go here
     st.markdown("---")
@@ -6852,6 +7112,11 @@ def render_johns_page(df, activities_data, show_sensitive):
             </div>
         </div>
         """, unsafe_allow_html=True)
+
+    # ============ BUDGET OVERVIEW ============
+    st.markdown("---")
+    st.markdown("### 💰 Your Trip Budget")
+    render_budget_widget(activities_data, show_sensitive, view_mode='john')
 
     # ============ MEAL VOTING SECTION ============
     st.markdown("---")
