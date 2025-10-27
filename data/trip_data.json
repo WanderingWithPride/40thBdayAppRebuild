@@ -41,6 +41,48 @@
       "submitted_by": "Michael",
       "created_at": "2025-10-27T18:03:17.259841",
       "updated_at": "2025-10-27T18:03:17.259854"
+    },
+    "sat_lunch": {
+      "meal_id": "sat_lunch",
+      "restaurant_options": [
+        {
+          "name": "Sandbar",
+          "description": "Directly on Main Beach with Atlantic Ocean views, coastal cuisine, 1200+ whiskey selections. \u2705 NON-SEAFOOD: Steaks, chicken, burgers, pasta",
+          "cost_range": "$25-45 per person",
+          "duration": "1.5-2 hours",
+          "phone": "904-491-3743",
+          "booking_url": "https://sandbaramelia.com",
+          "tips": "Unobstructed beach views, live music on weekends. Great steaks and chicken options!",
+          "rating": "4.7/5"
+        },
+        {
+          "name": "Beach Diner",
+          "description": "Family owned unique breakfast & lunch, Chocolate Chip Pancakes, Shrimp & Crab Omelette, Fish & Grits",
+          "cost_range": "$10-20 per person",
+          "duration": "1-1.5 hours",
+          "phone": "904-261-3663",
+          "booking_url": "N/A",
+          "tips": "Popular local spot, expect a wait on weekends",
+          "rating": "4.6/5"
+        },
+        {
+          "name": "Dune Bar",
+          "description": "Beach bar with tropical drinks, frozen cocktails, and light bites",
+          "cost_range": "$10-20 per drink",
+          "duration": "1-2 hours",
+          "phone": "904-277-1100",
+          "booking_url": "N/A",
+          "tips": "Open 11am-6pm daily, perfect beach relaxation",
+          "rating": "4.5/5"
+        }
+      ],
+      "status": "proposed",
+      "john_vote": null,
+      "final_choice": null,
+      "meal_time": null,
+      "submitted_by": "Michael",
+      "created_at": "2025-10-27T19:12:52.844903",
+      "updated_at": "2025-10-27T19:12:52.844915"
     }
   },
   "activity_proposals": {},
@@ -55,5 +97,5 @@
   "completed_activities": [],
   "notifications": [],
   "tsa_updates": [],
-  "last_updated": "2025-10-27T18:03:17.259870"
+  "last_updated": "2025-10-27T19:12:52.844931"
 }
