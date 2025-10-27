@@ -162,10 +162,55 @@ def init_database():
             status TEXT DEFAULT 'proposed',
             john_vote TEXT,
             final_choice INTEGER,
+            meal_time TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+
+    # Migration: Add meal_time column if it doesn't exist
+    try:
+        cursor.execute("ALTER TABLE meal_proposals ADD COLUMN meal_time TEXT")
+        conn.commit()
+    except sqlite3.OperationalError:
+        # Column already exists, ignore
+        pass
+
+    # Activity proposals and voting
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS activity_proposals (
+            activity_slot_id TEXT PRIMARY KEY,
+            activity_options TEXT NOT NULL,
+            status TEXT DEFAULT 'proposed',
+            john_vote TEXT,
+            final_choice INTEGER,
+            activity_time TEXT,
+            date TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    # Alcohol/drink requests from John
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS alcohol_requests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            item_name TEXT NOT NULL,
+            quantity TEXT,
+            notes TEXT,
+            purchased BOOLEAN DEFAULT 0,
+            cost REAL DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    # Migration: Add cost column if it doesn't exist
+    try:
+        cursor.execute("ALTER TABLE alcohol_requests ADD COLUMN cost REAL DEFAULT 0")
+        conn.commit()
+    except sqlite3.OperationalError:
+        # Column already exists, ignore
+        pass
 
     # Set default preferences if they don't exist
     cursor.execute("SELECT COUNT(*) FROM john_preferences WHERE key = 'avoid_seafood_focused'")
@@ -354,19 +399,168 @@ def save_john_meal_vote(meal_id, restaurant_choice):
     conn.commit()
     conn.close()
 
-def finalize_meal_choice(meal_id, final_choice_index):
+def finalize_meal_choice(meal_id, final_choice_index, meal_time=None):
     """Finalize meal choice and mark as confirmed
 
     Args:
         meal_id: String like "fri_dinner"
         final_choice_index: Index (0-2) of final restaurant choice
+        meal_time: Optional custom time for the meal (e.g., "7:30 PM")
     """
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     cursor.execute(
-        "UPDATE meal_proposals SET final_choice = ?, status = ? WHERE meal_id = ?",
-        (final_choice_index, "confirmed", meal_id)
+        "UPDATE meal_proposals SET final_choice = ?, status = ?, meal_time = ? WHERE meal_id = ?",
+        (final_choice_index, "confirmed", meal_time, meal_id)
     )
+    conn.commit()
+    conn.close()
+
+def save_activity_proposal(activity_slot_id, activity_options, date, time):
+    """Save Michael's activity proposal with 3 activity options
+
+    Args:
+        activity_slot_id: String like "sat_afternoon", "sun_morning", etc.
+        activity_options: List of activity dicts with name, cost, duration, etc.
+        date: Date string (e.g., "2025-11-08")
+        time: Time string (e.g., "2:00 PM")
+    """
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    import json
+    cursor.execute(
+        "INSERT OR REPLACE INTO activity_proposals (activity_slot_id, activity_options, date, activity_time, status, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+        (activity_slot_id, json.dumps(activity_options), date, time, "proposed", datetime.now().isoformat())
+    )
+    conn.commit()
+    conn.close()
+
+def get_activity_proposal(activity_slot_id):
+    """Get activity proposal for a specific time slot"""
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute("SELECT activity_options, status, john_vote, final_choice, activity_time, date FROM activity_proposals WHERE activity_slot_id = ?", (activity_slot_id,))
+        row = cursor.fetchone()
+        conn.close()
+        if row:
+            import json
+            return {
+                "activity_options": json.loads(row[0]),
+                "status": row[1],
+                "john_vote": row[2],
+                "final_choice": row[3],
+                "activity_time": row[4],
+                "date": row[5]
+            }
+        return None
+    except Exception as e:
+        print(f"Error loading activity proposal: {e}")
+        return None
+
+def save_john_activity_vote(activity_slot_id, activity_choice):
+    """Save John's vote for an activity
+
+    Args:
+        activity_slot_id: String like "sat_afternoon"
+        activity_choice: Index (0-2) of chosen activity, or "none" if none work
+    """
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute(
+        "UPDATE activity_proposals SET john_vote = ?, status = ? WHERE activity_slot_id = ?",
+        (activity_choice, "voted", activity_slot_id)
+    )
+    conn.commit()
+    conn.close()
+
+def finalize_activity_choice(activity_slot_id, final_choice_index):
+    """Finalize activity choice and mark as confirmed
+
+    Args:
+        activity_slot_id: String like "sat_afternoon"
+        final_choice_index: Index (0-2) of final activity choice
+    """
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute(
+        "UPDATE activity_proposals SET final_choice = ?, status = ? WHERE activity_slot_id = ?",
+        (final_choice_index, "confirmed", activity_slot_id)
+    )
+    conn.commit()
+    conn.close()
+
+def add_alcohol_request(item_name, quantity="", notes=""):
+    """Add an alcohol/drink request from John
+
+    Args:
+        item_name: Name of the item (e.g., "Beer", "Wine", "Vodka")
+        quantity: Optional quantity (e.g., "6-pack", "1 bottle", "2 bottles")
+        notes: Optional notes (e.g., "IPA preferred", "Red wine")
+    """
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO alcohol_requests (item_name, quantity, notes, purchased) VALUES (?, ?, ?, ?)",
+        (item_name, quantity, notes, 0)
+    )
+    conn.commit()
+    conn.close()
+
+def get_alcohol_requests():
+    """Get all alcohol requests
+
+    Returns:
+        List of dicts with request details
+    """
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, item_name, quantity, notes, purchased, cost FROM alcohol_requests ORDER BY purchased ASC, created_at ASC")
+        rows = cursor.fetchall()
+        conn.close()
+
+        requests = []
+        for row in rows:
+            requests.append({
+                'id': row[0],
+                'item_name': row[1],
+                'quantity': row[2],
+                'notes': row[3],
+                'purchased': bool(row[4]),
+                'cost': float(row[5]) if row[5] else 0.0
+            })
+        return requests
+    except Exception as e:
+        print(f"Error loading alcohol requests: {e}")
+        return []
+
+def mark_alcohol_purchased(request_id, purchased=True, cost=0):
+    """Mark an alcohol request as purchased
+
+    Args:
+        request_id: ID of the request
+        purchased: True to mark as purchased, False to mark as not purchased
+        cost: Cost of the item (total, not per person)
+    """
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute(
+        "UPDATE alcohol_requests SET purchased = ?, cost = ? WHERE id = ?",
+        (1 if purchased else 0, cost, request_id)
+    )
+    conn.commit()
+    conn.close()
+
+def delete_alcohol_request(request_id):
+    """Delete an alcohol request
+
+    Args:
+        request_id: ID of the request to delete
+    """
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM alcohol_requests WHERE id = ?", (request_id,))
     conn.commit()
     conn.close()
 
@@ -1629,45 +1823,45 @@ def get_restaurant_details():
     serves: list of meal types (breakfast, lunch, dinner)
     """
     return {
-        "Le Clos": {"dress_code": "Business Casual", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Espana Restaurant & Tapas": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Burlingame": {"dress_code": "Smart Casual", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Lagniappe": {"dress_code": "Smart Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Cucina South": {"dress_code": "Business Casual", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Brett's Waterway Cafe": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
-        "Salty Pelican Bar & Grill": {"dress_code": "Casual", "menu_url": "https://saltypelican.com", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
-        "Sandbar": {"dress_code": "Resort Casual", "menu_url": "https://sandbaramelia.com", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
-        "The Boat House": {"dress_code": "Casual", "menu_url": "https://boathouseamelia.com", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
-        "Down Under": {"dress_code": "Very Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
-        "Timoti's Seafood Shak": {"dress_code": "Very Casual", "menu_url": "https://timotis.com", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
-        "Salt Life Food Shack": {"dress_code": "Casual", "menu_url": "https://www.saltlifefoodshack.com", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
-        "Ciao Italian Eatery": {"dress_code": "Casual", "menu_url": "https://ciaoitalianeats.com", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Arte Pizza": {"dress_code": "Very Casual", "menu_url": "https://artepizzabar.com", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Mezcal Spirit of Oaxaca": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Tortuga Jacks": {"dress_code": "Very Casual", "menu_url": "N/A", "serves": ["breakfast"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
-        "Wicked Bao": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Akari Sushi": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Hana Sushi": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "29 South": {"dress_code": "Smart Casual", "menu_url": "N/A", "serves": ["breakfast", "lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Beach Diner": {"dress_code": "Very Casual", "menu_url": "N/A", "serves": ["breakfast", "lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Sliders Seaside Grill": {"dress_code": "Beachwear/Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
-        "Fantastic Fudge": {"dress_code": "Any", "menu_url": "N/A", "serves": ["breakfast", "lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Café Karibo": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["breakfast", "lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
-        "Amelia Island Coffee": {"dress_code": "Any", "menu_url": "N/A", "serves": ["breakfast"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "First Drop Coffee": {"dress_code": "Resort Casual", "menu_url": "N/A", "serves": ["breakfast"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Mocama Coffee": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["breakfast"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Hola Cuban Cafe": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["breakfast", "lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Nana Teresa's Bake Shop": {"dress_code": "Any", "menu_url": "N/A", "serves": ["breakfast"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Aloha Bagel and Deli": {"dress_code": "Casual", "menu_url": "https://aloha-bagel.com", "serves": ["breakfast", "lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "4th Street Deli": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch"], "days_open": [0,1,2,3,4,5], "outdoor_seating": False},  # Closed Sundays
-        "Salt (AAA Five Diamond)": {"dress_code": "Resort Elegant (jackets optional, no shorts/flip-flops)", "menu_url": "https://www.ritzcarlton.com/en/hotels/jaxab-the-ritz-carlton-amelia-island/dining", "serves": ["dinner"], "days_open": [1,2,3,4,5], "outdoor_seating": False},  # Tue-Sat only
-        "Coast": {"dress_code": "Resort Casual", "menu_url": "https://www.ritzcarlton.com/en/hotels/jaxab-the-ritz-carlton-amelia-island/dining", "serves": ["breakfast", "lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Coquina": {"dress_code": "Beachwear/Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
-        "Tidewater Grill": {"dress_code": "Resort Casual", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
-        "Lobby Bar": {"dress_code": "Resort Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Dune Bar": {"dress_code": "Beachwear/Casual", "menu_url": "N/A", "serves": ["lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
-        "Pogo's": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "David's Restaurant & Lounge": {"dress_code": "Business Casual (no shorts/flip-flops)", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
+        "Le Clos": {"dress_code": "Business Casual", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": True},
+        "Espana Restaurant & Tapas": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": True},
+        "Burlingame": {"dress_code": "Smart Casual", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": True},
+        "Lagniappe": {"dress_code": "Smart Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": True},
+        "Cucina South": {"dress_code": "Business Casual", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": True},
+        "Brett's Waterway Cafe": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True, "booking_required": True},
+        "Salty Pelican Bar & Grill": {"dress_code": "Casual", "menu_url": "https://saltypelican.com", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True, "booking_required": False},
+        "Sandbar": {"dress_code": "Resort Casual", "menu_url": "https://sandbaramelia.com", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True, "booking_required": True},
+        "The Boat House": {"dress_code": "Casual", "menu_url": "https://boathouseamelia.com", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True, "booking_required": True},
+        "Down Under": {"dress_code": "Very Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True, "booking_required": False},
+        "Timoti's Seafood Shak": {"dress_code": "Very Casual", "menu_url": "https://timotis.com", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True, "booking_required": False},
+        "Salt Life Food Shack": {"dress_code": "Casual", "menu_url": "https://www.saltlifefoodshack.com", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True, "booking_required": False},
+        "Ciao Italian Eatery": {"dress_code": "Casual", "menu_url": "https://ciaoitalianeats.com", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": True},
+        "Arte Pizza": {"dress_code": "Very Casual", "menu_url": "https://artepizzabar.com", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": False},
+        "Mezcal Spirit of Oaxaca": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": False},
+        "Tortuga Jacks": {"dress_code": "Very Casual", "menu_url": "N/A", "serves": ["breakfast"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True, "booking_required": False},
+        "Wicked Bao": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": False},
+        "Akari Sushi": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": False},
+        "Hana Sushi": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": False},
+        "29 South": {"dress_code": "Smart Casual", "menu_url": "N/A", "serves": ["breakfast", "lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": True},
+        "Beach Diner": {"dress_code": "Very Casual", "menu_url": "N/A", "serves": ["breakfast", "lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": False},
+        "Sliders Seaside Grill": {"dress_code": "Beachwear/Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True, "booking_required": False},
+        "Fantastic Fudge": {"dress_code": "Any", "menu_url": "N/A", "serves": ["breakfast", "lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": False},
+        "Café Karibo": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["breakfast", "lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True, "booking_required": False},
+        "Amelia Island Coffee": {"dress_code": "Any", "menu_url": "N/A", "serves": ["breakfast"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": False},
+        "First Drop Coffee": {"dress_code": "Resort Casual", "menu_url": "N/A", "serves": ["breakfast"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": False},
+        "Mocama Coffee": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["breakfast"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": False},
+        "Hola Cuban Cafe": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["breakfast", "lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": False},
+        "Nana Teresa's Bake Shop": {"dress_code": "Any", "menu_url": "N/A", "serves": ["breakfast"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": False},
+        "Aloha Bagel and Deli": {"dress_code": "Casual", "menu_url": "https://aloha-bagel.com", "serves": ["breakfast", "lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": False},
+        "4th Street Deli": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch"], "days_open": [0,1,2,3,4,5], "outdoor_seating": False, "booking_required": False},  # Closed Sundays
+        "Salt (AAA Five Diamond)": {"dress_code": "Resort Elegant (jackets optional, no shorts/flip-flops)", "menu_url": "https://www.ritzcarlton.com/en/hotels/jaxab-the-ritz-carlton-amelia-island/dining", "serves": ["dinner"], "days_open": [1,2,3,4,5], "outdoor_seating": False, "booking_required": True},  # Tue-Sat only
+        "Coast": {"dress_code": "Resort Casual", "menu_url": "https://www.ritzcarlton.com/en/hotels/jaxab-the-ritz-carlton-amelia-island/dining", "serves": ["breakfast", "lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": True},
+        "Coquina": {"dress_code": "Beachwear/Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True, "booking_required": False},
+        "Tidewater Grill": {"dress_code": "Resort Casual", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True, "booking_required": False},
+        "Lobby Bar": {"dress_code": "Resort Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": False},
+        "Dune Bar": {"dress_code": "Beachwear/Casual", "menu_url": "N/A", "serves": ["lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True, "booking_required": False},
+        "Pogo's": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": False},
+        "David's Restaurant & Lounge": {"dress_code": "Business Casual (no shorts/flip-flops)", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": True},
     }
 
 def get_optional_activities():
@@ -2718,8 +2912,132 @@ def render_tsa_wait_widget(airport_code):
                     st.error("❌ Failed to save update")
 
 
+def parse_cost_range(cost_str):
+    """Parse cost range string to numeric value (uses midpoint of range)
+
+    Examples:
+        "$30-50 per person" -> 40
+        "$25" -> 25
+        "FREE" -> 0
+        "Included" -> 0
+    """
+    import re
+    if not cost_str or cost_str == 'N/A':
+        return 0
+
+    cost_str = str(cost_str).upper()
+
+    # Check for free/included
+    if 'FREE' in cost_str or 'INCLUDED' in cost_str or 'COMPLIMENTARY' in cost_str:
+        return 0
+
+    # Extract numbers
+    numbers = re.findall(r'\d+', cost_str)
+    if not numbers:
+        return 0
+
+    # If range (e.g., $30-50), take average
+    if len(numbers) >= 2:
+        return (int(numbers[0]) + int(numbers[1])) / 2
+    else:
+        return int(numbers[0])
+
+def get_confirmed_meals_budget():
+    """Get budget totals from all confirmed meals
+
+    Returns:
+        List of dicts with meal info and costs
+    """
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT meal_id, restaurant_options, final_choice, meal_time FROM meal_proposals WHERE status = 'confirmed'")
+    rows = cursor.fetchall()
+    conn.close()
+
+    meals = []
+    for row in rows:
+        meal_id, restaurant_options_json, final_choice, meal_time = row
+        try:
+            options = json.loads(restaurant_options_json)
+            if final_choice is not None and final_choice < len(options):
+                restaurant = options[final_choice]
+                cost_per_person = parse_cost_range(restaurant.get('cost_range', '0'))
+                # Assume 2 people (Michael + John)
+                total_cost = cost_per_person * 2
+
+                meals.append({
+                    'meal_id': meal_id,
+                    'name': restaurant['name'],
+                    'cost_per_person': cost_per_person,
+                    'total_cost': total_cost,
+                    'time': meal_time,
+                    'category': 'Dining'
+                })
+        except:
+            pass
+
+    return meals
+
+def get_confirmed_activities_budget():
+    """Get budget totals from all confirmed optional activities
+
+    Returns:
+        List of dicts with activity info and costs
+    """
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT activity_slot_id, activity_options, final_choice, activity_time, date FROM activity_proposals WHERE status = 'confirmed'")
+    rows = cursor.fetchall()
+    conn.close()
+
+    activities = []
+    for row in rows:
+        activity_slot_id, activity_options_json, final_choice, activity_time, date = row
+        try:
+            options = json.loads(activity_options_json)
+            if final_choice is not None and final_choice < len(options):
+                activity = options[final_choice]
+                cost_per_person = parse_cost_range(activity.get('cost_range', '0'))
+                # Assume 2 people (Michael + John), Michael pays for activities
+                total_cost = cost_per_person * 2
+
+                activities.append({
+                    'activity_slot_id': activity_slot_id,
+                    'name': activity['name'],
+                    'cost_per_person': cost_per_person,
+                    'total_cost': total_cost,
+                    'time': activity_time,
+                    'date': date,
+                    'category': 'Activities'
+                })
+        except:
+            pass
+
+    return activities
+
+def get_confirmed_alcohol_budget():
+    """Get budget totals from all purchased alcohol
+
+    Returns:
+        List of dicts with alcohol info and costs
+    """
+    alcohol_items = []
+    all_requests = get_alcohol_requests()
+
+    for request in all_requests:
+        if request['purchased'] and request['cost'] > 0:
+            alcohol_items.append({
+                'id': request['id'],
+                'name': request['item_name'],
+                'quantity': request['quantity'],
+                'total_cost': request['cost'],
+                'category': 'Alcohol/Drinks'
+            })
+
+    return alcohol_items
+
 def calculate_trip_budget(activities_data):
-    """Calculate total trip budget with spending breakdown
+    """Calculate total trip budget with spending breakdown including meals
 
     Returns:
         Dictionary with budget totals and categories
@@ -2727,6 +3045,7 @@ def calculate_trip_budget(activities_data):
     total_cost = 0
     category_costs = {}
 
+    # Add activities
     for activity in activities_data:
         cost = activity.get('cost', 0)
         category = activity.get('category', 'Other')
@@ -2737,37 +3056,106 @@ def calculate_trip_budget(activities_data):
             category_costs[category] = 0
         category_costs[category] += cost
 
+    # Add confirmed meals
+    confirmed_meals = get_confirmed_meals_budget()
+    for meal in confirmed_meals:
+        cost = meal['total_cost']
+        category = meal['category']
+
+        total_cost += cost
+
+        if category not in category_costs:
+            category_costs[category] = 0
+        category_costs[category] += cost
+
+    # Add confirmed optional activities
+    confirmed_activities = get_confirmed_activities_budget()
+    for activity in confirmed_activities:
+        cost = activity['total_cost']
+        category = activity['category']
+
+        total_cost += cost
+
+        if category not in category_costs:
+            category_costs[category] = 0
+        category_costs[category] += cost
+
+    # Add confirmed alcohol purchases
+    confirmed_alcohol = get_confirmed_alcohol_budget()
+    for alcohol_item in confirmed_alcohol:
+        cost = alcohol_item['total_cost']
+        category = alcohol_item['category']
+
+        total_cost += cost
+
+        if category not in category_costs:
+            category_costs[category] = 0
+        category_costs[category] += cost
+
     return {
         'total': total_cost,
         'by_category': category_costs,
-        'categories': sorted(category_costs.items(), key=lambda x: x[1], reverse=True)
+        'categories': sorted(category_costs.items(), key=lambda x: x[1], reverse=True),
+        'confirmed_meals': confirmed_meals,
+        'confirmed_meals_total': sum(m['total_cost'] for m in confirmed_meals),
+        'confirmed_activities': confirmed_activities,
+        'confirmed_activities_total': sum(a['total_cost'] for a in confirmed_activities),
+        'confirmed_alcohol': confirmed_alcohol,
+        'confirmed_alcohol_total': sum(a['total_cost'] for a in confirmed_alcohol)
     }
 
 
-def render_budget_widget(activities_data, show_sensitive=True):
-    """Render budget tracking widget"""
+def render_budget_widget(activities_data, show_sensitive=True, view_mode='michael'):
+    """Render budget tracking widget
+
+    Args:
+        activities_data: List of confirmed activities
+        show_sensitive: Whether to show actual costs
+        view_mode: 'michael' or 'john' to show appropriate share
+    """
     if not show_sensitive:
         st.info("💰 Budget information hidden in public mode")
         return
 
     budget_data = calculate_trip_budget(activities_data)
 
+    # Calculate shares (simplified: split dining and alcohol costs 50/50, Michael pays for activities)
+    meals_split = budget_data.get('confirmed_meals_total', 0) / 2
+    alcohol_split = budget_data.get('confirmed_alcohol_total', 0) / 2
+    johns_share = meals_split + alcohol_split
+    michaels_share = budget_data['total'] - johns_share
+
+    if view_mode == 'john':
+        display_total = johns_share
+        share_label = "Your Share"
+    else:
+        display_total = michaels_share
+        share_label = "Your Total"
+
+    meals_count = len(budget_data.get('confirmed_meals', []))
+    meals_total = budget_data.get('confirmed_meals_total', 0)
+
     st.markdown(f"""<div class="ultimate-card" style="border-left: 4px solid #4caf50;">
 <div class="card-body">
 <h4 style="margin: 0 0 0.5rem 0;">💰 Trip Budget Overview</h4>
-<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-top: 0.75rem;">
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; margin-top: 0.75rem;">
 <div>
-<strong>Total Budget:</strong><br>
-<span style="font-size: 1.5rem; color: #4caf50;">${budget_data['total']:,.0f}</span>
+<strong>Total Trip:</strong><br>
+<span style="font-size: 1.3rem; color: #4caf50;">${budget_data['total']:,.0f}</span>
+</div>
+<div>
+<strong>{share_label}:</strong><br>
+<span style="font-size: 1.3rem; color: #2196f3;">${display_total:,.0f}</span>
+</div>
+<div>
+<strong>Confirmed Meals:</strong><br>
+<span style="font-size: 1.2rem;">{meals_count} meals</span><br>
+<span style="font-size: 0.9rem; color: #666;">${meals_total:,.0f}</span>
 </div>
 <div>
 <strong>Top Category:</strong><br>
-<span style="font-size: 1.2rem;">{budget_data['categories'][0][0] if budget_data['categories'] else 'N/A'}</span><br>
+<span style="font-size: 1.0rem;">{budget_data['categories'][0][0] if budget_data['categories'] else 'N/A'}</span><br>
 <span style="font-size: 0.9rem; color: #666;">${budget_data['categories'][0][1]:,.0f}</span>
-</div>
-<div>
-<strong>Activities:</strong><br>
-<span style="font-size: 1.2rem;">{len(activities_data)} items</span>
 </div>
 </div>
 </div>
@@ -2779,6 +3167,29 @@ def render_budget_widget(activities_data, show_sensitive=True):
             for category, amount in budget_data['categories']:
                 percentage = (amount / budget_data['total'] * 100) if budget_data['total'] > 0 else 0
                 st.markdown(f"**{category}:** ${amount:,.0f} ({percentage:.1f}%)")
+
+            # Show confirmed meals details
+            if budget_data.get('confirmed_meals'):
+                st.markdown("---")
+                st.markdown("**🍽️ Confirmed Meals:**")
+                for meal in budget_data['confirmed_meals']:
+                    st.markdown(f"- **{meal['name']}**: ${meal['cost_per_person']:.0f}/person × 2 = ${meal['total_cost']:.0f}")
+
+            # Show confirmed activities details
+            if budget_data.get('confirmed_activities'):
+                st.markdown("---")
+                st.markdown("**🎯 Confirmed Activities:**")
+                for activity in budget_data['confirmed_activities']:
+                    st.markdown(f"- **{activity['name']}**: ${activity['cost_per_person']:.0f}/person × 2 = ${activity['total_cost']:.0f}")
+
+            # Show confirmed alcohol details
+            if budget_data.get('confirmed_alcohol'):
+                st.markdown("---")
+                st.markdown("**🍺 Alcohol/Drinks (Split 50/50):**")
+                for item in budget_data['confirmed_alcohol']:
+                    quantity_str = f" - {item['quantity']}" if item.get('quantity') else ""
+                    split_cost = item['total_cost'] / 2
+                    st.markdown(f"- **{item['name']}**{quantity_str}: ${item['total_cost']:.2f} (${split_cost:.2f} each)")
 
 
 # ============================================================================
@@ -4838,11 +5249,14 @@ def render_full_schedule(df, activities_data, show_sensitive):
                         final_restaurant = proposal['restaurant_options'][final_idx]
                         rest_details = get_restaurant_details().get(final_restaurant['name'], {})
 
+                        # Use custom meal time if set, otherwise use default
+                        display_time = proposal.get('meal_time') or meal_slot['time']
+
                         # Create a meal activity
                         meal_activity = {
                             'id': f"meal_{meal_slot['id']}",
                             'date': date_str,
-                            'time': meal_slot['time'],
+                            'time': display_time,
                             'activity': f"🍽️ {final_restaurant['name']}",
                             'description': final_restaurant.get('description', ''),
                             'type': 'dining',
@@ -5853,12 +6267,84 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
 
     # Budget Overview
     st.markdown("---")
-    render_budget_widget(activities_data, show_sensitive)
+    render_budget_widget(activities_data, show_sensitive, view_mode='michael')
 
     # Weather widget could go here
     st.markdown("---")
     st.markdown("### 🌤️ Weather Forecast")
     st.info("Average: 75°F • Partly cloudy • Perfect beach weather!")
+
+    # ============ BOOZE RUN SHOPPING LIST ============
+    st.markdown("---")
+    st.markdown("### 🍺 Booze Run Shopping List")
+
+    st.markdown("""
+    <div class="info-box" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;">
+        <h4 style="margin: 0; color: white;">🛒 Shopping List for Arrival</h4>
+        <p style="margin: 0.5rem 0 0 0; opacity: 0.95;">Your booze run checklist! Plan to shop Friday night or Saturday morning. Check off items as you purchase them.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Get alcohol requests
+    alcohol_requests = get_alcohol_requests()
+
+    if alcohol_requests:
+        # Unpurchased items
+        unpurchased = [r for r in alcohol_requests if not r['purchased']]
+        purchased = [r for r in alcohol_requests if r['purchased']]
+
+        if unpurchased:
+            st.markdown("**🛒 To Buy:**")
+            for request in unpurchased:
+                quantity_str = f" - {request['quantity']}" if request['quantity'] else ""
+                notes_str = f" ({request['notes']})" if request['notes'] else ""
+
+                col1, col2, col3 = st.columns([3, 1, 1])
+                with col1:
+                    st.markdown(f"""
+                    <div class="ultimate-card" style="padding: 0.5rem;">
+                        <p style="margin: 0;"><strong>{request['item_name']}</strong>{quantity_str}{notes_str}</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                with col2:
+                    cost_input = st.number_input(
+                        "Cost",
+                        min_value=0.0,
+                        step=1.0,
+                        key=f"cost_{request['id']}",
+                        label_visibility="collapsed",
+                        placeholder="$0.00"
+                    )
+                with col3:
+                    if st.button("✅ Got it", key=f"purchase_{request['id']}", use_container_width=True):
+                        mark_alcohol_purchased(request['id'], True, cost_input)
+                        st.success(f"✅ Marked {request['item_name']} as purchased for ${cost_input:.2f}!")
+                        st.rerun()
+        else:
+            st.success("🎉 **All items purchased!** Shopping complete!")
+
+        # Show purchased items
+        if purchased:
+            with st.expander(f"✅ Already Purchased ({len(purchased)} items)"):
+                total_purchased_cost = sum(r['cost'] for r in purchased)
+                st.info(f"💰 **Total spent on alcohol:** ${total_purchased_cost:.2f} (Split 50/50: ${total_purchased_cost/2:.2f} each)")
+
+                for request in purchased:
+                    quantity_str = f" - {request['quantity']}" if request['quantity'] else ""
+                    notes_str = f" ({request['notes']})" if request['notes'] else ""
+                    cost_str = f" - ${request['cost']:.2f}" if request['cost'] > 0 else ""
+
+                    col1, col2 = st.columns([4, 1])
+                    with col1:
+                        st.markdown(f"- ~~**{request['item_name']}**{quantity_str}{notes_str}~~{cost_str}")
+                    with col2:
+                        if st.button("↩️ Undo", key=f"unpurchase_{request['id']}", help="Mark as not purchased"):
+                            mark_alcohol_purchased(request['id'], False, 0)
+                            st.rerun()
+
+        st.info("💡 **Tip:** ABC Fine Wine & Spirits and Total Wine are nearby. Also, there's a Publix 5 mins away for mixers/snacks!")
+    else:
+        st.info("👀 No drink requests yet. John can add his requests on his page!")
 
     # ============ MEAL PLANNING SECTION ============
     st.markdown("---")
@@ -5899,6 +6385,31 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
     for category_name, items in restaurants_dict.items():
         if any(word in category_name.lower() for word in ['dining', 'fine dining', 'seafood', 'italian', 'mexican', 'asian', 'breakfast', 'casual', 'coffee', 'ritz-carlton dining', 'bars', 'deli', 'lunch']):
             all_restaurants.extend(items)
+
+    # Define daily schedule context (activities that affect meal times)
+    def get_daily_schedule(date_str):
+        """Get scheduled activities for a given date to show meal time constraints"""
+        schedules = {
+            "2025-11-08": [  # Saturday
+                {"time": "12:00 PM", "activity": "John arrives at hotel", "icon": "✈️"},
+                {"time": "3:30 PM", "activity": "Backwater Cat Eco Tour (2 hours)", "icon": "🚤"},
+            ],
+            "2025-11-09": [  # Sunday - Birthday!
+                {"time": "9:00 AM", "activity": "Room Service Breakfast (already booked)", "icon": "🛎️"},
+                {"time": "10:00 AM", "activity": "Heaven in a Hammock Spa (90 min)", "icon": "💆"},
+                {"time": "12:00 PM", "activity": "HydraFacial Spa Treatment (60 min)", "icon": "💧"},
+                {"time": "1:30 PM", "activity": "Mani-Pedi Spa Treatment (90 min)", "icon": "💅"},
+                {"time": "7:00 PM", "activity": "Birthday Dinner (already booked)", "icon": "🎂"},
+            ],
+            "2025-11-10": [  # Monday
+                {"time": "Flexible", "activity": "No activities scheduled - can sleep in!", "icon": "😴"},
+            ],
+            "2025-11-11": [  # Tuesday
+                {"time": "11:00 AM", "activity": "Check out from hotel", "icon": "🏨"},
+                {"time": "1:00 PM", "activity": "Flight departure", "icon": "✈️"},
+            ],
+        }
+        return schedules.get(date_str, [])
 
     # Define meal slots - ONLY for days when John is there (Nov 8-11)
     meal_slots = [
@@ -6000,23 +6511,23 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                     for idx, option in enumerate(budget_options):
                         col = cols[idx % 2]
                         with col:
-                            # Build optional fields
-                            phone_html = f"<p style='margin: 0.3rem 0; font-size: 0.9rem;'><strong>📞</strong> {option['phone']}</p>" if 'phone' in option else ""
-                            walk_time_html = f"<p style='margin: 0.3rem 0; font-size: 0.85rem; color: #666;'>🚶 {option['walk_time']}</p>" if 'walk_time' in option else ""
+                            # Build complete HTML card
+                            phone_line = f"<p style='margin: 0.3rem 0; font-size: 0.9rem;'><strong>📞</strong> {option['phone']}</p>" if 'phone' in option else ""
+                            walk_line = f"<p style='margin: 0.3rem 0; font-size: 0.85rem; color: #666;'>🚶 {option['walk_time']}</p>" if 'walk_time' in option else ""
 
-                            st.markdown(f"""
-                            <div class="ultimate-card">
-                                <div class="card-body">
-                                    <h4 style="margin: 0 0 0.5rem 0;">{option['name']}</h4>
-                                    <p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>📍</strong> {option['distance']}</p>
-                                    <p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>💰</strong> {option['cost']}</p>
-                                    <p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>🍽️</strong> {option['menu']}</p>
-                                    <p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>⏰</strong> {option['time']}</p>
-                                    {phone_html}
-                                    {walk_time_html}
-                                </div>
-                            </div>
-                            """, unsafe_allow_html=True)
+                            card_html = f"""<div class="ultimate-card">
+<div class="card-body">
+<h4 style="margin: 0 0 0.5rem 0;">{option['name']}</h4>
+<p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>📍</strong> {option['distance']}</p>
+<p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>💰</strong> {option['cost']}</p>
+<p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>🍽️</strong> {option['menu']}</p>
+<p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>⏰</strong> {option['time']}</p>
+{phone_line}
+{walk_line}
+</div>
+</div>"""
+
+                            st.markdown(card_html, unsafe_allow_html=True)
 
                     st.info("💡 **Pro Tip**: First Drop Coffee is perfect for a quick coffee & pastry if you're rushing to spa!")
             else:
@@ -6035,6 +6546,13 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                 final_restaurant = proposal['restaurant_options'][final_idx]
                 rest_details = restaurant_details.get(final_restaurant['name'], {})
 
+                # Use custom meal time if set, otherwise use default
+                display_time = proposal.get('meal_time') or meal_slot['time']
+
+                # Check if booking is required
+                booking_required = rest_details.get('booking_required', False)
+                booking_reminder = "📅 <strong>Reservation required!</strong> " if booking_required else ""
+
                 st.success(f"✅ **CONFIRMED:** {final_restaurant['name']}")
                 st.markdown(f"""
                 <div class="ultimate-card" style="border-left: 4px solid #4caf50;">
@@ -6045,7 +6563,8 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                         <p><strong>📞 Phone:</strong> {final_restaurant.get('phone', 'N/A')}</p>
                         <p><strong>🔗 Booking:</strong> {final_restaurant.get('booking_url', 'N/A')}</p>
                         <p><strong>🍽️ Menu:</strong> {rest_details.get('menu_url', 'N/A')}</p>
-                        <p><strong>⏰ Time:</strong> {meal_slot['time']}</p>
+                        <p><strong>⏰ Time:</strong> {display_time}</p>
+                        <p style="margin-top: 0.5rem;">{booking_reminder}</p>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -6065,6 +6584,21 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             john_vote = proposal['john_vote']
 
             st.info(f"🗳️ **John has voted!** Choice: {john_vote}")
+
+            # Show daily schedule context
+            daily_schedule = get_daily_schedule(meal_slot['date'])
+            if daily_schedule and len(daily_schedule) > 0:
+                schedule_items_html = ""
+                for item in daily_schedule:
+                    schedule_items_html += f"<p style='margin: 0.3rem 0; font-size: 0.9rem;'>{item['icon']} <strong>{item['time']}</strong> - {item['activity']}</p>"
+
+                st.markdown(f"""
+                <div class="info-box" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin: 1rem 0;">
+                    <h4 style="margin: 0 0 0.5rem 0; color: white;">📅 {meal_slot['label'].split('(')[0]} Schedule</h4>
+                    {schedule_items_html}
+                    <p style="margin: 0.5rem 0 0 0; font-size: 0.85rem; opacity: 0.9;"><em>💡 Adjust meal time to fit your schedule below</em></p>
+                </div>
+                """, unsafe_allow_html=True)
 
             for idx, restaurant in enumerate(options):
                 rest_details = restaurant_details.get(restaurant['name'], {})
@@ -6093,9 +6627,36 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                     conn.close()
                     st.rerun()
             else:
+                # Time picker for meal
+                st.markdown("---")
+                st.markdown("**⏰ Set Meal Time:**")
+
+                # Parse default time for this meal
+                import datetime
+                default_time_str = meal_slot.get('time', '12:00 PM')
+                try:
+                    # Parse time string like "12:30 PM" to time object
+                    default_time_obj = datetime.datetime.strptime(default_time_str, '%I:%M %p').time()
+                except:
+                    default_time_obj = datetime.time(12, 0)
+
+                # Time picker
+                time_key = f"time_{meal_slot['id']}"
+                selected_time = st.time_input(
+                    f"Choose time for {meal_slot['label'].split('(')[0]}",
+                    value=default_time_obj,
+                    key=time_key,
+                    help="Adjust based on your daily schedule and spa appointments"
+                )
+
+                # Format selected time as string (e.g., "7:30 PM")
+                formatted_time = selected_time.strftime('%I:%M %p')
+
+                st.info(f"📍 Meal will be scheduled for **{formatted_time}**")
+
                 # Confirm button
                 if st.button(f"✅ Confirm & Add to Calendar", key=f"confirm_{meal_slot['id']}", type="primary"):
-                    finalize_meal_choice(meal_slot['id'], int(john_vote))
+                    finalize_meal_choice(meal_slot['id'], int(john_vote), formatted_time)
                     st.success("Meal confirmed and added to calendar!")
                     st.rerun()
 
@@ -6220,6 +6781,10 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                             has_outdoor = rest_details.get('outdoor_seating', False)
                             outdoor_icon = "🌤️ Outdoor seating (perfect 75° weather!)" if has_outdoor else ""
 
+                            # Check for booking requirement
+                            booking_required = rest_details.get('booking_required', False)
+                            booking_icon = "📅 Reservation required" if booking_required else ""
+
                             # Build links
                             website_url = restaurant.get('booking_url', 'N/A')
                             menu_url = rest_details.get('menu_url', 'N/A')
@@ -6248,6 +6813,7 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
 <p style="margin: 0.5rem 0;"><strong>💰</strong> {safe_cost}</p>
 <p style="margin: 0.5rem 0; cursor: help;" title="{safe_dress_tooltip}"><strong>👔</strong> {safe_dress} <span style="font-size: 0.75rem; color: #999;">ⓘ</span></p>
 {f'<p style="margin: 0.5rem 0; font-size: 0.85rem; color: #2196f3;">{outdoor_icon}</p>' if has_outdoor else ''}
+{f'<p style="margin: 0.5rem 0; font-size: 0.85rem; color: #ff5722; font-weight: bold;">{booking_icon}</p>' if booking_required else ''}
 <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #eee;">
 {links_html}
 </div>
@@ -6289,6 +6855,199 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                         st.warning(f"⚠️ Please select {3 - len(st.session_state[selection_key])} more restaurant(s)")
                     else:
                         st.info("👆 Select 3 restaurants from the cards above")
+
+        st.markdown("---")
+
+    # ============ ACTIVITY PLANNING SECTION ============
+    st.markdown("---")
+    st.markdown("### 🎯 Activity Planning")
+
+    st.markdown("""
+    <div class="info-box" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+        <h4 style="margin: 0; color: white;">🎯 Plan Your Free Time!</h4>
+        <p style="margin: 0.5rem 0 0 0; opacity: 0.95;">Fill your non-dining, non-spa time with fun activities! Propose 3 options for each slot, John votes, then confirm!</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Define activity time slots (avoiding meals and spa times)
+    activity_slots = [
+        {"id": "sat_afternoon", "label": "Saturday Afternoon (Nov 8)", "date": "2025-11-08", "time": "After lunch", "notes": "Boat tour at 3:30 PM already booked"},
+        {"id": "sat_evening", "label": "Saturday Evening (Nov 8)", "date": "2025-11-08", "time": "After dinner", "notes": "Relax at hotel or explore"},
+        {"id": "sun_afternoon", "label": "Sunday Afternoon (Nov 9)", "date": "2025-11-09", "time": "After spa", "notes": "Free time after mani-pedi (ends 3:00 PM)"},
+        {"id": "sun_evening", "label": "Sunday Evening (Nov 9)", "date": "2025-11-09", "time": "After dinner", "notes": "Birthday celebration time!"},
+        {"id": "mon_morning", "label": "Monday Morning (Nov 10)", "date": "2025-11-10", "time": "Morning", "notes": "Can sleep in - no schedule!"},
+        {"id": "mon_afternoon", "label": "Monday Afternoon (Nov 10)", "date": "2025-11-10", "time": "Afternoon", "notes": "Full day free!"},
+        {"id": "mon_evening", "label": "Monday Evening (Nov 10)", "date": "2025-11-10", "time": "After dinner", "notes": "Last night - make it count!"},
+    ]
+
+    # Get all non-dining optional activities
+    all_activities_dict = get_optional_activities()
+    available_activities = []
+    for category_name, items in all_activities_dict.items():
+        # Skip dining categories
+        if not any(word in category_name.lower() for word in ['dining', 'restaurant', 'breakfast', 'lunch', 'dinner', 'coffee', 'bar']):
+            available_activities.extend(items)
+
+    for activity_slot in activity_slots:
+        st.markdown(f"#### {activity_slot['label']}")
+
+        # Get existing proposal
+        proposal = get_activity_proposal(activity_slot['id'])
+
+        if proposal and proposal['status'] == 'confirmed':
+            # Activity is confirmed
+            final_idx = proposal.get('final_choice')
+            if final_idx is not None and final_idx < len(proposal['activity_options']):
+                final_activity = proposal['activity_options'][final_idx]
+                st.success(f"✅ **CONFIRMED:** {final_activity['name']}")
+                st.markdown(f"""
+                <div class="ultimate-card" style="border-left: 4px solid #4caf50;">
+                    <div class="card-body">
+                        <p><strong>🎯 Activity:</strong> {final_activity['name']}</p>
+                        <p><strong>💰 Cost:</strong> {final_activity.get('cost_range', 'N/A')}</p>
+                        <p><strong>⏰ Duration:</strong> {final_activity.get('duration', 'N/A')}</p>
+                        <p><strong>📍 Location:</strong> {final_activity.get('description', 'N/A')[:100]}...</p>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                if st.button(f"🔄 Change {activity_slot['label']}", key=f"change_activity_{activity_slot['id']}"):
+                    conn = sqlite3.connect(DB_FILE)
+                    cursor = conn.cursor()
+                    cursor.execute("UPDATE activity_proposals SET status = 'proposed', final_choice = NULL WHERE activity_slot_id = ?", (activity_slot['id'],))
+                    conn.commit()
+                    conn.close()
+                    st.rerun()
+
+        elif proposal and proposal['status'] == 'voted':
+            # John has voted
+            options = proposal['activity_options']
+            john_vote = proposal['john_vote']
+
+            st.info(f"🗳️ **John has voted!** Choice: {john_vote}")
+
+            for idx, activity in enumerate(options):
+                is_johns_choice = (str(idx) == str(john_vote))
+                border_color = "#4caf50" if is_johns_choice else "#ddd"
+
+                st.markdown(f"""
+                <div class="ultimate-card" style="border-left: 4px solid {border_color};">
+                    <div class="card-body">
+                        <h4 style="margin: 0;">{'✅ ' if is_johns_choice else ''}Option {idx + 1}: {activity['name']}</h4>
+                        <p style="margin: 0.5rem 0;"><strong>💰</strong> {activity.get('cost_range', 'N/A')} | <strong>⏰</strong> {activity.get('duration', 'N/A')}</p>
+                        <p style="margin: 0.5rem 0;"><strong>📍</strong> {activity.get('description', 'N/A')[:100]}...</p>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+            if john_vote == "none":
+                st.warning("❌ John said none of these work. Pick 3 new options!")
+                if st.button(f"Pick New Options for {activity_slot['label']}", key=f"repick_activity_{activity_slot['id']}"):
+                    conn = sqlite3.connect(DB_FILE)
+                    cursor = conn.cursor()
+                    cursor.execute("DELETE FROM activity_proposals WHERE activity_slot_id = ?", (activity_slot['id'],))
+                    conn.commit()
+                    conn.close()
+                    st.rerun()
+            else:
+                # Confirm button
+                if st.button(f"✅ Confirm & Add to Calendar", key=f"confirm_activity_{activity_slot['id']}", type="primary"):
+                    finalize_activity_choice(activity_slot['id'], int(john_vote))
+                    st.success("Activity confirmed and added to calendar!")
+                    st.rerun()
+
+        elif proposal and proposal['status'] == 'proposed':
+            # Waiting for John's vote
+            st.warning("🗳️ **Waiting for John to vote...**")
+
+            options = proposal['activity_options']
+            for idx, activity in enumerate(options):
+                st.markdown(f"""
+                <div class="ultimate-card">
+                    <div class="card-body">
+                        <h4 style="margin: 0;">Option {idx + 1}: {activity['name']}</h4>
+                        <p style="margin: 0.5rem 0;"><strong>💰</strong> {activity.get('cost_range', 'N/A')} | <strong>⏰</strong> {activity.get('duration', 'N/A')}</p>
+                        <p style="margin: 0.5rem 0;"><strong>📍</strong> {activity.get('description', 'N/A')[:100]}...</p>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+            if st.button(f"🔄 Pick Different Options", key=f"repick_proposed_{activity_slot['id']}"):
+                conn = sqlite3.connect(DB_FILE)
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM activity_proposals WHERE activity_slot_id = ?", (activity_slot['id'],))
+                conn.commit()
+                conn.close()
+                st.rerun()
+
+        else:
+            # No proposal yet - let Michael pick 3 activities
+            st.info(f"💡 **{activity_slot['notes']}**")
+
+            # Initialize selection state
+            selection_key = f"activity_selection_{activity_slot['id']}"
+            if selection_key not in st.session_state:
+                st.session_state[selection_key] = []
+
+            st.markdown(f"**Select 3 activities for this time slot ({len(st.session_state[selection_key])}/3):**")
+
+            # Show activities in a grid
+            cols = st.columns(3)
+            for idx, activity in enumerate(available_activities):
+                col = cols[idx % 3]
+                is_selected = activity['name'] in st.session_state[selection_key]
+
+                with col:
+                    import html
+                    safe_name = html.escape(activity['name'])
+                    safe_desc = html.escape(activity.get('description', '')[:60])
+                    safe_cost = html.escape(activity.get('cost_range', 'N/A'))
+
+                    border_color = "#4caf50" if is_selected else "#ddd"
+                    st.markdown(f"""
+<div class="ultimate-card" style="border-left: 4px solid {border_color}; min-height: 180px;">
+<div class="card-body">
+<h4 style="margin: 0 0 0.5rem 0; font-size: 0.95rem;">{'✅ ' if is_selected else ''}{safe_name}</h4>
+<p style="margin: 0.3rem 0; font-size: 0.85rem; color: #666;">{safe_desc}...</p>
+<p style="margin: 0.3rem 0; font-size: 0.85rem;"><strong>💰</strong> {safe_cost}</p>
+<p style="margin: 0.3rem 0; font-size: 0.85rem;"><strong>⏰</strong> {activity.get('duration', 'Varies')}</p>
+</div>
+</div>
+""", unsafe_allow_html=True)
+
+                    # Toggle button
+                    if is_selected:
+                        if st.button(f"Remove", key=f"activity_remove_{activity_slot['id']}_{idx}", use_container_width=True):
+                            st.session_state[selection_key].remove(activity['name'])
+                            st.rerun()
+                    else:
+                        if len(st.session_state[selection_key]) < 3:
+                            if st.button(f"Select", key=f"activity_select_{activity_slot['id']}_{idx}", use_container_width=True):
+                                st.session_state[selection_key].append(activity['name'])
+                                st.rerun()
+                        else:
+                            st.button(f"Max 3", key=f"activity_disabled_{activity_slot['id']}_{idx}", use_container_width=True, disabled=True)
+
+            # Send proposal button
+            if len(st.session_state[selection_key]) == 3:
+                st.markdown("---")
+                if st.button(f"✅ Send Proposal to John", key=f"propose_activity_{activity_slot['id']}", type="primary", use_container_width=True):
+                    # Get full activity data
+                    selected_activities = []
+                    for activity_name in st.session_state[selection_key]:
+                        for activity in available_activities:
+                            if activity['name'] == activity_name:
+                                selected_activities.append(activity)
+                                break
+
+                    save_activity_proposal(activity_slot['id'], selected_activities, activity_slot['date'], activity_slot['time'])
+                    st.session_state[selection_key] = []  # Clear selection
+                    st.success("✅ Activity proposal sent to John!")
+                    st.rerun()
+            elif len(st.session_state[selection_key]) > 0:
+                st.warning(f"⚠️ Please select {3 - len(st.session_state[selection_key])} more activit(y/ies)")
+            else:
+                st.info("👆 Select 3 activities from the cards above")
 
         st.markdown("---")
 
@@ -6760,6 +7519,77 @@ def render_johns_page(df, activities_data, show_sensitive):
         </div>
         """, unsafe_allow_html=True)
 
+    # ============ BUDGET OVERVIEW ============
+    st.markdown("---")
+    st.markdown("### 💰 Your Trip Budget")
+    render_budget_widget(activities_data, show_sensitive, view_mode='john')
+
+    # ============ ALCOHOL/DRINK REQUESTS ============
+    st.markdown("---")
+    st.markdown("### 🍺 Drink Requests")
+
+    st.markdown("""
+    <div class="info-box" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;">
+        <h4 style="margin: 0; color: white;">🍺 Michael's Booze Run!</h4>
+        <p style="margin: 0.5rem 0 0 0; opacity: 0.95;">Michael will do a booze run when he arrives (Friday night or Saturday morning). Submit your drink requests below!</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Get existing requests
+    all_requests = get_alcohol_requests()
+
+    # Show existing requests
+    if all_requests:
+        st.markdown("**Your Current Requests:**")
+        for request in all_requests:
+            if not request['purchased']:
+                quantity_str = f" - {request['quantity']}" if request['quantity'] else ""
+                notes_str = f" ({request['notes']})" if request['notes'] else ""
+
+                col1, col2 = st.columns([4, 1])
+                with col1:
+                    st.markdown(f"- **{request['item_name']}**{quantity_str}{notes_str}")
+                with col2:
+                    if st.button("🗑️", key=f"delete_request_{request['id']}", help="Delete this request"):
+                        delete_alcohol_request(request['id'])
+                        st.rerun()
+
+        # Show purchased items
+        purchased_items = [r for r in all_requests if r['purchased']]
+        if purchased_items:
+            with st.expander("✅ Already Purchased"):
+                total_purchased_cost = sum(r['cost'] for r in purchased_items)
+                if total_purchased_cost > 0:
+                    st.info(f"💰 **Total spent:** ${total_purchased_cost:.2f} (Your share: ${total_purchased_cost/2:.2f})")
+
+                for request in purchased_items:
+                    quantity_str = f" - {request['quantity']}" if request['quantity'] else ""
+                    notes_str = f" ({request['notes']})" if request['notes'] else ""
+                    cost_str = f" - ${request['cost']:.2f}" if request['cost'] > 0 else ""
+                    st.markdown(f"- ~~**{request['item_name']}**{quantity_str}{notes_str}~~{cost_str}")
+
+    # Add new request form
+    st.markdown("---")
+    st.markdown("**Add New Request:**")
+
+    with st.form("add_alcohol_request", clear_on_submit=True):
+        col1, col2 = st.columns(2)
+        with col1:
+            item_name = st.text_input("Item Name", placeholder="e.g., Beer, Wine, Vodka, Mixers")
+        with col2:
+            quantity = st.text_input("Quantity (optional)", placeholder="e.g., 6-pack, 2 bottles")
+
+        notes = st.text_input("Notes (optional)", placeholder="e.g., IPA preferred, Red wine, Any brand")
+
+        submitted = st.form_submit_button("➕ Add Request", type="primary", use_container_width=True)
+        if submitted:
+            if item_name:
+                add_alcohol_request(item_name, quantity, notes)
+                st.success(f"✅ Added {item_name} to your requests!")
+                st.rerun()
+            else:
+                st.error("Please enter an item name")
+
     # ============ MEAL VOTING SECTION ============
     st.markdown("---")
     st.markdown("### 🍽️ Vote on Meal Options")
@@ -6773,15 +7603,17 @@ def render_johns_page(df, activities_data, show_sensitive):
 
     # Get all meal proposals
     meal_slots = [
-        {"id": "fri_dinner", "label": "Friday Dinner (Nov 7)"},
-        {"id": "sat_breakfast", "label": "Saturday Breakfast (Nov 8)"},
-        {"id": "sat_lunch", "label": "Saturday Lunch (Nov 8)"},
-        {"id": "sun_breakfast", "label": "Sunday Breakfast (Nov 9)"},
-        {"id": "sun_lunch", "label": "Sunday Lunch (Nov 9)"},
-        {"id": "mon_breakfast", "label": "Monday Breakfast (Nov 10)"},
-        {"id": "mon_lunch", "label": "Monday Lunch (Nov 10)"},
-        {"id": "mon_dinner", "label": "Monday Dinner (Nov 10)"},
-        {"id": "tue_breakfast", "label": "Tuesday Breakfast (Nov 11)"},
+        {"id": "fri_dinner", "label": "Friday Dinner (Nov 7)", "date": "2025-11-07"},
+        {"id": "sat_breakfast", "label": "Saturday Breakfast (Nov 8)", "date": "2025-11-08"},
+        {"id": "sat_lunch", "label": "Saturday Lunch (Nov 8)", "date": "2025-11-08"},
+        {"id": "sat_dinner", "label": "Saturday Dinner (Nov 8)", "date": "2025-11-08"},
+        {"id": "sun_breakfast", "label": "Sunday Breakfast (Nov 9)", "date": "2025-11-09"},
+        {"id": "sun_lunch", "label": "Sunday Lunch (Nov 9)", "date": "2025-11-09"},
+        {"id": "sun_dinner", "label": "Sunday Dinner (Nov 9)", "date": "2025-11-09"},
+        {"id": "mon_breakfast", "label": "Monday Breakfast (Nov 10)", "date": "2025-11-10"},
+        {"id": "mon_lunch", "label": "Monday Lunch (Nov 10)", "date": "2025-11-10"},
+        {"id": "mon_dinner", "label": "Monday Dinner (Nov 10)", "date": "2025-11-10"},
+        {"id": "tue_breakfast", "label": "Tuesday Breakfast (Nov 11)", "date": "2025-11-11"},
     ]
 
     restaurant_details = get_restaurant_details()
@@ -6842,6 +7674,99 @@ def render_johns_page(df, activities_data, show_sensitive):
                     st.info("Michael will pick new options.")
                     st.rerun()
 
+            # John can propose alternatives
+            with st.expander("💡 **Don't like these options? Suggest 3 alternatives!**"):
+                st.markdown("**Browse all available restaurants and pick 3 you'd prefer:**")
+
+                # Get meal type
+                meal_type = "breakfast" if "breakfast" in meal_slot['label'].lower() else ("lunch" if "lunch" in meal_slot['label'].lower() else "dinner")
+
+                # Get available restaurants (same filtering logic as Michael's side)
+                restaurants_dict = get_optional_activities()
+                meal_date_str = meal_slot.get('date', '2025-11-08')  # Default to Nov 8 if not specified
+                from datetime import datetime
+                meal_date = datetime.strptime(meal_date_str, '%Y-%m-%d')
+                day_of_week = meal_date.weekday()
+
+                # Smart filtering
+                meal_appropriate_restaurants = []
+                for category_name, items in restaurants_dict.items():
+                    for restaurant in items:
+                        rest_name = restaurant['name']
+                        rest_details = restaurant_details.get(rest_name, {})
+                        serves_list = rest_details.get('serves', [])
+                        days_open = rest_details.get('days_open', [0,1,2,3,4,5,6])
+
+                        if meal_type in serves_list and day_of_week in days_open:
+                            meal_appropriate_restaurants.append(restaurant)
+
+                # Initialize John's selection state
+                john_selection_key = f"john_alternative_{meal_slot['id']}"
+                if john_selection_key not in st.session_state:
+                    st.session_state[john_selection_key] = []
+
+                st.markdown(f"**Selected: {len(st.session_state[john_selection_key])}/3**")
+
+                # Show available restaurants
+                cols = st.columns(3)
+                for idx, restaurant in enumerate(meal_appropriate_restaurants):
+                    col = cols[idx % 3]
+                    is_selected = restaurant['name'] in st.session_state[john_selection_key]
+                    rest_details_local = restaurant_details.get(restaurant['name'], {})
+
+                    with col:
+                        import html
+                        safe_name = html.escape(restaurant['name'])
+                        safe_desc = html.escape(restaurant.get('description', 'Great dining option'))
+                        safe_cost = html.escape(restaurant.get('cost_range', 'N/A'))
+
+                        border_color = "#4caf50" if is_selected else "#ddd"
+                        st.markdown(f"""
+<div class="ultimate-card" style="border-left: 4px solid {border_color}; min-height: 150px;">
+<div class="card-body">
+<h4 style="margin: 0 0 0.5rem 0; font-size: 0.95rem;">{'✅ ' if is_selected else ''}{safe_name}</h4>
+<p style="margin: 0.3rem 0; font-size: 0.85rem; color: #666;">{safe_desc[:80]}...</p>
+<p style="margin: 0.3rem 0; font-size: 0.85rem;"><strong>💰</strong> {safe_cost}</p>
+</div>
+</div>
+""", unsafe_allow_html=True)
+
+                        # Toggle button
+                        if is_selected:
+                            if st.button(f"Remove", key=f"john_remove_{meal_slot['id']}_{idx}", use_container_width=True):
+                                st.session_state[john_selection_key].remove(restaurant['name'])
+                                st.rerun()
+                        else:
+                            if len(st.session_state[john_selection_key]) < 3:
+                                if st.button(f"Select", key=f"john_select_{meal_slot['id']}_{idx}", use_container_width=True):
+                                    st.session_state[john_selection_key].append(restaurant['name'])
+                                    st.rerun()
+                            else:
+                                st.button(f"Max 3", key=f"john_disabled_{meal_slot['id']}_{idx}", use_container_width=True, disabled=True)
+
+                # Send counter-proposal button
+                if len(st.session_state[john_selection_key]) == 3:
+                    st.markdown("---")
+                    if st.button(f"✅ Send My 3 Alternatives to Michael", key=f"john_counter_{meal_slot['id']}", type="primary", use_container_width=True):
+                        # Get full restaurant data
+                        selected_restaurants = []
+                        all_restaurants = []
+                        for category_name, items in restaurants_dict.items():
+                            all_restaurants.extend(items)
+
+                        for name in st.session_state[john_selection_key]:
+                            rest = next((r for r in all_restaurants if r['name'] == name), None)
+                            if rest:
+                                selected_restaurants.append(rest)
+
+                        if len(selected_restaurants) == 3:
+                            # Save as a new proposal from John (replace Michael's)
+                            save_meal_proposal(meal_slot['id'], selected_restaurants)
+                            # Clear selection
+                            st.session_state[john_selection_key] = []
+                            st.success("Counter-proposal sent to Michael! He can now vote on your 3 choices.")
+                            st.rerun()
+
             st.markdown("---")
 
         elif proposal and proposal['status'] == 'voted':
@@ -6857,6 +7782,97 @@ def render_johns_page(df, activities_data, show_sensitive):
 
     if not has_proposals:
         st.info("👀 No meal proposals yet. Michael will add options soon!")
+
+    # ============ ACTIVITY VOTING SECTION ============
+    st.markdown("---")
+    st.markdown("### 🎯 Vote on Activity Options")
+
+    st.markdown("""
+    <div class="info-box" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+        <h4 style="margin: 0; color: white;">🎯 Your Input Needed!</h4>
+        <p style="margin: 0.5rem 0 0 0; opacity: 0.95;">Michael has proposed activity options. Vote on which ones work for you!</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Get all activity proposals
+    activity_slots = [
+        {"id": "sat_afternoon", "label": "Saturday Afternoon (Nov 8)"},
+        {"id": "sat_evening", "label": "Saturday Evening (Nov 8)"},
+        {"id": "sun_afternoon", "label": "Sunday Afternoon (Nov 9)"},
+        {"id": "sun_evening", "label": "Sunday Evening (Nov 9)"},
+        {"id": "mon_morning", "label": "Monday Morning (Nov 10)"},
+        {"id": "mon_afternoon", "label": "Monday Afternoon (Nov 10)"},
+        {"id": "mon_evening", "label": "Monday Evening (Nov 10)"},
+    ]
+
+    has_activity_proposals = False
+
+    for activity_slot in activity_slots:
+        proposal = get_activity_proposal(activity_slot['id'])
+
+        if proposal and proposal['status'] == 'proposed':
+            has_activity_proposals = True
+            st.markdown(f"#### {activity_slot['label']}")
+            st.markdown("**Michael proposed these 3 options. Which works for you?**")
+
+            options = proposal['activity_options']
+
+            # Display options
+            for idx, activity in enumerate(options):
+                st.markdown(f"""
+                <div class="ultimate-card">
+                    <div class="card-body">
+                        <h4 style="margin: 0 0 0.5rem 0;">Option {idx + 1}: {activity['name']}</h4>
+                        <p style="margin: 0.25rem 0;"><strong>📝 Description:</strong> {activity.get('description', 'N/A')[:120]}...</p>
+                        <p style="margin: 0.25rem 0;"><strong>💰 Cost:</strong> {activity.get('cost_range', 'N/A')}</p>
+                        <p style="margin: 0.25rem 0;"><strong>⏰ Duration:</strong> {activity.get('duration', 'N/A')}</p>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+            # Voting buttons
+            st.markdown("**Cast Your Vote:**")
+            col1, col2, col3, col4 = st.columns(4)
+
+            with col1:
+                if st.button(f"✅ Option 1", key=f"vote_activity_{activity_slot['id']}_0", use_container_width=True, type="primary"):
+                    save_john_activity_vote(activity_slot['id'], "0")
+                    st.success("Vote recorded!")
+                    st.rerun()
+
+            with col2:
+                if st.button(f"✅ Option 2", key=f"vote_activity_{activity_slot['id']}_1", use_container_width=True, type="primary"):
+                    save_john_activity_vote(activity_slot['id'], "1")
+                    st.success("Vote recorded!")
+                    st.rerun()
+
+            with col3:
+                if st.button(f"✅ Option 3", key=f"vote_activity_{activity_slot['id']}_2", use_container_width=True, type="primary"):
+                    save_john_activity_vote(activity_slot['id'], "2")
+                    st.success("Vote recorded!")
+                    st.rerun()
+
+            with col4:
+                if st.button(f"❌ None Work", key=f"vote_activity_{activity_slot['id']}_none", use_container_width=True):
+                    save_john_activity_vote(activity_slot['id'], "none")
+                    st.info("Michael will pick new options.")
+                    st.rerun()
+
+            st.markdown("---")
+
+        elif proposal and proposal['status'] == 'voted':
+            # Already voted
+            st.success(f"✅ **{activity_slot['label']}** - You voted! Waiting for Michael to confirm.")
+
+        elif proposal and proposal['status'] == 'confirmed':
+            # Confirmed
+            final_idx = proposal.get('final_choice')
+            if final_idx is not None and final_idx < len(proposal['activity_options']):
+                final_activity = proposal['activity_options'][final_idx]
+                st.success(f"✅ **{activity_slot['label']}** - Confirmed: {final_activity['name']}")
+
+    if not has_activity_proposals:
+        st.info("👀 No activity proposals yet. Michael will add options soon!")
 
     # Final tips
     st.markdown("---")
