@@ -6773,15 +6773,17 @@ def render_johns_page(df, activities_data, show_sensitive):
 
     # Get all meal proposals
     meal_slots = [
-        {"id": "fri_dinner", "label": "Friday Dinner (Nov 7)"},
-        {"id": "sat_breakfast", "label": "Saturday Breakfast (Nov 8)"},
-        {"id": "sat_lunch", "label": "Saturday Lunch (Nov 8)"},
-        {"id": "sun_breakfast", "label": "Sunday Breakfast (Nov 9)"},
-        {"id": "sun_lunch", "label": "Sunday Lunch (Nov 9)"},
-        {"id": "mon_breakfast", "label": "Monday Breakfast (Nov 10)"},
-        {"id": "mon_lunch", "label": "Monday Lunch (Nov 10)"},
-        {"id": "mon_dinner", "label": "Monday Dinner (Nov 10)"},
-        {"id": "tue_breakfast", "label": "Tuesday Breakfast (Nov 11)"},
+        {"id": "fri_dinner", "label": "Friday Dinner (Nov 7)", "date": "2025-11-07"},
+        {"id": "sat_breakfast", "label": "Saturday Breakfast (Nov 8)", "date": "2025-11-08"},
+        {"id": "sat_lunch", "label": "Saturday Lunch (Nov 8)", "date": "2025-11-08"},
+        {"id": "sat_dinner", "label": "Saturday Dinner (Nov 8)", "date": "2025-11-08"},
+        {"id": "sun_breakfast", "label": "Sunday Breakfast (Nov 9)", "date": "2025-11-09"},
+        {"id": "sun_lunch", "label": "Sunday Lunch (Nov 9)", "date": "2025-11-09"},
+        {"id": "sun_dinner", "label": "Sunday Dinner (Nov 9)", "date": "2025-11-09"},
+        {"id": "mon_breakfast", "label": "Monday Breakfast (Nov 10)", "date": "2025-11-10"},
+        {"id": "mon_lunch", "label": "Monday Lunch (Nov 10)", "date": "2025-11-10"},
+        {"id": "mon_dinner", "label": "Monday Dinner (Nov 10)", "date": "2025-11-10"},
+        {"id": "tue_breakfast", "label": "Tuesday Breakfast (Nov 11)", "date": "2025-11-11"},
     ]
 
     restaurant_details = get_restaurant_details()
@@ -6841,6 +6843,99 @@ def render_johns_page(df, activities_data, show_sensitive):
                     save_john_meal_vote(meal_slot['id'], "none")
                     st.info("Michael will pick new options.")
                     st.rerun()
+
+            # John can propose alternatives
+            with st.expander("💡 **Don't like these options? Suggest 3 alternatives!**"):
+                st.markdown("**Browse all available restaurants and pick 3 you'd prefer:**")
+
+                # Get meal type
+                meal_type = "breakfast" if "breakfast" in meal_slot['label'].lower() else ("lunch" if "lunch" in meal_slot['label'].lower() else "dinner")
+
+                # Get available restaurants (same filtering logic as Michael's side)
+                restaurants_dict = get_optional_activities()
+                meal_date_str = meal_slot.get('date', '2025-11-08')  # Default to Nov 8 if not specified
+                from datetime import datetime
+                meal_date = datetime.strptime(meal_date_str, '%Y-%m-%d')
+                day_of_week = meal_date.weekday()
+
+                # Smart filtering
+                meal_appropriate_restaurants = []
+                for category_name, items in restaurants_dict.items():
+                    for restaurant in items:
+                        rest_name = restaurant['name']
+                        rest_details = restaurant_details.get(rest_name, {})
+                        serves_list = rest_details.get('serves', [])
+                        days_open = rest_details.get('days_open', [0,1,2,3,4,5,6])
+
+                        if meal_type in serves_list and day_of_week in days_open:
+                            meal_appropriate_restaurants.append(restaurant)
+
+                # Initialize John's selection state
+                john_selection_key = f"john_alternative_{meal_slot['id']}"
+                if john_selection_key not in st.session_state:
+                    st.session_state[john_selection_key] = []
+
+                st.markdown(f"**Selected: {len(st.session_state[john_selection_key])}/3**")
+
+                # Show available restaurants
+                cols = st.columns(3)
+                for idx, restaurant in enumerate(meal_appropriate_restaurants):
+                    col = cols[idx % 3]
+                    is_selected = restaurant['name'] in st.session_state[john_selection_key]
+                    rest_details_local = restaurant_details.get(restaurant['name'], {})
+
+                    with col:
+                        import html
+                        safe_name = html.escape(restaurant['name'])
+                        safe_desc = html.escape(restaurant.get('description', 'Great dining option'))
+                        safe_cost = html.escape(restaurant.get('cost_range', 'N/A'))
+
+                        border_color = "#4caf50" if is_selected else "#ddd"
+                        st.markdown(f"""
+<div class="ultimate-card" style="border-left: 4px solid {border_color}; min-height: 150px;">
+<div class="card-body">
+<h4 style="margin: 0 0 0.5rem 0; font-size: 0.95rem;">{'✅ ' if is_selected else ''}{safe_name}</h4>
+<p style="margin: 0.3rem 0; font-size: 0.85rem; color: #666;">{safe_desc[:80]}...</p>
+<p style="margin: 0.3rem 0; font-size: 0.85rem;"><strong>💰</strong> {safe_cost}</p>
+</div>
+</div>
+""", unsafe_allow_html=True)
+
+                        # Toggle button
+                        if is_selected:
+                            if st.button(f"Remove", key=f"john_remove_{meal_slot['id']}_{idx}", use_container_width=True):
+                                st.session_state[john_selection_key].remove(restaurant['name'])
+                                st.rerun()
+                        else:
+                            if len(st.session_state[john_selection_key]) < 3:
+                                if st.button(f"Select", key=f"john_select_{meal_slot['id']}_{idx}", use_container_width=True):
+                                    st.session_state[john_selection_key].append(restaurant['name'])
+                                    st.rerun()
+                            else:
+                                st.button(f"Max 3", key=f"john_disabled_{meal_slot['id']}_{idx}", use_container_width=True, disabled=True)
+
+                # Send counter-proposal button
+                if len(st.session_state[john_selection_key]) == 3:
+                    st.markdown("---")
+                    if st.button(f"✅ Send My 3 Alternatives to Michael", key=f"john_counter_{meal_slot['id']}", type="primary", use_container_width=True):
+                        # Get full restaurant data
+                        selected_restaurants = []
+                        all_restaurants = []
+                        for category_name, items in restaurants_dict.items():
+                            all_restaurants.extend(items)
+
+                        for name in st.session_state[john_selection_key]:
+                            rest = next((r for r in all_restaurants if r['name'] == name), None)
+                            if rest:
+                                selected_restaurants.append(rest)
+
+                        if len(selected_restaurants) == 3:
+                            # Save as a new proposal from John (replace Michael's)
+                            save_meal_proposal(meal_slot['id'], selected_restaurants)
+                            # Clear selection
+                            st.session_state[john_selection_key] = []
+                            st.success("Counter-proposal sent to Michael! He can now vote on your 3 choices.")
+                            st.rerun()
 
             st.markdown("---")
 
