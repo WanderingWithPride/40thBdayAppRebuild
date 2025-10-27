@@ -12,7 +12,7 @@ from github_storage import get_trip_data, save_trip_data
 # MEAL PROPOSALS
 # ============================================================================
 
-def save_meal_proposal(meal_id, restaurant_options):
+def save_meal_proposal(meal_id, restaurant_options, submitted_by="Michael"):
     """Save meal proposal"""
     try:
         data = get_trip_data()
@@ -23,6 +23,7 @@ def save_meal_proposal(meal_id, restaurant_options):
             'john_vote': None,
             'final_choice': None,
             'meal_time': None,
+            'submitted_by': submitted_by,  # Track who submitted this proposal
             'created_at': datetime.now().isoformat(),
             'updated_at': datetime.now().isoformat()
         }
@@ -78,7 +79,7 @@ def finalize_meal_choice(meal_id, final_choice_index, meal_time=None):
 # ACTIVITY PROPOSALS
 # ============================================================================
 
-def save_activity_proposal(activity_slot_id, activity_options, activity_time=None, date=None):
+def save_activity_proposal(activity_slot_id, activity_options, activity_time=None, date=None, submitted_by="Michael"):
     """Save activity proposal"""
     try:
         data = get_trip_data()
@@ -90,6 +91,7 @@ def save_activity_proposal(activity_slot_id, activity_options, activity_time=Non
             'final_choice': None,
             'activity_time': activity_time,
             'date': date,
+            'submitted_by': submitted_by,  # Track who submitted this proposal
             'created_at': datetime.now().isoformat(),
             'updated_at': datetime.now().isoformat()
         }
