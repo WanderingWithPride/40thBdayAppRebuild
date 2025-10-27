@@ -6970,7 +6970,8 @@ def render_johns_page(df, activities_data, show_sensitive):
         for meal_slot in meal_slots:
             proposal = get_meal_proposal(meal_slot['id'])
 
-            if proposal and proposal['status'] == 'proposed':
+            # Only show proposals submitted by Michael (not John's counter-proposals)
+            if proposal and proposal['status'] == 'proposed' and proposal.get('submitted_by') == 'Michael':
                 has_proposals = True
                 st.markdown(f"#### {meal_slot['label']}")
                 st.markdown("**Michael proposed these 3 options. Which works for you?**")
@@ -7109,7 +7110,7 @@ def render_johns_page(df, activities_data, show_sensitive):
 
                             if len(selected_restaurants) == 3:
                                 # Save as a new proposal from John (replace Michael's)
-                                success = save_meal_proposal(meal_slot['id'], selected_restaurants)
+                                success = save_meal_proposal(meal_slot['id'], selected_restaurants, submitted_by="John")
                                 if success:
                                     # Clear selection
                                     st.session_state[john_selection_key] = []
@@ -7165,7 +7166,8 @@ def render_johns_page(df, activities_data, show_sensitive):
         for activity_slot in activity_slots:
             proposal = get_activity_proposal(activity_slot['id'])
 
-            if proposal and proposal['status'] == 'proposed':
+            # Only show proposals submitted by Michael (not John's counter-proposals)
+            if proposal and proposal['status'] == 'proposed' and proposal.get('submitted_by') == 'Michael':
                 has_activity_proposals = True
                 st.markdown(f"#### {activity_slot['label']}")
                 st.markdown("**Michael proposed these 3 options. Which works for you?**")
