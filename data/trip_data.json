@@ -209,6 +209,48 @@
       "submitted_by": "Michael",
       "created_at": "2025-10-27T21:13:13.417845",
       "updated_at": "2025-10-27T21:13:13.417858"
+    },
+    "mon_dinner": {
+      "meal_id": "mon_dinner",
+      "restaurant_options": [
+        {
+          "name": "Burlingame",
+          "description": "Charming 1947 cottage with modern twist, seasonal menu with Seafood Gumbo, Blue Crab Cakes, Lamb Bolognese. \u2705 NON-SEAFOOD: Lamb, chicken, steaks, pasta",
+          "cost_range": "$35-65 per person",
+          "duration": "2-2.5 hours",
+          "phone": "904-277-3700",
+          "booking_url": "https://www.opentable.com/burlingame",
+          "tips": "Intimate setting, reserve ahead for special occasions. Great meat and pasta options!",
+          "rating": "4.9/5"
+        },
+        {
+          "name": "Espana Restaurant & Tapas",
+          "description": "SARAH'S RECOMMENDATION! Authentic Spanish tapas, paella, extensive wine selection, intimate European atmosphere",
+          "cost_range": "$25-50 per person",
+          "duration": "1.5-2.5 hours",
+          "phone": "904-261-7700",
+          "booking_url": "https://www.opentable.com/espana-fernandina",
+          "tips": "Perfect for wine and tapas - great small plates to share. Sarah says: 'Espana for wine and tapas!'",
+          "rating": "4.7/5"
+        },
+        {
+          "name": "Coquina",
+          "description": "Oceanfront restaurant with beach views and casual coastal fare. \u2705 NON-SEAFOOD: Burgers, chicken sandwiches, salads",
+          "cost_range": "$20-40 per person",
+          "duration": "1-2 hours",
+          "phone": "904-277-1100",
+          "booking_url": "N/A",
+          "tips": "Open 11am-9pm daily, perfect for lunch with ocean breeze. Great burgers and chicken!",
+          "rating": "4.5/5"
+        }
+      ],
+      "status": "proposed",
+      "john_vote": null,
+      "final_choice": null,
+      "meal_time": null,
+      "submitted_by": "Michael",
+      "created_at": "2025-10-27T21:15:41.879173",
+      "updated_at": "2025-10-27T21:15:41.879181"
     }
   },
   "activity_proposals": {},
@@ -223,5 +265,5 @@
   "completed_activities": [],
   "notifications": [],
   "tsa_updates": [],
-  "last_updated": "2025-10-27T21:13:13.417871"
+  "last_updated": "2025-10-27T21:15:41.879192"
 }
