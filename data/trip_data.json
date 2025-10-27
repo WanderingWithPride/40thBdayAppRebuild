@@ -83,6 +83,48 @@
       "submitted_by": "Michael",
       "created_at": "2025-10-27T19:12:52.844903",
       "updated_at": "2025-10-27T19:12:52.844915"
+    },
+    "sun_lunch": {
+      "meal_id": "sun_lunch",
+      "restaurant_options": [
+        {
+          "name": "Lobby Bar",
+          "description": "Classic lounge with craft cocktails, wine, and small plates. MUST TRY: Smoked Old Fashioneds, charcuterie board, sushi",
+          "cost_range": "$12-30 per item",
+          "duration": "1-2 hours",
+          "phone": "904-277-1100",
+          "booking_url": "N/A",
+          "tips": "Open 3pm-12am Mon-Thu, 3pm-1am Fri-Sat. Boss recommendation: 'Wonderful charcuterie at the bar, most wonderful smoked Old Fashioneds, sushi in the lobby!'",
+          "rating": "4.8/5"
+        },
+        {
+          "name": "Salt Life Food Shack",
+          "description": "Oceanfront casual dining with amazing views and fresh seafood. \u2705 NON-SEAFOOD: Burgers, chicken sandwiches, wings",
+          "cost_range": "$15-30 per person",
+          "duration": "1-2 hours",
+          "phone": "904-277-3811",
+          "booking_url": "https://www.saltlifefoodshack.com",
+          "tips": "Perfect for lunch, great outdoor seating. Has burgers and chicken for non-seafood eaters!",
+          "rating": "4.5/5"
+        },
+        {
+          "name": "Timoti's Seafood Shak",
+          "description": "SARAH'S RECOMMENDATION for lunch! Family-friendly wild-caught seafood, fresh fried shrimp, poke bowls, fish tacos, lobster rolls. \u26a0\ufe0f LIMITED NON-SEAFOOD: Chicken tenders available",
+          "cost_range": "$12-25 per person",
+          "duration": "45min-1 hour",
+          "phone": "904-206-0965",
+          "booking_url": "https://timotis.com",
+          "tips": "Sarah says: 'You must go to Timotees for lunch one day!' Mostly seafood but has chicken tenders",
+          "rating": "4.6/5"
+        }
+      ],
+      "status": "proposed",
+      "john_vote": null,
+      "final_choice": null,
+      "meal_time": null,
+      "submitted_by": "Michael",
+      "created_at": "2025-10-27T21:12:34.694643",
+      "updated_at": "2025-10-27T21:12:34.694656"
     }
   },
   "activity_proposals": {},
@@ -97,5 +139,5 @@
   "completed_activities": [],
   "notifications": [],
   "tsa_updates": [],
-  "last_updated": "2025-10-27T19:12:52.844931"
+  "last_updated": "2025-10-27T21:12:34.694668"
 }
