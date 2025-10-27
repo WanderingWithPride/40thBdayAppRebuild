@@ -1248,8 +1248,8 @@ def get_optional_activities():
     🏊 RESORT & FREE (7 options):
     - Pool, beach sunsets, yoga, bonfires, fitness, volleyball, shelling
 
-    ℹ️ HOTEL INFO (3 entries - informational only):
-    - Birthday package, late checkout, club lounge info
+    ℹ️ HOTEL SERVICES (2 bookable services):
+    - Birthday celebration package, guaranteed late checkout
 
     🌟 SARAH'S RECOMMENDATIONS INCLUDED:
     - Ritz Spa (beautiful!)
@@ -1397,10 +1397,9 @@ def get_optional_activities():
             {"name": "Centred On Yoga", "description": "Beginner and intermediate yoga classes in historic downtown with certified instructors (28+ years experience)", "cost_range": "$18-25 per class", "duration": "60-75 minutes", "phone": "904-310-9642", "booking_url": "N/A", "tips": "Drop-in classes available, bring your own mat", "rating": "4.8/5"},
             {"name": "The Sprouting Project", "description": "Monthly farm-to-table dining experience at Omni with garden tour, aquaponic greenhouse, barrel room, apiary", "cost_range": "$75-95 per person", "duration": "2-3 hours", "phone": "904-261-6161", "booking_url": "N/A", "tips": "Unique wellness and culinary experience, book ahead", "rating": "4.9/5"},
         ],
-        "ℹ️ Hotel Amenities & Services (Info Only - Not Schedulable)": [
+        "ℹ️ Hotel Services You Can Book": [
             {"name": "In-Room Celebration Package (Birthday)", "description": "PERFECT FOR JOHN'S BIRTHDAY! Includes: Balloon bouquet, banner, personalized card, choice of charcuterie/cake, choice of champagne/bubbles", "cost_range": "$199 (base) + $70-75 for premium champagne", "duration": "N/A", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "Must order 2 days in advance! Upgrade to Veuve Clicquot $75 or Moet $70. Choose balloon colors (up to 3): gold, silver, black, pink, etc.", "rating": "5.0/5"},
             {"name": "Guaranteed Late Checkout", "description": "Guarantee late checkout on standard room types (not available for upgraded rooms)", "cost_range": "$75", "duration": "N/A", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "Only available on select dates for original room type. If Elite upgraded, may not be available and fee will be refunded", "rating": "4.5/5"},
-            {"name": "Club Lounge (Club Level Guests)", "description": "Exclusive lounge with endless beverage and culinary offerings all day - breakfast, lunch, snacks, hors d'oeuvres, desserts, cordials", "cost_range": "Included with Club Level booking", "duration": "All day access", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Club Level upgrade required - Bonvoy Elite Status does NOT include free access", "rating": "4.9/5"},
         ],
         "👨‍👩‍👧‍👦 Ritz Kids & Family Programs": [
             {"name": "Ritz Kids Program (Ages 5-12)", "description": "Supervised morning, afternoon, or full-day programs with arts & crafts, swimming, beach visits and more", "cost_range": "Varies by session", "duration": "Half day or full day", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Daily during high season, Fri-Sat in winter (Nov 1-Feb 28). Pre-registration required!", "rating": "4.9/5"},
