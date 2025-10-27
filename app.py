@@ -1465,8 +1465,8 @@ def get_optional_activities():
         ],
         "🏖️ Casual Beach & Free Activities (Anytime!)": [
             {"name": "Beach Walk/Stroll", "description": "Leisurely walk along the beautiful Amelia Island shoreline - can be done anytime", "cost_range": "FREE", "duration": "30min-2 hours", "phone": "N/A", "booking_url": "N/A", "tips": "1.5 miles of private beach! Perfect morning, afternoon, or evening activity. Repeatable!", "rating": "5.0/5", "is_repeatable": True},
-            {"name": "Sunrise Viewing", "description": "Watch the sun rise over the Atlantic Ocean - magical start to your day", "cost_range": "FREE", "duration": "30-45 minutes", "phone": "N/A", "booking_url": "N/A", "tips": "Sunrise ~6:45am in November. Bring coffee and camera. Best spot: east-facing beach", "rating": "5.0/5", "is_repeatable": True},
-            {"name": "Sunset Viewing", "description": "Watch gorgeous sunset from the shore with changing colors across the sky", "cost_range": "FREE", "duration": "30-60 minutes", "phone": "N/A", "booking_url": "N/A", "tips": "Sunset ~5:30pm in November. Bring camera and beach blanket. Best spot: west side or pier", "rating": "5.0/5", "is_repeatable": True},
+            {"name": "Sunrise Viewing", "description": "Watch the sun rise over the Atlantic Ocean - magical start to your day", "cost_range": "FREE", "duration": "30-45 minutes", "phone": "N/A", "booking_url": "N/A", "tips": "Sunrise ~6:45am in November. Bring coffee and camera. Best spot: east-facing beach", "rating": "5.0/5", "is_repeatable": True, "time_preference": "morning"},
+            {"name": "Sunset Viewing", "description": "Watch gorgeous sunset from the shore with changing colors across the sky", "cost_range": "FREE", "duration": "30-60 minutes", "phone": "N/A", "booking_url": "N/A", "tips": "Sunset ~5:30pm in November. Bring camera and beach blanket. Best spot: west side or pier", "rating": "5.0/5", "is_repeatable": True, "time_preference": "evening"},
             {"name": "Seashell Hunting", "description": "Search for unique shells, sand dollars, starfish, and sea glass treasures", "cost_range": "FREE", "duration": "1-2 hours", "phone": "N/A", "booking_url": "N/A", "tips": "BEST at low tide! Early morning has most finds. Bring a bag. Check tide times in app!", "rating": "4.9/5", "is_repeatable": True},
             {"name": "Tide Pool Exploring", "description": "Discover crabs, small fish, and marine life in shallow tide pools at low tide", "cost_range": "FREE", "duration": "1-1.5 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Only accessible at LOW tide - check tide times! Fort Clinch has best tide pools", "rating": "4.8/5", "is_repeatable": True},
             {"name": "Beach Photography", "description": "Capture amazing photos - sunrise, sunset, wildlife, landscapes, or fun candids", "cost_range": "FREE", "duration": "30min-2 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Golden hour (sunrise/sunset) for best light. Try Big Talbot's driftwood beach!", "rating": "5.0/5", "is_repeatable": True},
@@ -1486,8 +1486,8 @@ def get_optional_activities():
             {"name": "1.5 Miles Private Beach Access", "description": "Exclusive access to pristine private beaches with summer service", "cost_range": "FREE (hotel guests)", "duration": "All day", "phone": "N/A", "booking_url": "N/A", "tips": "Beach chairs and umbrellas provided in summer season", "rating": "5.0/5", "is_repeatable": True},
             {"name": "Resort Pool Day", "description": "Relax at multiple Ritz-Carlton pools and hot tubs", "cost_range": "FREE (hotel guests)", "duration": "2-4 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Reserve a cabana for ultimate luxury relaxation", "rating": "4.8/5", "is_repeatable": True},
             {"name": "Hot Tub Relaxation", "description": "Unwind in resort hot tubs with ocean views", "cost_range": "FREE (hotel guests)", "duration": "30min-1 hour", "phone": "N/A", "booking_url": "N/A", "tips": "Perfect after activities or before dinner. Very relaxing!", "rating": "4.9/5", "is_repeatable": True},
-            {"name": "Yoga on the Beach", "description": "Morning yoga classes on the beach at resort", "cost_range": "$20-35", "duration": "1 hour", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Hotel offers classes, check schedule", "rating": "4.6/5"},
-            {"name": "Beach Bonfires", "description": "Private or group beach bonfire with s'mores", "cost_range": "$150-300", "duration": "2 hours", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Perfect for special celebrations, book ahead", "rating": "4.9/5"},
+            {"name": "Yoga on the Beach", "description": "Morning yoga classes on the beach at resort", "cost_range": "$20-35", "duration": "1 hour", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Hotel offers classes, check schedule", "rating": "4.6/5", "time_preference": "morning"},
+            {"name": "Beach Bonfires", "description": "Private or group beach bonfire with s'mores", "cost_range": "$150-300", "duration": "2 hours", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Perfect for special celebrations, book ahead. Can do every evening!", "rating": "4.9/5", "is_repeatable": True, "time_preference": "evening"},
             {"name": "Fitness Center Access", "description": "State-of-the-art gym with ocean views", "cost_range": "FREE (hotel guests)", "duration": "Flexible", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Open 24/7, personal trainers available", "rating": "4.7/5", "is_repeatable": True},
             {"name": "FREE Bike Rentals", "description": "Complimentary bicycle rentals through fitness center", "cost_range": "FREE (hotel guests)", "duration": "By hour or full day", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Bike paths nearby, great for exploring the island!", "rating": "4.8/5", "is_repeatable": True},
             {"name": "Beach Volleyball", "description": "Courts available at resort and Main Beach Park", "cost_range": "FREE", "duration": "1-2 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Bring your own equipment or join pickup games", "rating": "4.4/5", "is_repeatable": True},
@@ -6289,27 +6289,32 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
     all_activities_dict = get_optional_activities()
     available_activities = []
 
-    # Get all confirmed activities to exclude them from selection
+    # Get all confirmed activities to exclude them from selection (except repeatable ones)
     trip_data = get_trip_data()
-    confirmed_activity_names = set()
+    confirmed_non_repeatable_names = set()
     for activity_proposal in trip_data.get('activity_proposals', {}).values():
         if activity_proposal.get('status') == 'confirmed':
             final_idx = activity_proposal.get('final_choice')
             if final_idx is not None:
                 options = activity_proposal.get('activity_options', [])
                 if final_idx < len(options):
-                    confirmed_activity_names.add(options[final_idx]['name'])
+                    activity = options[final_idx]
+                    # Only exclude if not repeatable
+                    if not activity.get('is_repeatable', False):
+                        confirmed_non_repeatable_names.add(activity['name'])
 
+    # Build master list of all non-dining activities
+    all_non_dining_activities = []
     for category_name, items in all_activities_dict.items():
         # Skip dining/restaurant categories - comprehensive filter
         dining_keywords = ['dining', 'restaurant', 'breakfast', 'lunch', 'dinner', 'coffee', 'bar',
                           'seafood', 'waterfront', 'italian', 'pizza', 'mexican', 'latin',
                           'casual', 'comfort', 'food', 'deli', 'nightlife', 'cafes']
         if not any(word in category_name.lower() for word in dining_keywords):
-            # Also filter out activities that have already been confirmed
+            # Filter out activities that have been confirmed (unless repeatable)
             for item in items:
-                if item['name'] not in confirmed_activity_names:
-                    available_activities.append(item)
+                if item['name'] not in confirmed_non_repeatable_names:
+                    all_non_dining_activities.append(item)
 
     # Check for pre-scheduled activities from the fixed itinerary (like boat tour)
     _, activities_data = get_ultimate_trip_data()
@@ -6333,8 +6338,38 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                 'tips': activity.get('tips', [])
             }
 
+    # Helper function to determine time of day for filtering
+    def get_time_of_day(slot_id):
+        """Determine if slot is morning, afternoon, or evening"""
+        if 'morning' in slot_id:
+            return 'morning'
+        elif 'afternoon' in slot_id:
+            return 'afternoon'
+        elif 'evening' in slot_id:
+            return 'evening'
+        return 'any'
+
+    def filter_activities_by_time(activities, time_of_day):
+        """Filter activities based on time preference"""
+        filtered = []
+        for activity in activities:
+            time_pref = activity.get('time_preference', 'any')
+            # Include if: no time preference, matches time, or activity is flexible
+            if time_pref == 'any' or time_pref == time_of_day or time_of_day == 'any':
+                filtered.append(activity)
+            # Special case: beach/pool activities work for afternoon and evening
+            elif time_of_day in ['afternoon', 'evening'] and time_pref in ['afternoon', 'evening']:
+                filtered.append(activity)
+        return filtered
+
     for activity_slot in activity_slots:
         st.markdown(f"#### {activity_slot['label']}")
+
+        # Determine time of day for this slot
+        time_of_day = get_time_of_day(activity_slot['id'])
+
+        # Filter activities appropriate for this time slot
+        available_activities = filter_activities_by_time(all_non_dining_activities, time_of_day)
 
         # Check if there's a pre-scheduled activity from the itinerary for this slot
         scheduled_activity = scheduled_activities.get(activity_slot['id'])
