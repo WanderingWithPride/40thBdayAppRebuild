@@ -384,6 +384,52 @@
       "submitted_by": "Michael",
       "created_at": "2025-10-27T22:57:57.109990",
       "updated_at": "2025-10-27T22:57:57.110025"
+    },
+    "sun_evening": {
+      "activity_slot_id": "sun_evening",
+      "activity_options": [
+        {
+          "name": "Ocean Overlook Chiminea (Beach Fire)",
+          "description": "Private chiminea overlooking dunes to Atlantic with s'mores experience fireside! Up to 4 guests",
+          "cost_range": "$225 (up to 4 guests)",
+          "duration": "1.5 hours (8:00-9:30 PM)",
+          "phone": "904-277-1100",
+          "booking_url": "ritzcarltonameliaisland.ipoolside.com",
+          "tips": "Check in at Lobby Lounge at reserved time. Book through ipoolside.com. Perfect for birthday celebration!",
+          "rating": "4.9/5",
+          "is_repeatable": true,
+          "time_preference": "evening"
+        },
+        {
+          "name": "Hot Tub Relaxation",
+          "description": "Unwind in resort hot tubs with ocean views",
+          "cost_range": "FREE (hotel guests)",
+          "duration": "30min-1 hour",
+          "phone": "N/A",
+          "booking_url": "N/A",
+          "tips": "Perfect after activities or before dinner. Very relaxing!",
+          "rating": "4.9/5",
+          "is_repeatable": true
+        },
+        {
+          "name": "In-Room Celebration Package (Birthday)",
+          "description": "PERFECT FOR JOHN'S BIRTHDAY! Includes: Balloon bouquet, banner, personalized card, choice of charcuterie/cake, choice of champagne/bubbles",
+          "cost_range": "$199 (base) + $70-75 for premium champagne",
+          "duration": "N/A",
+          "phone": "904-277-1100",
+          "booking_url": "ritzcarltonameliaisland.ipoolside.com",
+          "tips": "Must order 2 days in advance! Upgrade to Veuve Clicquot $75 or Moet $70. Choose balloon colors (up to 3): gold, silver, black, pink, etc.",
+          "rating": "5.0/5"
+        }
+      ],
+      "status": "proposed",
+      "john_vote": null,
+      "final_choice": null,
+      "activity_time": "2025-11-09",
+      "date": "After dinner",
+      "submitted_by": "Michael",
+      "created_at": "2025-10-27T22:59:46.016258",
+      "updated_at": "2025-10-27T22:59:46.016270"
     }
   },
   "john_preferences": {
@@ -397,5 +443,5 @@
   "completed_activities": [],
   "notifications": [],
   "tsa_updates": [],
-  "last_updated": "2025-10-27T22:57:57.110041"
+  "last_updated": "2025-10-27T22:59:46.016282"
 }
