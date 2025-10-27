@@ -6597,7 +6597,8 @@ def render_johns_page(df, activities_data, show_sensitive):
                         border_color = "#9e9e9e"  # Grey for other
 
                     # Clean up activity name for John's view (remove "for you" text)
-                    activity_name = activity['activity'].replace('(for you)', '(for Michael)').replace('(For You)', '(For Michael)')
+                    # Just remove the suffix - the activity notes explain the details
+                    activity_name = activity['activity'].replace('(for you)', '').replace('(For You)', '').strip()
 
                     # Clean up notes for John's view
                     activity_notes = activity.get('notes', '')
@@ -7293,7 +7294,8 @@ def render_johns_page(df, activities_data, show_sensitive):
                 date_display = date_obj.strftime('%A, %B %d')
 
                 # Clean up activity name and notes for John's view
-                activity_name = activity['activity'].replace('(for you)', '(for Michael)').replace('(For You)', '(For Michael)')
+                # Remove the "(for you)" suffix from activity names - the notes explain the details
+                activity_name = activity['activity'].replace('(for you)', '').replace('(For You)', '').strip()
                 activity_notes = activity.get('notes', '')
 
                 # Clean up notes based on activity type
