@@ -6669,9 +6669,9 @@ def render_johns_page(df, activities_data, show_sensitive):
         st.markdown("---")
         st.markdown("### 🎯 Things You Might Enjoy")
 
-        tab1, tab2, tab3 = st.tabs(["🏊 Pool & Beach", "💆 Optional Spa", "🎮 Activities"])
+        subtab1, subtab2, subtab3 = st.tabs(["🏊 Pool & Beach", "💆 Optional Spa", "🎮 Activities"])
 
-        with tab1:
+        with subtab1:
             st.markdown("""
             <div class="ultimate-card">
                 <div class="card-body">
@@ -6689,7 +6689,7 @@ def render_johns_page(df, activities_data, show_sensitive):
             </div>
             """, unsafe_allow_html=True)
 
-        with tab2:
+        with subtab2:
             st.markdown("""
             <div class="info-box" style="background: linear-gradient(135deg, #e3f2fd 0%, #e1f5fe 100%);">
                 <strong>ℹ️ Optional Services:</strong> Book any spa treatment at your own expense. Call 904-277-1087 or ask hotel concierge.
@@ -6716,7 +6716,7 @@ def render_johns_page(df, activities_data, show_sensitive):
 
             st.markdown("**📞 To Book:** Call spa at 904-277-1087")
 
-        with tab3:
+        with subtab3:
             st.markdown("**🏖️ Nearby Activities** (during free time)")
 
             optional_ideas = [
