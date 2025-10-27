@@ -191,6 +191,18 @@ def init_database():
         )
     ''')
 
+    # Alcohol/drink requests from John
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS alcohol_requests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            item_name TEXT NOT NULL,
+            quantity TEXT,
+            notes TEXT,
+            purchased BOOLEAN DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
     # Set default preferences if they don't exist
     cursor.execute("SELECT COUNT(*) FROM john_preferences WHERE key = 'avoid_seafood_focused'")
     if cursor.fetchone()[0] == 0:
@@ -466,6 +478,78 @@ def finalize_activity_choice(activity_slot_id, final_choice_index):
         "UPDATE activity_proposals SET final_choice = ?, status = ? WHERE activity_slot_id = ?",
         (final_choice_index, "confirmed", activity_slot_id)
     )
+    conn.commit()
+    conn.close()
+
+def add_alcohol_request(item_name, quantity="", notes=""):
+    """Add an alcohol/drink request from John
+
+    Args:
+        item_name: Name of the item (e.g., "Beer", "Wine", "Vodka")
+        quantity: Optional quantity (e.g., "6-pack", "1 bottle", "2 bottles")
+        notes: Optional notes (e.g., "IPA preferred", "Red wine")
+    """
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO alcohol_requests (item_name, quantity, notes, purchased) VALUES (?, ?, ?, ?)",
+        (item_name, quantity, notes, 0)
+    )
+    conn.commit()
+    conn.close()
+
+def get_alcohol_requests():
+    """Get all alcohol requests
+
+    Returns:
+        List of dicts with request details
+    """
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, item_name, quantity, notes, purchased FROM alcohol_requests ORDER BY purchased ASC, created_at ASC")
+        rows = cursor.fetchall()
+        conn.close()
+
+        requests = []
+        for row in rows:
+            requests.append({
+                'id': row[0],
+                'item_name': row[1],
+                'quantity': row[2],
+                'notes': row[3],
+                'purchased': bool(row[4])
+            })
+        return requests
+    except Exception as e:
+        print(f"Error loading alcohol requests: {e}")
+        return []
+
+def mark_alcohol_purchased(request_id, purchased=True):
+    """Mark an alcohol request as purchased
+
+    Args:
+        request_id: ID of the request
+        purchased: True to mark as purchased, False to mark as not purchased
+    """
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute(
+        "UPDATE alcohol_requests SET purchased = ? WHERE id = ?",
+        (1 if purchased else 0, request_id)
+    )
+    conn.commit()
+    conn.close()
+
+def delete_alcohol_request(request_id):
+    """Delete an alcohol request
+
+    Args:
+        request_id: ID of the request to delete
+    """
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM alcohol_requests WHERE id = ?", (request_id,))
     conn.commit()
     conn.close()
 
@@ -6133,6 +6217,65 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
     st.markdown("### 🌤️ Weather Forecast")
     st.info("Average: 75°F • Partly cloudy • Perfect beach weather!")
 
+    # ============ BOOZE RUN SHOPPING LIST ============
+    st.markdown("---")
+    st.markdown("### 🍺 Booze Run Shopping List")
+
+    st.markdown("""
+    <div class="info-box" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;">
+        <h4 style="margin: 0; color: white;">🛒 Shopping List for Arrival</h4>
+        <p style="margin: 0.5rem 0 0 0; opacity: 0.95;">Your booze run checklist! Plan to shop Friday night or Saturday morning. Check off items as you purchase them.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Get alcohol requests
+    alcohol_requests = get_alcohol_requests()
+
+    if alcohol_requests:
+        # Unpurchased items
+        unpurchased = [r for r in alcohol_requests if not r['purchased']]
+        purchased = [r for r in alcohol_requests if r['purchased']]
+
+        if unpurchased:
+            st.markdown("**🛒 To Buy:**")
+            for request in unpurchased:
+                quantity_str = f" - {request['quantity']}" if request['quantity'] else ""
+                notes_str = f" ({request['notes']})" if request['notes'] else ""
+
+                col1, col2 = st.columns([4, 1])
+                with col1:
+                    st.markdown(f"""
+                    <div class="ultimate-card" style="padding: 0.5rem;">
+                        <p style="margin: 0;"><strong>{request['item_name']}</strong>{quantity_str}{notes_str}</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                with col2:
+                    if st.button("✅ Got it", key=f"purchase_{request['id']}", use_container_width=True):
+                        mark_alcohol_purchased(request['id'], True)
+                        st.success(f"✅ Marked {request['item_name']} as purchased!")
+                        st.rerun()
+        else:
+            st.success("🎉 **All items purchased!** Shopping complete!")
+
+        # Show purchased items
+        if purchased:
+            with st.expander(f"✅ Already Purchased ({len(purchased)} items)"):
+                for request in purchased:
+                    quantity_str = f" - {request['quantity']}" if request['quantity'] else ""
+                    notes_str = f" ({request['notes']})" if request['notes'] else ""
+
+                    col1, col2 = st.columns([4, 1])
+                    with col1:
+                        st.markdown(f"- ~~**{request['item_name']}**{quantity_str}{notes_str}~~")
+                    with col2:
+                        if st.button("↩️ Undo", key=f"unpurchase_{request['id']}", help="Mark as not purchased"):
+                            mark_alcohol_purchased(request['id'], False)
+                            st.rerun()
+
+        st.info("💡 **Tip:** ABC Fine Wine & Spirits and Total Wine are nearby. Also, there's a Publix 5 mins away for mixers/snacks!")
+    else:
+        st.info("👀 No drink requests yet. John can add his requests on his page!")
+
     # ============ MEAL PLANNING SECTION ============
     st.markdown("---")
     st.markdown("### 🍽️ Meal Planning & Coordination")
@@ -7310,6 +7453,67 @@ def render_johns_page(df, activities_data, show_sensitive):
     st.markdown("---")
     st.markdown("### 💰 Your Trip Budget")
     render_budget_widget(activities_data, show_sensitive, view_mode='john')
+
+    # ============ ALCOHOL/DRINK REQUESTS ============
+    st.markdown("---")
+    st.markdown("### 🍺 Drink Requests")
+
+    st.markdown("""
+    <div class="info-box" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;">
+        <h4 style="margin: 0; color: white;">🍺 Michael's Booze Run!</h4>
+        <p style="margin: 0.5rem 0 0 0; opacity: 0.95;">Michael will do a booze run when he arrives (Friday night or Saturday morning). Submit your drink requests below!</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Get existing requests
+    all_requests = get_alcohol_requests()
+
+    # Show existing requests
+    if all_requests:
+        st.markdown("**Your Current Requests:**")
+        for request in all_requests:
+            if not request['purchased']:
+                quantity_str = f" - {request['quantity']}" if request['quantity'] else ""
+                notes_str = f" ({request['notes']})" if request['notes'] else ""
+
+                col1, col2 = st.columns([4, 1])
+                with col1:
+                    st.markdown(f"- **{request['item_name']}**{quantity_str}{notes_str}")
+                with col2:
+                    if st.button("🗑️", key=f"delete_request_{request['id']}", help="Delete this request"):
+                        delete_alcohol_request(request['id'])
+                        st.rerun()
+
+        # Show purchased items
+        purchased_items = [r for r in all_requests if r['purchased']]
+        if purchased_items:
+            with st.expander("✅ Already Purchased"):
+                for request in purchased_items:
+                    quantity_str = f" - {request['quantity']}" if request['quantity'] else ""
+                    notes_str = f" ({request['notes']})" if request['notes'] else ""
+                    st.markdown(f"- ~~**{request['item_name']}**{quantity_str}{notes_str}~~")
+
+    # Add new request form
+    st.markdown("---")
+    st.markdown("**Add New Request:**")
+
+    with st.form("add_alcohol_request", clear_on_submit=True):
+        col1, col2 = st.columns(2)
+        with col1:
+            item_name = st.text_input("Item Name", placeholder="e.g., Beer, Wine, Vodka, Mixers")
+        with col2:
+            quantity = st.text_input("Quantity (optional)", placeholder="e.g., 6-pack, 2 bottles")
+
+        notes = st.text_input("Notes (optional)", placeholder="e.g., IPA preferred, Red wine, Any brand")
+
+        submitted = st.form_submit_button("➕ Add Request", type="primary", use_container_width=True)
+        if submitted:
+            if item_name:
+                add_alcohol_request(item_name, quantity, notes)
+                st.success(f"✅ Added {item_name} to your requests!")
+                st.rerun()
+            else:
+                st.error("Please enter an item name")
 
     # ============ MEAL VOTING SECTION ============
     st.markdown("---")
