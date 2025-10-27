@@ -295,7 +295,53 @@
       "updated_at": "2025-10-27T21:16:01.315411"
     }
   },
-  "activity_proposals": {},
+  "activity_proposals": {
+    "sat_evening": {
+      "activity_slot_id": "sat_evening",
+      "activity_options": [
+        {
+          "name": "Two Resort Pools",
+          "description": "Multiple pools including one with kids splash pad",
+          "cost_range": "FREE (hotel guests)",
+          "duration": "All day",
+          "phone": "N/A",
+          "booking_url": "N/A",
+          "tips": "Kids splash pad is perfect for little ones!",
+          "rating": "4.9/5",
+          "is_repeatable": true
+        },
+        {
+          "name": "Hot Tub Relaxation",
+          "description": "Unwind in resort hot tubs with ocean views",
+          "cost_range": "FREE (hotel guests)",
+          "duration": "30min-1 hour",
+          "phone": "N/A",
+          "booking_url": "N/A",
+          "tips": "Perfect after activities or before dinner. Very relaxing!",
+          "rating": "4.9/5",
+          "is_repeatable": true
+        },
+        {
+          "name": "Nightly Pirate Toast",
+          "description": "Fun pirate-themed toast ceremony in lobby",
+          "cost_range": "FREE",
+          "duration": "15-20 minutes",
+          "phone": "N/A",
+          "booking_url": "N/A",
+          "tips": "Kids love this! Check lobby for nightly time",
+          "rating": "4.8/5"
+        }
+      ],
+      "status": "proposed",
+      "john_vote": null,
+      "final_choice": null,
+      "activity_time": "2025-11-08",
+      "date": "After dinner",
+      "submitted_by": "Michael",
+      "created_at": "2025-10-27T22:37:03.547428",
+      "updated_at": "2025-10-27T22:37:03.547438"
+    }
+  },
   "john_preferences": {
     "avoid_seafood_focused": "false",
     "avoid_mexican": "false"
@@ -307,5 +353,5 @@
   "completed_activities": [],
   "notifications": [],
   "tsa_updates": [],
-  "last_updated": "2025-10-27T21:16:01.315420"
+  "last_updated": "2025-10-27T22:37:03.547449"
 }
