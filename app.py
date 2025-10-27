@@ -1476,28 +1476,6 @@ def get_ultimate_trip_data():
             "priority": 2
         },
         {
-            "id": "act001",
-            "date": "2025-11-08",
-            "time": "3:30 PM",
-            "activity": "Backwater Cat Tour",
-            "type": "activity",
-            "duration": "2.5 hours",
-            "location": {
-                "name": "Dee Dee Bartels Boat Ramp",
-                "address": "Amelia Island, FL",
-                "lat": 30.6187,
-                "lon": -81.4610,
-                "phone": "904-753-7631"
-            },
-            "status": "URGENT",
-            "cost": 135,
-            "category": "Activity",
-            "notes": "BOOK FOR 2 PEOPLE ($270 total / $135 per person). John needs to opt-in. Each pays own share. Call 904-753-7631 to book.",
-            "what_to_bring": ["Sunscreen SPF 50+", "Sunglasses", "Camera", "Water bottle", "Light jacket (can be windy)"],
-            "tips": ["Best at golden hour", "Bring motion sickness meds if prone", "Wear non-slip shoes"],
-            "priority": 1
-        },
-        {
             "id": "spa001",
             "date": "2025-11-09",
             "time": "10:00 AM",
@@ -1988,6 +1966,7 @@ def get_optional_activities():
             {"name": "Parasailing", "description": "Soar above the Atlantic with breathtaking aerial views of Amelia Island", "cost_range": "$75-100 per person", "duration": "1-1.5 hours", "phone": "904-261-9972", "booking_url": "N/A", "tips": "Best on calm, clear days, no experience needed", "rating": "4.8/5"},
             {"name": "Deep Sea Fishing Charter", "description": "Trophy tarpon and deep water fishing adventure", "cost_range": "$500-900 (up to 6 people)", "duration": "6-8 hours", "phone": "904-206-0200", "booking_url": "N/A", "tips": "Full-day charters for serious anglers, all gear provided", "rating": "4.9/5"},
             {"name": "Inshore Fishing", "description": "Redfish in backwaters, quiet rivers and tidal creeks", "cost_range": "$350-550 (up to 4 people)", "duration": "4-6 hours", "phone": "904-206-0200", "booking_url": "N/A", "tips": "Great for families, calmer waters, catch and release", "rating": "4.7/5"},
+            {"name": "Backwater Cat Eco Tour", "description": "⭐ POPULAR CHOICE! Private boat tour exploring backwaters, marshes, and tidal creeks. See dolphins, birds, and coastal ecosystems up close. Departing from Dee Dee Bartels Boat Ramp", "cost_range": "$135 per person", "duration": "2.5 hours", "phone": "904-753-7631", "booking_url": "Call to book", "tips": "⚠️ BOOKING REQUIRED - Call 904-753-7631 to reserve for 2 people ($270 total). Best at golden hour, bring sunscreen and camera. Wear non-slip shoes", "rating": "4.9/5"},
             {"name": "Dolphin Watching Tour", "description": "Eco-tour to see dolphins, manatees, and coastal wildlife", "cost_range": "$35-55 per person", "duration": "1.5-2 hours", "phone": "904-261-9972", "booking_url": "N/A", "tips": "Best in morning or late afternoon, bring binoculars", "rating": "4.9/5"},
             {"name": "Sunset Cruise", "description": "Relaxing sunset sail with BYOB allowed", "cost_range": "$45-65 per person", "duration": "2 hours", "phone": "904-261-9972", "booking_url": "N/A", "tips": "Bring camera and your favorite drinks", "rating": "4.9/5"},
             {"name": "SCUBA Diving", "description": "Explore underwater reefs and shipwrecks off Amelia Island coast", "cost_range": "$80-150 per dive", "duration": "3-4 hours", "phone": "904-261-0666", "booking_url": "N/A", "tips": "Certification required, equipment rentals available", "rating": "4.6/5"},
@@ -5356,16 +5335,7 @@ def render_full_schedule(df, activities_data, show_sensitive):
                 activity_id = activity.get('id', '')
                 john_status_badge = ""
 
-                if activity_id == 'act001':  # Backwater Cat Tour
-                    pref_key = f"activity_opt_in_{activity_id}"
-                    status = john_prefs.get(pref_key, "not_decided")
-                    if status == "interested":
-                        john_status_badge = '<p style="margin: 0.5rem 0;"><span style="background: #4caf50; color: white; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem;">👥 John: ✅ Opted In</span></p>'
-                    elif status == "not_interested":
-                        john_status_badge = '<p style="margin: 0.5rem 0;"><span style="background: #f44336; color: white; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem;">👤 John: ❌ Not Interested</span></p>'
-                    else:
-                        john_status_badge = '<p style="margin: 0.5rem 0;"><span style="background: #ff9800; color: white; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem;">❓ John: Needs to Decide</span></p>'
-                elif activity_id in ['spa002', 'spa003']:  # Solo spa treatments
+                if activity_id in ['spa002', 'spa003']:  # Solo spa treatments
                     pref_key = f"spa_opt_in_{activity_id}"
                     status = john_prefs.get(pref_key, "not_decided")
                     if status == "interested":
@@ -6392,7 +6362,6 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
         schedules = {
             "2025-11-08": [  # Saturday
                 {"time": "12:00 PM", "activity": "John arrives at hotel", "icon": "✈️"},
-                {"time": "3:30 PM", "activity": "Backwater Cat Eco Tour (2 hours)", "icon": "🚤"},
             ],
             "2025-11-09": [  # Sunday - Birthday!
                 {"time": "9:00 AM", "activity": "Room Service Breakfast (already booked)", "icon": "🛎️"},
@@ -6871,7 +6840,7 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
 
     # Define activity time slots (avoiding meals and spa times)
     activity_slots = [
-        {"id": "sat_afternoon", "label": "Saturday Afternoon (Nov 8)", "date": "2025-11-08", "time": "After lunch", "notes": "Boat tour at 3:30 PM already booked"},
+        {"id": "sat_afternoon", "label": "Saturday Afternoon (Nov 8)", "date": "2025-11-08", "time": "After lunch", "notes": "Perfect time for boat tour, beach, or exploring!"},
         {"id": "sat_evening", "label": "Saturday Evening (Nov 8)", "date": "2025-11-08", "time": "After dinner", "notes": "Relax at hotel or explore"},
         {"id": "sun_afternoon", "label": "Sunday Afternoon (Nov 9)", "date": "2025-11-09", "time": "After spa", "notes": "Free time after mani-pedi (ends 3:00 PM)"},
         {"id": "sun_evening", "label": "Sunday Evening (Nov 9)", "date": "2025-11-09", "time": "After dinner", "notes": "Birthday celebration time!"},
@@ -7287,10 +7256,7 @@ def render_johns_page(df, activities_data, show_sensitive):
                     pref_key = ""
 
                     # Check if this activity needs opt-in
-                    if activity_id == 'act001':  # Backwater Cat Tour
-                        needs_optin = True
-                        pref_key = f"activity_opt_in_{activity_id}"
-                    elif activity_id in ['spa002', 'spa003'] and activity['type'] == 'spa':  # Solo spa treatments
+                    if activity_id in ['spa002', 'spa003'] and activity['type'] == 'spa':  # Solo spa treatments
                         needs_optin = True
                         pref_key = f"spa_opt_in_{activity_id}"
 
