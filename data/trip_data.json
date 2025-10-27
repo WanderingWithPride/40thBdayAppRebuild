@@ -125,6 +125,48 @@
       "submitted_by": "Michael",
       "created_at": "2025-10-27T21:12:34.694643",
       "updated_at": "2025-10-27T21:12:34.694656"
+    },
+    "mon_breakfast": {
+      "meal_id": "mon_breakfast",
+      "restaurant_options": [
+        {
+          "name": "Tortuga Jacks",
+          "description": "Baja Mexican upstairs at Sliders, oceanfront sunrise breakfast, only non-resort beachfront breakfast",
+          "cost_range": "$12-25 per person",
+          "duration": "1-1.5 hours",
+          "phone": "904-277-3662",
+          "booking_url": "N/A",
+          "tips": "Sunrise breakfast to watch dawn over ocean",
+          "rating": "4.4/5"
+        },
+        {
+          "name": "Amelia Island Coffee",
+          "description": "Beloved coffee shop since 1995 in 140-year-old brick building, locally roasted coffee from Yulee, pastries, breakfast sandwiches",
+          "cost_range": "$5-12 per person",
+          "duration": "30min-1 hour",
+          "phone": "904-277-3942",
+          "booking_url": "N/A",
+          "tips": "Historic downtown location at 207 Centre St, great atmosphere",
+          "rating": "4.8/5"
+        },
+        {
+          "name": "Aloha Bagel and Deli",
+          "description": "Bright cheerful bagel shop with delicious bagels, sandwiches, salads, sweets, party platters. Breakfast served all day",
+          "cost_range": "$8-15 per person",
+          "duration": "30min-1 hour",
+          "phone": "904-277-3073",
+          "booking_url": "https://aloha-bagel.com",
+          "tips": "Open till 2pm, breakfast all day, very popular",
+          "rating": "4.7/5"
+        }
+      ],
+      "status": "proposed",
+      "john_vote": null,
+      "final_choice": null,
+      "meal_time": null,
+      "submitted_by": "Michael",
+      "created_at": "2025-10-27T21:12:52.047608",
+      "updated_at": "2025-10-27T21:12:52.047622"
     }
   },
   "activity_proposals": {},
@@ -139,5 +181,5 @@
   "completed_activities": [],
   "notifications": [],
   "tsa_updates": [],
-  "last_updated": "2025-10-27T21:12:34.694668"
+  "last_updated": "2025-10-27T21:12:52.047639"
 }
