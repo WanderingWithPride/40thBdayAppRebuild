@@ -6936,46 +6936,38 @@ def render_johns_page(df, activities_data, show_sensitive):
 
     with tab3:
         # ============ MEAL VOTING SECTION ============
-        try:
-            st.error("🔴 DIAGNOSTIC: If you see this message, tab3 IS running")
-            st.markdown("### 🍽️ Vote on Meal Options")
+        st.markdown("### 🍽️ Vote on Meal Options")
 
-            st.markdown("""
-            <div class="info-box" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
-                <h4 style="margin: 0; color: white;">🗳️ Your Input Needed!</h4>
-                <p style="margin: 0.5rem 0 0 0; opacity: 0.95;">Michael has proposed restaurant options for meals. Vote on which ones work for you!</p>
-            </div>
-            """, unsafe_allow_html=True)
+        st.markdown("""
+        <div class="info-box" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+            <h4 style="margin: 0; color: white;">🗳️ Your Input Needed!</h4>
+            <p style="margin: 0.5rem 0 0 0; opacity: 0.95;">Michael has proposed restaurant options for meals. Vote on which ones work for you!</p>
+        </div>
+        """, unsafe_allow_html=True)
 
-            # Refresh button to reload proposals
-            if st.button("🔄 Refresh to Check for New Proposals", use_container_width=True):
-                # Clear cached data to force reload from GitHub
-                if 'trip_data' in st.session_state:
-                    del st.session_state['trip_data']
-                st.rerun()
+        # Refresh button to reload proposals
+        if st.button("🔄 Refresh to Check for New Proposals", use_container_width=True):
+            # Clear cached data to force reload from GitHub
+            if 'trip_data' in st.session_state:
+                del st.session_state['trip_data']
+            st.rerun()
 
-            # Get all meal proposals
-            meal_slots = [
-                {"id": "fri_dinner", "label": "Friday Dinner (Nov 7)", "date": "2025-11-07"},
-                {"id": "sat_breakfast", "label": "Saturday Breakfast (Nov 8)", "date": "2025-11-08"},
-                {"id": "sat_lunch", "label": "Saturday Lunch (Nov 8)", "date": "2025-11-08"},
-                {"id": "sat_dinner", "label": "Saturday Dinner (Nov 8)", "date": "2025-11-08"},
-                {"id": "sun_breakfast", "label": "Sunday Breakfast (Nov 9)", "date": "2025-11-09"},
-                {"id": "sun_lunch", "label": "Sunday Lunch (Nov 9)", "date": "2025-11-09"},
-                {"id": "sun_dinner", "label": "Sunday Dinner (Nov 9)", "date": "2025-11-09"},
-                {"id": "mon_breakfast", "label": "Monday Breakfast (Nov 10)", "date": "2025-11-10"},
-                {"id": "mon_lunch", "label": "Monday Lunch (Nov 10)", "date": "2025-11-10"},
-                {"id": "mon_dinner", "label": "Monday Dinner (Nov 10)", "date": "2025-11-10"},
-                {"id": "tue_breakfast", "label": "Tuesday Breakfast (Nov 11)", "date": "2025-11-11"},
-            ]
+        # Get all meal proposals
+        meal_slots = [
+            {"id": "fri_dinner", "label": "Friday Dinner (Nov 7)", "date": "2025-11-07"},
+            {"id": "sat_breakfast", "label": "Saturday Breakfast (Nov 8)", "date": "2025-11-08"},
+            {"id": "sat_lunch", "label": "Saturday Lunch (Nov 8)", "date": "2025-11-08"},
+            {"id": "sat_dinner", "label": "Saturday Dinner (Nov 8)", "date": "2025-11-08"},
+            {"id": "sun_breakfast", "label": "Sunday Breakfast (Nov 9)", "date": "2025-11-09"},
+            {"id": "sun_lunch", "label": "Sunday Lunch (Nov 9)", "date": "2025-11-09"},
+            {"id": "sun_dinner", "label": "Sunday Dinner (Nov 9)", "date": "2025-11-09"},
+            {"id": "mon_breakfast", "label": "Monday Breakfast (Nov 10)", "date": "2025-11-10"},
+            {"id": "mon_lunch", "label": "Monday Lunch (Nov 10)", "date": "2025-11-10"},
+            {"id": "mon_dinner", "label": "Monday Dinner (Nov 10)", "date": "2025-11-10"},
+            {"id": "tue_breakfast", "label": "Tuesday Breakfast (Nov 11)", "date": "2025-11-11"},
+        ]
 
-            restaurant_details = get_restaurant_details()
-        except Exception as e:
-            st.error(f"🚨 ERROR CAUGHT: {str(e)}")
-            st.error(f"Error type: {type(e).__name__}")
-            import traceback
-            st.code(traceback.format_exc())
-            st.stop()
+        restaurant_details = get_restaurant_details()
         has_proposals = False
 
         # Debug: Show all proposals in the data
