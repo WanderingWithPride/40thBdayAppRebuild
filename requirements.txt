@@ -35,6 +35,9 @@ qrcode>=7.4.2                # QR code generation
 fpdf2>=2.7.0                 # PDF generation
 icalendar>=5.0.0             # Calendar export
 
+# Database Support
+psycopg2-binary>=2.9.9       # PostgreSQL adapter for persistent cloud storage
+
 # Additional Utilities
 # streamlit-extras>=0.3.0      # Extra Streamlit components (skipping due to compatibility)
 # streamlit-option-menu>=0.3.0 # Better navigation menu (building custom)
