@@ -6936,6 +6936,7 @@ def render_johns_page(df, activities_data, show_sensitive):
 
     with tab3:
         # ============ MEAL VOTING SECTION ============
+        st.error("🔴 DIAGNOSTIC: If you see this message, tab3 IS running")
         st.markdown("### 🍽️ Vote on Meal Options")
 
         st.markdown("""
