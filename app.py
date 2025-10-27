@@ -6318,10 +6318,10 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             "label": "Monday Morning (Nov 10)",
             "date": "2025-11-10",
             "time": "Morning",
-            "actual_availability": "7:00 AM - 12:00 PM",
-            "timeline": "Sleep in or wake early → Breakfast → Free morning until lunch",
-            "notes": "No schedule - sleep in or enjoy sunrise at 6:45 AM!",
-            "smart_tip": "🌅 Options: Sleep in and relax, OR wake early for sunrise at 6:45 AM + beach walk + breakfast. Full morning free!"
+            "actual_availability": "10:00 AM - 12:00 PM",
+            "timeline": "Sleep in → Breakfast at 9:00 AM → Short free time until lunch",
+            "notes": "⚠️ Breakfast at 9:00 AM needs to be selected first!",
+            "smart_tip": "~2 hours after breakfast. Perfect for: Quick beach walk, pool time, coffee at lobby, or relaxing in room before lunch."
         },
         {
             "id": "mon_afternoon",
