@@ -50,14 +50,14 @@ import pickle
 # ============================================================================
 
 st.set_page_config(
-    page_title="🎂 40th Birthday Trip - Ultimate Edition",
-    page_icon="🎂",
+    page_title="✈️ Michael's 40th Birthday Trip Assistant",
+    page_icon="🎉",
     layout="wide",
     initial_sidebar_state="expanded",
     menu_items={
         'Get Help': None,
         'Report a bug': None,
-        'About': "Ultimate 40th Birthday Trip Assistant - v2.0"
+        'About': "Michael's 40th Birthday Trip Assistant - Amelia Island Edition"
     }
 )
 
@@ -4161,7 +4161,7 @@ def render_ultimate_header():
     # Determine trip phase
     if days_until > 0:
         countdown_text = f"{days_until} Days Until Your Adventure!"
-        phase_emoji = "⏳"
+        phase_emoji = "🎊"
     elif now.date() == trip_start.date():
         countdown_text = "🎉 Your Trip Starts TODAY!"
         phase_emoji = "🎊"
@@ -5796,11 +5796,11 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         if days_until > 0:
-            st.metric("⏳ Days Until Trip", f"{days_until} days")
+            st.metric("🎊 Days Until Trip", f"{days_until} days")
         elif days_until == 0:
-            st.metric("⏳ Trip Status", "TODAY!")
+            st.metric("✈️ Trip Status", "TODAY!")
         else:
-            st.metric("⏳ Trip Status", "In Progress")
+            st.metric("🏖️ Trip Status", "In Progress")
 
     with col2:
         budget_data = calculate_trip_budget(activities_data)
@@ -6101,7 +6101,7 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
 
         elif proposal and proposal['status'] == 'proposed':
             # Waiting for John's vote
-            st.warning("⏳ **Waiting for John to vote...**")
+            st.warning("🗳️ **Waiting for John to vote...**")
 
             options = proposal['restaurant_options']
             for idx, restaurant in enumerate(options):
