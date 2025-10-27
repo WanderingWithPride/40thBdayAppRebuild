@@ -352,16 +352,24 @@ def save_meal_proposal(meal_id, restaurant_options):
     Args:
         meal_id: String like "fri_dinner", "sat_lunch", etc.
         restaurant_options: List of restaurant dicts with name, cost, booking_url, etc.
+
+    Returns:
+        bool: True if successful, False otherwise
     """
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    import json
-    cursor.execute(
-        "INSERT OR REPLACE INTO meal_proposals (meal_id, restaurant_options, status, created_at) VALUES (?, ?, ?, ?)",
-        (meal_id, json.dumps(restaurant_options), "proposed", datetime.now().isoformat())
-    )
-    conn.commit()
-    conn.close()
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        import json
+        cursor.execute(
+            "INSERT OR REPLACE INTO meal_proposals (meal_id, restaurant_options, status, created_at) VALUES (?, ?, ?, ?)",
+            (meal_id, json.dumps(restaurant_options), "proposed", datetime.now().isoformat())
+        )
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"Error saving meal proposal: {e}")
+        return False
 
 def get_meal_proposal(meal_id):
     """Get meal proposal for a specific meal"""
@@ -424,16 +432,24 @@ def save_activity_proposal(activity_slot_id, activity_options, date, time):
         activity_options: List of activity dicts with name, cost, duration, etc.
         date: Date string (e.g., "2025-11-08")
         time: Time string (e.g., "2:00 PM")
+
+    Returns:
+        bool: True if successful, False otherwise
     """
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    import json
-    cursor.execute(
-        "INSERT OR REPLACE INTO activity_proposals (activity_slot_id, activity_options, date, activity_time, status, created_at) VALUES (?, ?, ?, ?, ?, ?)",
-        (activity_slot_id, json.dumps(activity_options), date, time, "proposed", datetime.now().isoformat())
-    )
-    conn.commit()
-    conn.close()
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        import json
+        cursor.execute(
+            "INSERT OR REPLACE INTO activity_proposals (activity_slot_id, activity_options, date, activity_time, status, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+            (activity_slot_id, json.dumps(activity_options), date, time, "proposed", datetime.now().isoformat())
+        )
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"Error saving activity proposal: {e}")
+        return False
 
 def get_activity_proposal(activity_slot_id):
     """Get activity proposal for a specific time slot"""
@@ -6823,11 +6839,14 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                                     selected_restaurants.append(rest)
 
                             if len(selected_restaurants) == 3:
-                                save_meal_proposal(meal_slot['id'], selected_restaurants)
-                                # Clear selection
-                                st.session_state[selection_key] = []
-                                st.success(f"✅ Proposal sent! John will see these options on his page.")
-                                st.rerun()
+                                success = save_meal_proposal(meal_slot['id'], selected_restaurants)
+                                if success:
+                                    # Clear selection
+                                    st.session_state[selection_key] = []
+                                    st.success(f"✅ Proposal sent! John will see these options on his page.")
+                                    st.rerun()
+                                else:
+                                    st.error("❌ Failed to save proposal. Please try again or contact support.")
                     elif len(st.session_state[selection_key]) > 0:
                         st.warning(f"⚠️ Please select {3 - len(st.session_state[selection_key])} more restaurant(s)")
                     else:
@@ -7017,10 +7036,13 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                                 selected_activities.append(activity)
                                 break
 
-                    save_activity_proposal(activity_slot['id'], selected_activities, activity_slot['date'], activity_slot['time'])
-                    st.session_state[selection_key] = []  # Clear selection
-                    st.success("✅ Activity proposal sent to John!")
-                    st.rerun()
+                    success = save_activity_proposal(activity_slot['id'], selected_activities, activity_slot['date'], activity_slot['time'])
+                    if success:
+                        st.session_state[selection_key] = []  # Clear selection
+                        st.success("✅ Activity proposal sent to John!")
+                        st.rerun()
+                    else:
+                        st.error("❌ Failed to save activity proposal. Please try again or contact support.")
             elif len(st.session_state[selection_key]) > 0:
                 st.warning(f"⚠️ Please select {3 - len(st.session_state[selection_key])} more activit(y/ies)")
             else:
@@ -7740,11 +7762,14 @@ def render_johns_page(df, activities_data, show_sensitive):
 
                             if len(selected_restaurants) == 3:
                                 # Save as a new proposal from John (replace Michael's)
-                                save_meal_proposal(meal_slot['id'], selected_restaurants)
-                                # Clear selection
-                                st.session_state[john_selection_key] = []
-                                st.success("Counter-proposal sent to Michael! He can now vote on your 3 choices.")
-                                st.rerun()
+                                success = save_meal_proposal(meal_slot['id'], selected_restaurants)
+                                if success:
+                                    # Clear selection
+                                    st.session_state[john_selection_key] = []
+                                    st.success("Counter-proposal sent to Michael! He can now vote on your 3 choices.")
+                                    st.rerun()
+                                else:
+                                    st.error("❌ Failed to save counter-proposal. Please try again.")
 
                 st.markdown("---")
 
