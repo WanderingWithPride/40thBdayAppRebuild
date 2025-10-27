@@ -6186,8 +6186,29 @@ def render_explore_activities():
 
 def render_travel_dashboard(activities_data, show_sensitive=True):
     """Render comprehensive travel dashboard with all critical info"""
+
+    # Scroll to top on page load
+    st.markdown("""
+    <script>
+        window.parent.document.querySelector('section.main').scrollTo(0, 0);
+    </script>
+    """, unsafe_allow_html=True)
+
     st.markdown("## 🎯 Travel Dashboard")
     st.markdown("Your real-time trip command center with live updates")
+
+    # Quick Navigation
+    st.markdown("""
+    <div class="info-box" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin-bottom: 1rem;">
+        <h4 style="margin: 0 0 0.5rem 0; color: white;">🔗 Quick Jump To:</h4>
+        <p style="margin: 0; font-size: 0.9rem;">
+            <a href="#budget" style="color: white; text-decoration: underline; margin-right: 1rem;">💰 Budget</a>
+            <a href="#booze" style="color: white; text-decoration: underline; margin-right: 1rem;">🍺 Booze Run</a>
+            <a href="#meals" style="color: white; text-decoration: underline; margin-right: 1rem;">🍽️ Meal Planning</a>
+            <a href="#activities" style="color: white; text-decoration: underline;">🎯 Activities</a>
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
     # Get today's date and trip dates
     from datetime import datetime, date
@@ -6261,6 +6282,7 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
 
     # Budget Overview
     st.markdown("---")
+    st.markdown('<div id="budget"></div>', unsafe_allow_html=True)
     render_budget_widget(activities_data, show_sensitive, view_mode='michael')
 
     # Weather widget could go here
@@ -6270,6 +6292,7 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
 
     # ============ BOOZE RUN SHOPPING LIST ============
     st.markdown("---")
+    st.markdown('<div id="booze"></div>', unsafe_allow_html=True)
     st.markdown("### 🍺 Booze Run Shopping List")
 
     st.markdown("""
@@ -6342,6 +6365,7 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
 
     # ============ MEAL PLANNING SECTION ============
     st.markdown("---")
+    st.markdown('<div id="meals"></div>', unsafe_allow_html=True)
     st.markdown("### 🍽️ Meal Planning & Coordination")
 
     # Arrival time context
@@ -6856,6 +6880,7 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
 
     # ============ ACTIVITY PLANNING SECTION ============
     st.markdown("---")
+    st.markdown('<div id="activities"></div>', unsafe_allow_html=True)
     st.markdown("### 🎯 Activity Planning")
 
     st.markdown("""
