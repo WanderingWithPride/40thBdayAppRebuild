@@ -6274,15 +6274,79 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
     </div>
     """, unsafe_allow_html=True)
 
-    # Define activity time slots (avoiding meals and spa times)
+    # Define activity time slots with smart timeline awareness
     activity_slots = [
-        {"id": "sat_afternoon", "label": "Saturday Afternoon (Nov 8)", "date": "2025-11-08", "time": "After lunch", "notes": "Perfect time for boat tour, beach, or exploring!"},
-        {"id": "sat_evening", "label": "Saturday Evening (Nov 8)", "date": "2025-11-08", "time": "After dinner", "notes": "Relax at hotel or explore"},
-        {"id": "sun_afternoon", "label": "Sunday Afternoon (Nov 9)", "date": "2025-11-09", "time": "After spa", "notes": "Free time after mani-pedi (ends 3:00 PM)"},
-        {"id": "sun_evening", "label": "Sunday Evening (Nov 9)", "date": "2025-11-09", "time": "After dinner", "notes": "Birthday celebration time!"},
-        {"id": "mon_morning", "label": "Monday Morning (Nov 10)", "date": "2025-11-10", "time": "Morning", "notes": "Can sleep in - no schedule!"},
-        {"id": "mon_afternoon", "label": "Monday Afternoon (Nov 10)", "date": "2025-11-10", "time": "Afternoon", "notes": "Full day free!"},
-        {"id": "mon_evening", "label": "Monday Evening (Nov 10)", "date": "2025-11-10", "time": "After dinner", "notes": "Last night - make it count!"},
+        {
+            "id": "sat_afternoon",
+            "label": "Saturday Afternoon (Nov 8)",
+            "date": "2025-11-08",
+            "time": "After lunch",
+            "scheduled_activity": "🚤 Boat Tour 2:30-5:00 PM",
+            "actual_availability": None,  # Fully booked with boat tour
+            "timeline": "Lunch around 12:00 PM → Boat Tour 2:30-5:00 PM (2.5 hrs + 30 min travel) → Back at hotel 5:15 PM",
+            "notes": "⚠️ This slot is taken by your scheduled Backwater Cat Eco Tour! Departs 2:30 PM, you'll be back around 5:15 PM.",
+            "smart_tip": "After boat tour, you'll have time to freshen up (5:15-5:45 PM) and catch the end of sunset at 5:30 PM before dinner!"
+        },
+        {
+            "id": "sat_evening",
+            "label": "Saturday Evening (Nov 8)",
+            "date": "2025-11-08",
+            "time": "After dinner",
+            "actual_availability": "8:30 PM - 11:00 PM",
+            "timeline": "Dinner 7:00-8:30 PM → Free evening 8:30 PM onward",
+            "notes": "Perfect for relaxing after a full day of boat tour and dinner!",
+            "smart_tip": "🔥 Great time for beach bonfire with s'mores, hot tub, or just relaxing at hotel. Sunset already passed."
+        },
+        {
+            "id": "sun_afternoon",
+            "label": "Sunday Afternoon (Nov 9)",
+            "date": "2025-11-09",
+            "time": "After spa",
+            "actual_availability": "3:30 PM - 6:30 PM",
+            "timeline": "Mani-Pedi ends 3:00 PM → Freshen up 3:00-3:30 PM → Free afternoon 3:30-6:30 PM → Dinner",
+            "notes": "~3 hours of free time before dinner - plenty of time for beach, exploring, or relaxing!",
+            "smart_tip": "🌅 Perfect timing! Sunset at 5:30 PM. Options: Beach walk → sunset viewing → dinner, OR explore downtown 3:30-5:30 PM → dinner."
+        },
+        {
+            "id": "sun_evening",
+            "label": "Sunday Evening (Nov 9)",
+            "date": "2025-11-09",
+            "time": "After dinner",
+            "actual_availability": "8:30 PM - 11:00 PM",
+            "timeline": "Dinner 7:00-8:30 PM → Free evening 8:30 PM onward",
+            "notes": "🎂 Birthday celebration evening!",
+            "smart_tip": "Perfect for: Beach bonfire with s'mores, birthday dessert at hotel, celebratory drinks, or romantic beach walk under the stars!"
+        },
+        {
+            "id": "mon_morning",
+            "label": "Monday Morning (Nov 10)",
+            "date": "2025-11-10",
+            "time": "Morning",
+            "actual_availability": "7:00 AM - 12:00 PM",
+            "timeline": "Sleep in or wake early → Breakfast → Free morning until lunch",
+            "notes": "No schedule - sleep in or enjoy sunrise at 6:45 AM!",
+            "smart_tip": "🌅 Options: Sleep in and relax, OR wake early for sunrise at 6:45 AM + beach walk + breakfast. Full morning free!"
+        },
+        {
+            "id": "mon_afternoon",
+            "label": "Monday Afternoon (Nov 10)",
+            "date": "2025-11-10",
+            "time": "Afternoon",
+            "actual_availability": "12:00 PM - 6:30 PM",
+            "timeline": "After lunch → Full afternoon free until dinner",
+            "notes": "Entire afternoon open - your last full day!",
+            "smart_tip": "~6 hours free! Options: Beach activities, explore Fort Clinch, downtown shopping, pool/spa, or multiple shorter activities."
+        },
+        {
+            "id": "mon_evening",
+            "label": "Monday Evening (Nov 10)",
+            "date": "2025-11-10",
+            "time": "After dinner",
+            "actual_availability": "8:30 PM - 11:00 PM",
+            "timeline": "Dinner 7:00-8:30 PM → Last evening on the island!",
+            "notes": "Last night - make it memorable!",
+            "smart_tip": "🌙 Final evening! Perfect for: Beach bonfire, sunset at 5:30 PM (if early dinner), final beach walk, or celebratory drinks."
+        },
     ]
 
     # Get all non-dining optional activities
@@ -6373,14 +6437,131 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                 filtered.append(activity)
         return filtered
 
+    def get_activity_duration_hours(duration_str):
+        """Extract duration in hours from duration string"""
+        if not duration_str or duration_str == 'N/A':
+            return 1.0  # Default to 1 hour
+
+        # Parse strings like "2-3 hours", "30min-1 hour", "4-5 hours"
+        import re
+
+        # Look for hour values
+        hour_match = re.search(r'(\d+(?:\.\d+)?)\s*(?:-\s*(\d+(?:\.\d+)?))?\s*hour', duration_str.lower())
+        if hour_match:
+            max_hours = hour_match.group(2) if hour_match.group(2) else hour_match.group(1)
+            return float(max_hours)
+
+        # Look for minute values
+        min_match = re.search(r'(\d+)\s*(?:-\s*(\d+))?\s*min', duration_str.lower())
+        if min_match:
+            max_mins = min_match.group(2) if min_match.group(2) else min_match.group(1)
+            return float(max_mins) / 60.0
+
+        return 1.0  # Default
+
+    def filter_activities_by_duration(activities, available_hours):
+        """Filter activities that fit in the available time window"""
+        if available_hours is None:
+            return activities  # No time limit
+
+        filtered = []
+        for activity in activities:
+            duration_str = activity.get('duration', '')
+            duration_hours = get_activity_duration_hours(duration_str)
+
+            # Include if activity fits in available time (with 30min buffer for travel/transition)
+            if duration_hours <= (available_hours - 0.5):
+                filtered.append(activity)
+
+        return filtered
+
+    def parse_availability_hours(availability_str):
+        """Parse availability string like '3:30 PM - 6:30 PM' into hours available"""
+        if not availability_str:
+            return None
+
+        import re
+        time_match = re.search(r'(\d+):(\d+)\s*(AM|PM)\s*-\s*(\d+):(\d+)\s*(AM|PM)', availability_str)
+        if time_match:
+            start_hour = int(time_match.group(1))
+            start_min = int(time_match.group(2))
+            start_period = time_match.group(3)
+            end_hour = int(time_match.group(4))
+            end_min = int(time_match.group(5))
+            end_period = time_match.group(6)
+
+            # Convert to 24-hour
+            if start_period == 'PM' and start_hour != 12:
+                start_hour += 12
+            if start_period == 'AM' and start_hour == 12:
+                start_hour = 0
+            if end_period == 'PM' and end_hour != 12:
+                end_hour += 12
+            if end_period == 'AM' and end_hour == 12:
+                end_hour = 0
+
+            # Calculate hours
+            start_total = start_hour + start_min / 60.0
+            end_total = end_hour + end_min / 60.0
+            return end_total - start_total
+
+        return None
+
     for activity_slot in activity_slots:
         st.markdown(f"#### {activity_slot['label']}")
+
+        # Show smart timeline info
+        if activity_slot.get('timeline'):
+            st.info(f"📅 **Timeline:** {activity_slot['timeline']}")
+
+        if activity_slot.get('actual_availability'):
+            available_hours = parse_availability_hours(activity_slot['actual_availability'])
+            st.success(f"⏰ **Available:** {activity_slot['actual_availability']} (~{available_hours:.1f} hours free)")
+        elif activity_slot['actual_availability'] is None:
+            st.warning(f"⚠️ **{activity_slot['notes']}**")
+
+        if activity_slot.get('smart_tip'):
+            st.markdown(f"💡 **Smart Tip:** {activity_slot['smart_tip']}")
 
         # Determine time of day for this slot
         time_of_day = get_time_of_day(activity_slot['id'])
 
         # Filter activities appropriate for this time slot
         available_activities = filter_activities_by_time(all_non_dining_activities, time_of_day)
+
+        # Apply duration filtering based on actual availability
+        if activity_slot.get('actual_availability'):
+            available_hours = parse_availability_hours(activity_slot['actual_availability'])
+            available_activities = filter_activities_by_duration(available_activities, available_hours)
+
+        # Sort activities: prioritize simple, quick beach activities at Ritz (no commute!)
+        def activity_priority(activity):
+            """Return priority score - lower is better (shows first)"""
+            name = activity.get('name', '')
+            cost = activity.get('cost_range', '')
+            duration_str = activity.get('duration', '')
+
+            # Priority 1: Free beach activities at Ritz (no commute, instant access!)
+            beach_activities = ['Beach Walk', 'Sunset Viewing', 'Sunrise Viewing', 'Seashell Hunting',
+                              'Beach Reading', 'Beach Photography', 'Beach Meditation', 'Beach Journaling',
+                              'Watch Dolphins', 'Tide Pool Exploring', 'Cloud Watching', 'Sandcastle Building']
+            if any(ba in name for ba in beach_activities):
+                return 0
+
+            # Priority 2: Quick activities at the Ritz (pools, hot tub, etc)
+            ritz_activities = ['Resort Pool', 'Hot Tub', 'Beach Bonfire', 'Beach Volleyball',
+                             'Fitness Center', 'FREE Bike', 'Two Resort Pools']
+            if any(ra in name for ra in ritz_activities):
+                return 1
+
+            # Priority 3: Short free/cheap activities nearby
+            if 'FREE' in cost or '$' not in cost:
+                return 2
+
+            # Priority 4: Paid activities that require travel
+            return 3
+
+        available_activities.sort(key=activity_priority)
 
         # Check if there's a pre-scheduled activity from the itinerary for this slot
         scheduled_activity = scheduled_activities.get(activity_slot['id'])
@@ -6509,6 +6690,7 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                 st.session_state[selection_key] = []
 
             st.markdown(f"**Select 3 activities for this time slot ({len(st.session_state[selection_key])}/3):**")
+            st.markdown("🏖️ **Beach activities at Ritz** (no commute!) are listed first, followed by hotel activities, then off-site options.")
 
             # Show activities in a grid
             cols = st.columns(3)
@@ -6522,11 +6704,19 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                     safe_desc = html.escape(activity.get('description', '')[:60])
                     safe_cost = html.escape(activity.get('cost_range', 'N/A'))
 
+                    # Determine if this is a Ritz beach/hotel activity
+                    priority = activity_priority(activity)
+                    badge = ""
+                    if priority == 0:
+                        badge = '<span style="background: #2196f3; color: white; padding: 0.15rem 0.4rem; border-radius: 8px; font-size: 0.7rem; margin-left: 0.3rem;">🏖️ AT RITZ</span>'
+                    elif priority == 1:
+                        badge = '<span style="background: #ff9800; color: white; padding: 0.15rem 0.4rem; border-radius: 8px; font-size: 0.7rem; margin-left: 0.3rem;">🏨 ON-SITE</span>'
+
                     border_color = "#4caf50" if is_selected else "#ddd"
                     st.markdown(f"""
 <div class="ultimate-card" style="border-left: 4px solid {border_color}; min-height: 180px;">
 <div class="card-body">
-<h4 style="margin: 0 0 0.5rem 0; font-size: 0.95rem;">{'✅ ' if is_selected else ''}{safe_name}</h4>
+<h4 style="margin: 0 0 0.5rem 0; font-size: 0.95rem;">{'✅ ' if is_selected else ''}{safe_name} {badge}</h4>
 <p style="margin: 0.3rem 0; font-size: 0.85rem; color: #666;">{safe_desc}...</p>
 <p style="margin: 0.3rem 0; font-size: 0.85rem;"><strong>💰</strong> {safe_cost}</p>
 <p style="margin: 0.3rem 0; font-size: 0.85rem;"><strong>⏰</strong> {activity.get('duration', 'Varies')}</p>
