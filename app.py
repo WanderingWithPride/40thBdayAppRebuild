@@ -7785,8 +7785,8 @@ def render_johns_page(df, activities_data, show_sensitive):
                     final_restaurant = proposal['restaurant_options'][final_idx]
                     st.success(f"✅ **{meal_slot['label']}** - Confirmed: {final_restaurant['name']}")
 
-            if not has_proposals:
-                st.info("👀 No meal proposals yet. Michael will add options soon!")
+        if not has_proposals:
+            st.info("👀 No meal proposals yet. Michael will add options soon!")
 
     with tab4:
         # ============ ACTIVITY VOTING SECTION ============
