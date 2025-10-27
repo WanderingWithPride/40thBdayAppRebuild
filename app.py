@@ -1349,10 +1349,10 @@ def get_optional_activities():
             {"name": "Main Beach Park", "description": "Popular family beach with facilities, playground, volleyball courts", "cost_range": "FREE", "duration": "2-6 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Parking $2/hour, arrive early on weekends", "rating": "4.6/5"},
         ],
         "🎯 Activities & Adventure": [
-            {"name": "Fort Clinch State Park", "description": "Historic Civil War fort with beach, trails, and ranger-led tours", "cost_range": "$6-8 per vehicle", "duration": "2-3 hours", "phone": "904-277-7274", "booking_url": "N/A", "tips": "Great for history buffs, bring sunscreen and water", "rating": "4.6/5"},
+            {"name": "Fort Clinch State Park", "description": "Historic Civil War fort with ranger-led tours - worth the trip for the history! Also has trails and nature", "cost_range": "$6-8 per vehicle", "duration": "2-3 hours", "phone": "904-277-7274", "booking_url": "N/A", "tips": "Go for the fort tour and trails, not the beach (you have Ritz beach!)", "rating": "4.6/5"},
             {"name": "Amelia Island State Park", "description": "Pristine natural beaches, nature trails, and wildlife observation", "cost_range": "$4-6 per vehicle", "duration": "2-4 hours", "phone": "904-251-2320", "booking_url": "N/A", "tips": "Less crowded than Fort Clinch, great for shelling", "rating": "4.5/5"},
-            {"name": "Little Talbot Island State Park", "description": "Unspoiled barrier island with 5 miles of pristine beaches and kayaking", "cost_range": "$5 per vehicle", "duration": "2-4 hours", "phone": "904-251-2320", "booking_url": "N/A", "tips": "Perfect for nature lovers, bring kayak or rent on-site", "rating": "4.7/5"},
-            {"name": "Big Talbot Island State Park", "description": "Dramatic driftwood beach, unique boneyard trees, nature photography", "cost_range": "$3-5 per vehicle", "duration": "1-2 hours", "phone": "904-251-2320", "booking_url": "N/A", "tips": "Incredible photo opportunities, especially at sunset", "rating": "4.6/5"},
+            {"name": "Little Talbot Island State Park", "description": "Go for the kayaking through marshes and tidal creeks - unique nature experience beyond just beach", "cost_range": "$5 per vehicle", "duration": "2-4 hours", "phone": "904-251-2320", "booking_url": "N/A", "tips": "Worth the trip for kayaking and trails, not the beach (you have Ritz beach!)", "rating": "4.7/5"},
+            {"name": "Big Talbot Island State Park", "description": "UNIQUE driftwood beach (boneyard) unlike Ritz beach - amazing for photography! Worth the trip for the dramatic scenery", "cost_range": "$3-5 per vehicle", "duration": "1-2 hours", "phone": "904-251-2320", "booking_url": "N/A", "tips": "Go for the unique driftwood photography, not regular beach (you have that at Ritz!)", "rating": "4.6/5"},
             {"name": "Golf at Oak Marsh", "description": "Championship 18-hole course designed by Tom Fazio at Ritz-Carlton", "cost_range": "$80-150", "duration": "4-5 hours", "phone": "904-277-5907", "booking_url": "N/A", "tips": "Book tee times in advance, beautiful course", "rating": "4.7/5"},
             {"name": "Golf at Amelia National", "description": "27-hole municipal course, popular in Southeast", "cost_range": "$50-90", "duration": "4-5 hours", "phone": "904-491-8700", "booking_url": "N/A", "tips": "More affordable than resort courses, still excellent", "rating": "4.6/5"},
             {"name": "Tennis at Amelia National", "description": "8-court tennis center with professional instruction", "cost_range": "$30-60 per hour", "duration": "1-2 hours", "phone": "904-491-8700", "booking_url": "N/A", "tips": "Private lessons and clinics available", "rating": "4.5/5"},
@@ -6305,6 +6305,14 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
 
     # Build master list of all non-dining activities
     all_non_dining_activities = []
+
+    # Generic public beaches to skip (since you have 1.5 miles of private Ritz beach!)
+    skip_generic_beaches = [
+        'Peters Point Beach',  # Just another beach - you have Ritz beach
+        'Main Beach Park',  # Just a public beach - you have Ritz beach
+        'Amelia Island State Park',  # Mainly just beach access - you have Ritz beach
+    ]
+
     for category_name, items in all_activities_dict.items():
         # Skip dining/restaurant categories - comprehensive filter
         dining_keywords = ['dining', 'restaurant', 'breakfast', 'lunch', 'dinner', 'coffee', 'bar',
@@ -6314,7 +6322,9 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
         if not any(word in category_name.lower() for word in dining_keywords):
             # Filter out activities that have been confirmed (unless repeatable)
             for item in items:
-                if item['name'] not in confirmed_non_repeatable_names:
+                # Skip generic beaches (you have Ritz beach!) and confirmed non-repeatable activities
+                if (item['name'] not in confirmed_non_repeatable_names and
+                    item['name'] not in skip_generic_beaches):
                     all_non_dining_activities.append(item)
 
     # Check for pre-scheduled activities from the fixed itinerary (like boat tour)
