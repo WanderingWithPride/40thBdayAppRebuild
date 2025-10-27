@@ -7627,6 +7627,10 @@ def render_johns_page(df, activities_data, show_sensitive):
         </div>
         """, unsafe_allow_html=True)
 
+        # Refresh button to reload proposals
+        if st.button("🔄 Refresh to Check for New Proposals", use_container_width=True):
+            st.rerun()
+
         # Get all meal proposals
         meal_slots = [
             {"id": "fri_dinner", "label": "Friday Dinner (Nov 7)", "date": "2025-11-07"},
@@ -7822,6 +7826,10 @@ def render_johns_page(df, activities_data, show_sensitive):
             <p style="margin: 0.5rem 0 0 0; opacity: 0.95;">Michael has proposed activity options. Vote on which ones work for you!</p>
         </div>
         """, unsafe_allow_html=True)
+
+        # Refresh button to reload proposals
+        if st.button("🔄 Refresh to Check for New Proposals", key="refresh_activities", use_container_width=True):
+            st.rerun()
 
         # Get all activity proposals
         activity_slots = [
