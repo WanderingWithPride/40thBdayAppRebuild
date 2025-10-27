@@ -352,3 +352,107 @@ def get_notes():
     except Exception as e:
         print(f"Error getting notes: {e}")
         return []
+
+
+def delete_note(note_id):
+    """Delete a note"""
+    try:
+        data = get_trip_data()
+        data['notes'] = [n for n in data['notes'] if n['id'] != note_id]
+        return save_trip_data(f"Delete note: {note_id}")
+    except Exception as e:
+        print(f"Error deleting note: {e}")
+        return False
+
+
+# ============================================================================
+# PHOTOS (Stored in session state, not GitHub)
+# ============================================================================
+
+def save_photo(filename, photo_bytes, caption, date):
+    """Save a photo (stored in session state only for now)"""
+    # Photos are large binary data - store in session state instead of GitHub
+    # In the future, could upload to image hosting service
+    return None
+
+
+def load_photos(date=None):
+    """Load photos from session state"""
+    # Photos are stored in session state, not GitHub storage
+    return []
+
+
+def delete_photo(photo_id):
+    """Delete a photo"""
+    # Photos are stored in session state, not GitHub storage
+    pass
+
+
+# ============================================================================
+# NOTIFICATIONS (Stored in session state, not GitHub)
+# ============================================================================
+
+def add_notification(title, message, notif_type='info'):
+    """Add a notification to session state"""
+    # Notifications are transient - no need to persist to GitHub
+    pass
+
+
+def load_notifications(include_dismissed=False):
+    """Load notifications from session state"""
+    # Notifications are stored in session state, not GitHub storage
+    return []
+
+
+def dismiss_notification(notif_id):
+    """Dismiss a notification"""
+    # Notifications are stored in session state, not GitHub storage
+    pass
+
+
+# ============================================================================
+# TSA UPDATES (Stored in GitHub)
+# ============================================================================
+
+def save_manual_tsa_update(airport_code, wait_minutes, reported_by="User", notes=""):
+    """Save a manual TSA wait time update"""
+    try:
+        data = get_trip_data()
+        update = {
+            'airport_code': airport_code,
+            'wait_minutes': wait_minutes,
+            'reported_by': reported_by,
+            'notes': notes,
+            'created_at': datetime.now().isoformat()
+        }
+        if 'tsa_updates' not in data:
+            data['tsa_updates'] = []
+        data['tsa_updates'].append(update)
+        return save_trip_data(f"TSA update: {airport_code}")
+    except Exception as e:
+        print(f"Error saving TSA update: {e}")
+        return False
+
+
+def get_latest_manual_tsa_update(airport_code, max_age_hours=2):
+    """Get the most recent manual TSA wait time update for an airport"""
+    try:
+        from datetime import timedelta
+        data = get_trip_data()
+        updates = data.get('tsa_updates', [])
+
+        # Filter by airport and time
+        cutoff = datetime.now() - timedelta(hours=max_age_hours)
+        recent_updates = [
+            u for u in updates
+            if u['airport_code'] == airport_code and
+            datetime.fromisoformat(u['created_at']) > cutoff
+        ]
+
+        # Return most recent
+        if recent_updates:
+            return sorted(recent_updates, key=lambda x: x['created_at'], reverse=True)[0]
+        return None
+    except Exception as e:
+        print(f"Error getting TSA update: {e}")
+        return None

@@ -54,7 +54,10 @@ from data_operations import (
     save_custom_activity, load_custom_activities, delete_custom_activity,
     mark_activity_completed, load_completed_activities,
     update_packing_item, get_packing_progress,
-    add_note, get_notes
+    add_note, get_notes, delete_note,
+    save_photo, load_photos, delete_photo,
+    add_notification, load_notifications, dismiss_notification,
+    save_manual_tsa_update, get_latest_manual_tsa_update
 )
 
 # ============================================================================
@@ -72,723 +75,6 @@ st.set_page_config(
         'About': "Michael's 40th Birthday Trip Assistant - Amelia Island Edition"
     }
 )
-
-# ============================================================================
-# DATABASE PERSISTENCE LAYER
-# ============================================================================
-
-# Database configuration - supports both SQLite (local) and PostgreSQL (cloud)
-DB_FILE = "trip_data.db"
-DATABASE_URL = os.getenv('DATABASE_URL')  # PostgreSQL connection string for cloud deployments
-
-def get_db_connection():
-    """Get database connection - PostgreSQL if DATABASE_URL is set, otherwise SQLite"""
-    if DATABASE_URL:
-        import psycopg2
-        # Parse connection string and connect
-        conn = psycopg2.connect(DATABASE_URL, sslmode='require')
-        return conn, 'postgresql'
-    else:
-        conn = get_db()
-        return conn, 'sqlite'
-
-def get_db():
-    """Simplified connection getter - returns just the connection"""
-    conn, _ = get_db_connection()
-    return conn
-
-def init_database():
-    """Initialize database for persistent storage - supports both SQLite and PostgreSQL"""
-    conn, db_type = get_db_connection()
-    cursor = conn.cursor()
-
-    # Syntax differs between SQLite and PostgreSQL
-    if db_type == 'postgresql':
-        autoincrement = 'SERIAL PRIMARY KEY'
-        blob_type = 'BYTEA'
-        boolean_type = 'BOOLEAN'
-    else:
-        autoincrement = 'INTEGER PRIMARY KEY AUTOINCREMENT'
-        blob_type = 'BLOB'
-        boolean_type = 'INTEGER'
-
-    # Custom activities table
-    cursor.execute(f'''
-        CREATE TABLE IF NOT EXISTS custom_activities (
-            id TEXT PRIMARY KEY,
-            data TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-
-    # Packing list progress
-    cursor.execute(f'''
-        CREATE TABLE IF NOT EXISTS packing_progress (
-            item_id TEXT PRIMARY KEY,
-            packed INTEGER DEFAULT 0,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-
-    # Notes and memories
-    cursor.execute(f'''
-        CREATE TABLE IF NOT EXISTS notes (
-            id {autoincrement},
-            date TEXT,
-            content TEXT,
-            type TEXT DEFAULT 'note',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-
-    # John's preferences
-    cursor.execute(f'''
-        CREATE TABLE IF NOT EXISTS john_preferences (
-            key TEXT PRIMARY KEY,
-            value TEXT,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-
-    # Completed activities
-    cursor.execute(f'''
-        CREATE TABLE IF NOT EXISTS completed_activities (
-            activity_id TEXT PRIMARY KEY,
-            completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-
-    # Photos storage
-    cursor.execute(f'''
-        CREATE TABLE IF NOT EXISTS photos (
-            id {autoincrement},
-            filename TEXT,
-            photo_data {blob_type},
-            caption TEXT,
-            date TEXT,
-            uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-
-    # Notifications
-    cursor.execute(f'''
-        CREATE TABLE IF NOT EXISTS notifications (
-            id {autoincrement},
-            title TEXT,
-            message TEXT,
-            type TEXT DEFAULT 'info',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            dismissed INTEGER DEFAULT 0
-        )
-    ''')
-
-    # Manual TSA wait time updates
-    cursor.execute(f'''
-        CREATE TABLE IF NOT EXISTS tsa_manual_updates (
-            id {autoincrement},
-            airport_code TEXT NOT NULL,
-            wait_minutes INTEGER NOT NULL,
-            reported_by TEXT,
-            notes TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-
-    # Meal proposals and voting
-    cursor.execute(f'''
-        CREATE TABLE IF NOT EXISTS meal_proposals (
-            meal_id TEXT PRIMARY KEY,
-            restaurant_options TEXT NOT NULL,
-            status TEXT DEFAULT 'proposed',
-            john_vote TEXT,
-            final_choice INTEGER,
-            meal_time TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-
-    # Migration: Add meal_time column if it doesn't exist
-    try:
-        cursor.execute("ALTER TABLE meal_proposals ADD COLUMN meal_time TEXT")
-        conn.commit()
-    except Exception:
-        # Column already exists, ignore
-        pass
-
-    # Activity proposals and voting
-    cursor.execute(f'''
-        CREATE TABLE IF NOT EXISTS activity_proposals (
-            activity_slot_id TEXT PRIMARY KEY,
-            activity_options TEXT NOT NULL,
-            status TEXT DEFAULT 'proposed',
-            john_vote TEXT,
-            final_choice INTEGER,
-            activity_time TEXT,
-            date TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-
-    # Alcohol/drink requests from John
-    cursor.execute(f'''
-        CREATE TABLE IF NOT EXISTS alcohol_requests (
-            id {autoincrement},
-            item_name TEXT NOT NULL,
-            quantity TEXT,
-            notes TEXT,
-            purchased {boolean_type} DEFAULT 0,
-            cost REAL DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-
-    # Migration: Add cost column if it doesn't exist
-    try:
-        cursor.execute("ALTER TABLE alcohol_requests ADD COLUMN cost REAL DEFAULT 0")
-        conn.commit()
-    except Exception:
-        # Column already exists, ignore
-        pass
-
-    # Set default preferences if they don't exist
-    cursor.execute("SELECT COUNT(*) FROM john_preferences WHERE key = 'avoid_seafood_focused'")
-    if cursor.fetchone()[0] == 0:
-        cursor.execute(
-            "INSERT INTO john_preferences (key, value, updated_at) VALUES (?, ?, ?)",
-            ('avoid_seafood_focused', 'true', datetime.now().isoformat())
-        )
-
-    conn.commit()
-    conn.close()
-
-# Database helper functions
-def save_custom_activity(activity_dict):
-    """Save a custom activity to database"""
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        activity_id = activity_dict.get('id', f"custom_{datetime.now().timestamp()}")
-        activity_dict['id'] = activity_id
-        cursor.execute(
-            "INSERT OR REPLACE INTO custom_activities (id, data) VALUES (?, ?)",
-            (activity_id, json.dumps(activity_dict))
-        )
-        conn.commit()
-        conn.close()
-        return activity_id
-    except Exception as e:
-        print(f"Error saving custom activity: {e}")
-        return None
-
-def load_custom_activities():
-    """Load all custom activities from database"""
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute("SELECT data FROM custom_activities")
-        activities = [json.loads(row[0]) for row in cursor.fetchall()]
-        conn.close()
-        return activities
-    except Exception as e:
-        print(f"Error loading custom activities: {e}")
-        return []
-
-def delete_custom_activity(activity_id):
-    """Delete a custom activity"""
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM custom_activities WHERE id = ?", (activity_id,))
-    conn.commit()
-    conn.close()
-
-def save_packing_progress(item_id, packed):
-    """Save packing list checkbox state"""
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT OR REPLACE INTO packing_progress (item_id, packed, updated_at) VALUES (?, ?, ?)",
-        (item_id, 1 if packed else 0, datetime.now().isoformat())
-    )
-    conn.commit()
-    conn.close()
-
-def load_packing_progress():
-    """Load packing list progress"""
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute("SELECT item_id, packed FROM packing_progress")
-        progress = {row[0]: bool(row[1]) for row in cursor.fetchall()}
-        conn.close()
-        return progress
-    except Exception as e:
-        print(f"Error loading packing progress: {e}")
-        return {}
-
-def save_note(date, content, note_type='note'):
-    """Save a note or memory"""
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO notes (date, content, type) VALUES (?, ?, ?)",
-        (date, content, note_type)
-    )
-    conn.commit()
-    conn.close()
-
-def load_notes(date=None):
-    """Load notes, optionally filtered by date"""
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        if date:
-            cursor.execute("SELECT id, date, content, type, created_at FROM notes WHERE date = ? ORDER BY created_at DESC", (date,))
-        else:
-            cursor.execute("SELECT id, date, content, type, created_at FROM notes ORDER BY created_at DESC")
-        notes = [{"id": row[0], "date": row[1], "content": row[2], "type": row[3], "created_at": row[4]} for row in cursor.fetchall()]
-        conn.close()
-        return notes
-    except Exception as e:
-        print(f"Error loading notes: {e}")
-        return []
-
-def delete_note(note_id):
-    """Delete a note"""
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM notes WHERE id = ?", (note_id,))
-    conn.commit()
-    conn.close()
-
-def save_john_preference(key, value):
-    """Save John's preference"""
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT OR REPLACE INTO john_preferences (key, value, updated_at) VALUES (?, ?, ?)",
-        (key, value, datetime.now().isoformat())
-    )
-    conn.commit()
-    conn.close()
-
-def load_john_preferences():
-    """Load all of John's preferences"""
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute("SELECT key, value FROM john_preferences")
-        prefs = {row[0]: row[1] for row in cursor.fetchall()}
-        conn.close()
-        return prefs
-    except Exception as e:
-        print(f"Error loading John's preferences: {e}")
-        return {}
-
-def save_meal_proposal(meal_id, restaurant_options):
-    """Save Michael's meal proposal with 3 restaurant options
-
-    Args:
-        meal_id: String like "fri_dinner", "sat_lunch", etc.
-        restaurant_options: List of restaurant dicts with name, cost, booking_url, etc.
-
-    Returns:
-        bool: True if successful, False otherwise
-    """
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        import json
-        cursor.execute(
-            "INSERT OR REPLACE INTO meal_proposals (meal_id, restaurant_options, status, created_at) VALUES (?, ?, ?, ?)",
-            (meal_id, json.dumps(restaurant_options), "proposed", datetime.now().isoformat())
-        )
-        conn.commit()
-        conn.close()
-        return True
-    except Exception as e:
-        print(f"Error saving meal proposal: {e}")
-        return False
-
-def get_meal_proposal(meal_id):
-    """Get meal proposal for a specific meal"""
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute("SELECT restaurant_options, status, john_vote FROM meal_proposals WHERE meal_id = ?", (meal_id,))
-        row = cursor.fetchone()
-        conn.close()
-        if row:
-            import json
-            return {
-                "restaurant_options": json.loads(row[0]),
-                "status": row[1],
-                "john_vote": row[2]
-            }
-        return None
-    except Exception as e:
-        print(f"Error loading meal proposal: {e}")
-        return None
-
-def save_john_meal_vote(meal_id, restaurant_choice):
-    """Save John's vote for a meal
-
-    Args:
-        meal_id: String like "fri_dinner"
-        restaurant_choice: Index (0-2) of chosen restaurant, or "none" if none work
-    """
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute(
-        "UPDATE meal_proposals SET john_vote = ?, status = ? WHERE meal_id = ?",
-        (restaurant_choice, "voted", meal_id)
-    )
-    conn.commit()
-    conn.close()
-
-def finalize_meal_choice(meal_id, final_choice_index, meal_time=None):
-    """Finalize meal choice and mark as confirmed
-
-    Args:
-        meal_id: String like "fri_dinner"
-        final_choice_index: Index (0-2) of final restaurant choice
-        meal_time: Optional custom time for the meal (e.g., "7:30 PM")
-    """
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute(
-        "UPDATE meal_proposals SET final_choice = ?, status = ?, meal_time = ? WHERE meal_id = ?",
-        (final_choice_index, "confirmed", meal_time, meal_id)
-    )
-    conn.commit()
-    conn.close()
-
-def save_activity_proposal(activity_slot_id, activity_options, date, time):
-    """Save Michael's activity proposal with 3 activity options
-
-    Args:
-        activity_slot_id: String like "sat_afternoon", "sun_morning", etc.
-        activity_options: List of activity dicts with name, cost, duration, etc.
-        date: Date string (e.g., "2025-11-08")
-        time: Time string (e.g., "2:00 PM")
-
-    Returns:
-        bool: True if successful, False otherwise
-    """
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        import json
-        cursor.execute(
-            "INSERT OR REPLACE INTO activity_proposals (activity_slot_id, activity_options, date, activity_time, status, created_at) VALUES (?, ?, ?, ?, ?, ?)",
-            (activity_slot_id, json.dumps(activity_options), date, time, "proposed", datetime.now().isoformat())
-        )
-        conn.commit()
-        conn.close()
-        return True
-    except Exception as e:
-        print(f"Error saving activity proposal: {e}")
-        return False
-
-def get_activity_proposal(activity_slot_id):
-    """Get activity proposal for a specific time slot"""
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute("SELECT activity_options, status, john_vote, final_choice, activity_time, date FROM activity_proposals WHERE activity_slot_id = ?", (activity_slot_id,))
-        row = cursor.fetchone()
-        conn.close()
-        if row:
-            import json
-            return {
-                "activity_options": json.loads(row[0]),
-                "status": row[1],
-                "john_vote": row[2],
-                "final_choice": row[3],
-                "activity_time": row[4],
-                "date": row[5]
-            }
-        return None
-    except Exception as e:
-        print(f"Error loading activity proposal: {e}")
-        return None
-
-def save_john_activity_vote(activity_slot_id, activity_choice):
-    """Save John's vote for an activity
-
-    Args:
-        activity_slot_id: String like "sat_afternoon"
-        activity_choice: Index (0-2) of chosen activity, or "none" if none work
-    """
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute(
-        "UPDATE activity_proposals SET john_vote = ?, status = ? WHERE activity_slot_id = ?",
-        (activity_choice, "voted", activity_slot_id)
-    )
-    conn.commit()
-    conn.close()
-
-def finalize_activity_choice(activity_slot_id, final_choice_index):
-    """Finalize activity choice and mark as confirmed
-
-    Args:
-        activity_slot_id: String like "sat_afternoon"
-        final_choice_index: Index (0-2) of final activity choice
-    """
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute(
-        "UPDATE activity_proposals SET final_choice = ?, status = ? WHERE activity_slot_id = ?",
-        (final_choice_index, "confirmed", activity_slot_id)
-    )
-    conn.commit()
-    conn.close()
-
-def add_alcohol_request(item_name, quantity="", notes=""):
-    """Add an alcohol/drink request from John
-
-    Args:
-        item_name: Name of the item (e.g., "Beer", "Wine", "Vodka")
-        quantity: Optional quantity (e.g., "6-pack", "1 bottle", "2 bottles")
-        notes: Optional notes (e.g., "IPA preferred", "Red wine")
-    """
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO alcohol_requests (item_name, quantity, notes, purchased) VALUES (?, ?, ?, ?)",
-        (item_name, quantity, notes, 0)
-    )
-    conn.commit()
-    conn.close()
-
-def get_alcohol_requests():
-    """Get all alcohol requests
-
-    Returns:
-        List of dicts with request details
-    """
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute("SELECT id, item_name, quantity, notes, purchased, cost FROM alcohol_requests ORDER BY purchased ASC, created_at ASC")
-        rows = cursor.fetchall()
-        conn.close()
-
-        requests = []
-        for row in rows:
-            requests.append({
-                'id': row[0],
-                'item_name': row[1],
-                'quantity': row[2],
-                'notes': row[3],
-                'purchased': bool(row[4]),
-                'cost': float(row[5]) if row[5] else 0.0
-            })
-        return requests
-    except Exception as e:
-        print(f"Error loading alcohol requests: {e}")
-        return []
-
-def mark_alcohol_purchased(request_id, purchased=True, cost=0):
-    """Mark an alcohol request as purchased
-
-    Args:
-        request_id: ID of the request
-        purchased: True to mark as purchased, False to mark as not purchased
-        cost: Cost of the item (total, not per person)
-    """
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute(
-        "UPDATE alcohol_requests SET purchased = ?, cost = ? WHERE id = ?",
-        (1 if purchased else 0, cost, request_id)
-    )
-    conn.commit()
-    conn.close()
-
-def delete_alcohol_request(request_id):
-    """Delete an alcohol request
-
-    Args:
-        request_id: ID of the request to delete
-    """
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM alcohol_requests WHERE id = ?", (request_id,))
-    conn.commit()
-    conn.close()
-
-def save_manual_tsa_update(airport_code, wait_minutes, reported_by="User", notes=""):
-    """Save a manual TSA wait time update"""
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO tsa_manual_updates (airport_code, wait_minutes, reported_by, notes, created_at) VALUES (?, ?, ?, ?, ?)",
-            (airport_code, wait_minutes, reported_by, notes, datetime.now().isoformat())
-        )
-        conn.commit()
-        conn.close()
-        return True
-    except Exception as e:
-        print(f"Error saving manual TSA update: {e}")
-        return False
-
-def get_latest_manual_tsa_update(airport_code, max_age_hours=2):
-    """Get the most recent manual TSA wait time update for an airport
-
-    Args:
-        airport_code: Airport code like "DCA", "JAX"
-        max_age_hours: Only return updates within this many hours (default 2)
-
-    Returns:
-        Dictionary with update info or None if no recent updates
-    """
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-
-        # Calculate cutoff time
-        cutoff = datetime.now() - timedelta(hours=max_age_hours)
-
-        cursor.execute("""
-            SELECT wait_minutes, reported_by, notes, created_at
-            FROM tsa_manual_updates
-            WHERE airport_code = ? AND created_at > ?
-            ORDER BY created_at DESC
-            LIMIT 1
-        """, (airport_code, cutoff.isoformat()))
-
-        row = cursor.fetchone()
-        conn.close()
-
-        if row:
-            return {
-                'wait_minutes': row[0],
-                'reported_by': row[1],
-                'notes': row[2],
-                'created_at': row[3]
-            }
-        return None
-    except Exception as e:
-        print(f"Error loading manual TSA update: {e}")
-        return None
-
-def mark_activity_completed(activity_id):
-    """Mark an activity as completed"""
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT OR REPLACE INTO completed_activities (activity_id) VALUES (?)",
-        (activity_id,)
-    )
-    conn.commit()
-    conn.close()
-
-def load_completed_activities():
-    """Load all completed activity IDs"""
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute("SELECT activity_id FROM completed_activities")
-        completed = [row[0] for row in cursor.fetchall()]
-        conn.close()
-        return completed
-    except Exception as e:
-        print(f"Error loading completed activities: {e}")
-        return []
-
-def save_photo(filename, photo_bytes, caption, date):
-    """Save a photo to database"""
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO photos (filename, photo_data, caption, date) VALUES (?, ?, ?, ?)",
-        (filename, photo_bytes, caption, date)
-    )
-    photo_id = cursor.lastrowid
-    conn.commit()
-    conn.close()
-    return photo_id
-
-def load_photos(date=None):
-    """Load photos, optionally filtered by date"""
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        if date:
-            cursor.execute("SELECT id, filename, photo_data, caption, date, uploaded_at FROM photos WHERE date = ? ORDER BY uploaded_at DESC", (date,))
-        else:
-            cursor.execute("SELECT id, filename, photo_data, caption, date, uploaded_at FROM photos ORDER BY uploaded_at DESC")
-        photos = []
-        for row in cursor.fetchall():
-            photos.append({
-                "id": row[0],
-                "filename": row[1],
-                "photo_data": row[2],
-                "caption": row[3],
-                "date": row[4],
-                "uploaded_at": row[5]
-            })
-        conn.close()
-        return photos
-    except Exception as e:
-        print(f"Error loading photos: {e}")
-        return []
-
-def delete_photo(photo_id):
-    """Delete a photo"""
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM photos WHERE id = ?", (photo_id,))
-    conn.commit()
-    conn.close()
-
-def add_notification(title, message, notif_type='info'):
-    """Add a notification"""
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO notifications (title, message, type) VALUES (?, ?, ?)",
-        (title, message, notif_type)
-    )
-    conn.commit()
-    conn.close()
-
-def load_notifications(include_dismissed=False):
-    """Load notifications"""
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        if include_dismissed:
-            cursor.execute("SELECT id, title, message, type, created_at, dismissed FROM notifications ORDER BY created_at DESC")
-        else:
-            cursor.execute("SELECT id, title, message, type, created_at, dismissed FROM notifications WHERE dismissed = 0 ORDER BY created_at DESC")
-        notifications = []
-        for row in cursor.fetchall():
-            notifications.append({
-                "id": row[0],
-                "title": row[1],
-                "message": row[2],
-                "type": row[3],
-                "created_at": row[4],
-                "dismissed": bool(row[5])
-            })
-        conn.close()
-        return notifications
-    except Exception as e:
-        print(f"Error loading notifications: {e}")
-        return []
-
-def dismiss_notification(notif_id):
-    """Dismiss a notification"""
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("UPDATE notifications SET dismissed = 1 WHERE id = ?", (notif_id,))
-    conn.commit()
-    conn.close()
 
 # ============================================================================
 # GITHUB STORAGE INITIALIZATION
@@ -2992,17 +2278,15 @@ def get_confirmed_meals_budget():
         List of dicts with meal info and costs
     """
     try:
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute("SELECT meal_id, restaurant_options, final_choice, meal_time FROM meal_proposals WHERE status = 'confirmed'")
-        rows = cursor.fetchall()
-        conn.close()
-
+        data = get_trip_data()
         meals = []
-        for row in rows:
-            meal_id, restaurant_options_json, final_choice, meal_time = row
-            try:
-                options = json.loads(restaurant_options_json)
+
+        for meal_id, proposal in data.get('meal_proposals', {}).items():
+            if proposal.get('status') == 'confirmed':
+                options = proposal.get('restaurant_options', [])
+                final_choice = proposal.get('final_choice')
+                meal_time = proposal.get('meal_time')
+
                 if final_choice is not None and final_choice < len(options):
                     restaurant = options[final_choice]
                     cost_per_person = parse_cost_range(restaurant.get('cost_range', '0'))
@@ -3017,8 +2301,6 @@ def get_confirmed_meals_budget():
                         'time': meal_time,
                         'category': 'Dining'
                     })
-            except:
-                pass
 
         return meals
     except Exception as e:
@@ -3032,17 +2314,16 @@ def get_confirmed_activities_budget():
         List of dicts with activity info and costs
     """
     try:
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute("SELECT activity_slot_id, activity_options, final_choice, activity_time, date FROM activity_proposals WHERE status = 'confirmed'")
-        rows = cursor.fetchall()
-        conn.close()
-
+        data = get_trip_data()
         activities = []
-        for row in rows:
-            activity_slot_id, activity_options_json, final_choice, activity_time, date = row
-            try:
-                options = json.loads(activity_options_json)
+
+        for activity_slot_id, proposal in data.get('activity_proposals', {}).items():
+            if proposal.get('status') == 'confirmed':
+                options = proposal.get('activity_options', [])
+                final_choice = proposal.get('final_choice')
+                activity_time = proposal.get('activity_time')
+                date = proposal.get('date')
+
                 if final_choice is not None and final_choice < len(options):
                     activity = options[final_choice]
                     cost_per_person = parse_cost_range(activity.get('cost_range', '0'))
@@ -3058,8 +2339,6 @@ def get_confirmed_activities_budget():
                         'date': date,
                         'category': 'Activities'
                     })
-            except:
-                pass
 
         return activities
     except Exception as e:
@@ -5114,7 +4393,7 @@ def render_packing_list():
                         # Update session state
                         st.session_state.packing_list[item_id] = checked
                         # Save to database
-                        save_packing_progress(item_id, checked)
+                        update_packing_item(item_id, checked)
                         item['checked'] = checked
                         st.rerun()
 
@@ -6495,19 +5774,14 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
     def get_used_restaurants():
         """Get list of restaurant names already confirmed or proposed"""
         used = set()
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute("SELECT restaurant_options FROM meal_proposals WHERE status IN ('confirmed', 'proposed', 'voted')")
-        rows = cursor.fetchall()
-        conn.close()
+        data = get_trip_data()
 
-        for row in rows:
-            try:
-                options = json.loads(row[0])
+        for meal_id, proposal in data.get('meal_proposals', {}).items():
+            if proposal.get('status') in ('confirmed', 'proposed', 'voted'):
+                options = proposal.get('restaurant_options', [])
                 for opt in options:
                     used.add(opt.get('name', ''))
-            except:
-                pass
+
         return used
 
     for meal_slot in meal_slots:
@@ -6636,11 +5910,11 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
 
                 if st.button(f"🔄 Change {meal_slot['label']}", key=f"change_{meal_slot['id']}"):
                     # Reset to proposal stage
-                    conn = get_db()
-                    cursor = conn.cursor()
-                    cursor.execute("UPDATE meal_proposals SET status = 'proposed', final_choice = NULL WHERE meal_id = ?", (meal_slot['id'],))
-                    conn.commit()
-                    conn.close()
+                    data = get_trip_data()
+                    if meal_slot['id'] in data.get('meal_proposals', {}):
+                        data['meal_proposals'][meal_slot['id']]['status'] = 'proposed'
+                        data['meal_proposals'][meal_slot['id']]['final_choice'] = None
+                        save_trip_data(f"Reset meal proposal: {meal_slot['id']}")
                     st.rerun()
 
         elif proposal and proposal['status'] == 'voted':
@@ -6685,11 +5959,10 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             if john_vote == "none":
                 st.warning("❌ John said none of these work. Pick 3 new options!")
                 if st.button(f"Pick New Options for {meal_slot['label']}", key=f"repick_{meal_slot['id']}"):
-                    conn = get_db()
-                    cursor = conn.cursor()
-                    cursor.execute("DELETE FROM meal_proposals WHERE meal_id = ?", (meal_slot['id'],))
-                    conn.commit()
-                    conn.close()
+                    data = get_trip_data()
+                    if meal_slot['id'] in data.get('meal_proposals', {}):
+                        del data['meal_proposals'][meal_slot['id']]
+                        save_trip_data(f"Delete meal proposal: {meal_slot['id']}")
                     st.rerun()
             else:
                 # Time picker for meal
@@ -6745,11 +6018,10 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                 """, unsafe_allow_html=True)
 
             if st.button(f"Cancel Proposal for {meal_slot['label']}", key=f"cancel_{meal_slot['id']}"):
-                conn = get_db()
-                cursor = conn.cursor()
-                cursor.execute("DELETE FROM meal_proposals WHERE meal_id = ?", (meal_slot['id'],))
-                conn.commit()
-                conn.close()
+                data = get_trip_data()
+                if meal_slot['id'] in data.get('meal_proposals', {}):
+                    del data['meal_proposals'][meal_slot['id']]
+                    save_trip_data(f"Cancel meal proposal: {meal_slot['id']}")
                 st.rerun()
 
         else:
@@ -6981,11 +6253,11 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                 """, unsafe_allow_html=True)
 
                 if st.button(f"🔄 Change {activity_slot['label']}", key=f"change_activity_{activity_slot['id']}"):
-                    conn = get_db()
-                    cursor = conn.cursor()
-                    cursor.execute("UPDATE activity_proposals SET status = 'proposed', final_choice = NULL WHERE activity_slot_id = ?", (activity_slot['id'],))
-                    conn.commit()
-                    conn.close()
+                    data = get_trip_data()
+                    if activity_slot['id'] in data.get('activity_proposals', {}):
+                        data['activity_proposals'][activity_slot['id']]['status'] = 'proposed'
+                        data['activity_proposals'][activity_slot['id']]['final_choice'] = None
+                        save_trip_data(f"Reset activity proposal: {activity_slot['id']}")
                     st.rerun()
 
         elif proposal and proposal['status'] == 'voted':
@@ -7012,11 +6284,10 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             if john_vote == "none":
                 st.warning("❌ John said none of these work. Pick 3 new options!")
                 if st.button(f"Pick New Options for {activity_slot['label']}", key=f"repick_activity_{activity_slot['id']}"):
-                    conn = get_db()
-                    cursor = conn.cursor()
-                    cursor.execute("DELETE FROM activity_proposals WHERE activity_slot_id = ?", (activity_slot['id'],))
-                    conn.commit()
-                    conn.close()
+                    data = get_trip_data()
+                    if activity_slot['id'] in data.get('activity_proposals', {}):
+                        del data['activity_proposals'][activity_slot['id']]
+                        save_trip_data(f"Delete activity proposal: {activity_slot['id']}")
                     st.rerun()
             else:
                 # Confirm button
@@ -7042,11 +6313,10 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                 """, unsafe_allow_html=True)
 
             if st.button(f"🔄 Pick Different Options", key=f"repick_proposed_{activity_slot['id']}"):
-                conn = get_db()
-                cursor = conn.cursor()
-                cursor.execute("DELETE FROM activity_proposals WHERE activity_slot_id = ?", (activity_slot['id'],))
-                conn.commit()
-                conn.close()
+                data = get_trip_data()
+                if activity_slot['id'] in data.get('activity_proposals', {}):
+                    del data['activity_proposals'][activity_slot['id']]
+                    save_trip_data(f"Delete activity proposal: {activity_slot['id']}")
                 st.rerun()
 
         else:
@@ -8061,7 +7331,7 @@ def render_birthday_page():
 
                     if checked != is_checked:
                         st.session_state.packing_list[item_id] = checked
-                        save_packing_progress(item_id, checked)
+                        update_packing_item(item_id, checked)
                         st.rerun()
 
     with tab2:
@@ -8092,12 +7362,12 @@ def render_birthday_page():
 
         if st.button("💾 Save Reflection", type="primary", use_container_width=True):
             if reflection_text.strip():
-                save_note(
+                add_note(
                     datetime.now().strftime('%Y-%m-%d'),
                     f"**{selected_prompt}**\n\n{reflection_text}",
                     'reflection'
                 )
-                st.session_state.notes = load_notes()
+                st.session_state.notes = get_notes()
                 st.success("✅ Reflection saved!")
                 add_notification("New Reflection", "40th birthday reflection saved", "success")
                 st.rerun()
@@ -8139,12 +7409,12 @@ def render_birthday_page():
 
             if st.button("💌 Save Wish", type="primary", use_container_width=True):
                 if wisher_name.strip() and wish_message.strip():
-                    save_note(
+                    add_note(
                         datetime.now().strftime('%Y-%m-%d'),
                         f"**From {wisher_name}:**\n\n{wish_message}",
                         'wish'
                     )
-                    st.session_state.notes = load_notes()
+                    st.session_state.notes = get_notes()
                     st.success("✅ Birthday wish saved!")
                     add_notification("New Wish", f"Birthday wish from {wisher_name}", "success")
                     st.rerun()
@@ -8186,12 +7456,12 @@ def render_birthday_page():
 
             if st.button("⭐ Add to Bucket List", type="primary", use_container_width=True):
                 if bucket_item.strip():
-                    save_note(
+                    add_note(
                         datetime.now().strftime('%Y-%m-%d'),
                         f"**[{bucket_category}]** {bucket_item}",
                         'bucket_list'
                     )
-                    st.session_state.notes = load_notes()
+                    st.session_state.notes = get_notes()
                     st.success("✅ Added to bucket list!")
                     add_notification("Bucket List", f"New goal: {bucket_item}", "info")
                     st.rerun()
@@ -8218,7 +7488,7 @@ def render_birthday_page():
 
                     if done != is_done:
                         st.session_state.packing_list[item_id] = done
-                        save_packing_progress(item_id, done)
+                        update_packing_item(item_id, done)
                         if done:
                             st.balloons()
                         st.rerun()
@@ -8382,8 +7652,8 @@ def render_memories_page():
 
             if st.button("💾 Save Journal Entry", type="primary", use_container_width=True):
                 if note_content.strip():
-                    save_note(note_date.strftime('%Y-%m-%d'), note_content, 'journal')
-                    st.session_state.notes = load_notes()
+                    add_note(note_date.strftime('%Y-%m-%d'), note_content, 'journal')
+                    st.session_state.notes = get_notes()
                     st.success("✅ Journal entry saved!")
                     add_notification("Journal Entry", f"New entry for {note_date.strftime('%b %d')}", "info")
                     st.rerun()
@@ -8409,7 +7679,7 @@ def render_memories_page():
 
                     if st.button(f"🗑️ Delete Entry", key=f"del_note_{entry['id']}", use_container_width=True):
                         delete_note(entry['id'])
-                        st.session_state.notes = load_notes()
+                        st.session_state.notes = get_notes()
                         st.success("Entry deleted!")
                         st.rerun()
         else:
@@ -8437,12 +7707,12 @@ def render_memories_page():
 
             if st.button("⭐ Save Highlight", type="primary", use_container_width=True):
                 if highlight_title.strip() and highlight_content.strip():
-                    save_note(
+                    add_note(
                         highlight_date.strftime('%Y-%m-%d'),
                         f"**{highlight_title}**\n\n{highlight_content}",
                         'highlight'
                     )
-                    st.session_state.notes = load_notes()
+                    st.session_state.notes = get_notes()
                     st.success("✅ Highlight saved!")
                     add_notification("New Highlight", highlight_title, "success")
                     st.rerun()
@@ -8470,7 +7740,7 @@ def render_memories_page():
 
                 if st.button(f"🗑️ Delete Highlight", key=f"del_highlight_{highlight['id']}", use_container_width=True):
                     delete_note(highlight['id'])
-                    st.session_state.notes = load_notes()
+                    st.session_state.notes = get_notes()
                     st.success("Highlight deleted!")
                     st.rerun()
         else:
