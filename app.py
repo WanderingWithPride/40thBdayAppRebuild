@@ -5944,10 +5944,11 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                         <p><strong>🛎️ In-Room Dining:</strong> The Ritz-Carlton Amelia Island</p>
                         <p><strong>⏰ Order Time:</strong> Call by 8:30 AM for 9:00 AM delivery</p>
                         <p><strong>📞 Phone:</strong> Dial extension from room or 904-277-1100</p>
-                        <p><strong>🍳 View Menu:</strong> <a href="https://www.ritzcarlton.com/en/hotels/jaxab-the-ritz-carlton-amelia-island/dining" target="_blank" style="color: #2196f3;">Ritz-Carlton In-Room Dining Menu</a></p>
+                        <p><strong>🍳 Get Menu:</strong> Menu available in your room or call 904-277-1100 to hear options</p>
                         <p><strong>💡 Tip:</strong> Perfect way to relax on your birthday morning before spa at 10 AM!</p>
-                        <p><strong>🥐 Popular Items:</strong> Pancakes, eggs benedict, fresh fruit, pastries, coffee service</p>
+                        <p><strong>🥐 Popular Items:</strong> Pancakes, eggs benedict, fresh fruit, pastries, coffee service, omelets</p>
                         <p><strong>💰 Est. Cost:</strong> $25-45 per person (plus 18% service charge + delivery fee)</p>
+                        <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;"><em>💡 Pro tip: Menu booklet is in your room, or call ahead to ask about breakfast options and pricing</em></p>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
