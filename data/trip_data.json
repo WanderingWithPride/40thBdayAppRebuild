@@ -1,0 +1,16 @@
+{
+  "meal_proposals": {},
+  "activity_proposals": {},
+  "john_preferences": {
+    "avoid_seafood_focused": "false",
+    "avoid_mexican": "false"
+  },
+  "alcohol_requests": [],
+  "packing_progress": {},
+  "notes": [],
+  "custom_activities": [],
+  "completed_activities": [],
+  "notifications": [],
+  "tsa_updates": [],
+  "last_updated": "2025-01-27T00:00:00"
+}
