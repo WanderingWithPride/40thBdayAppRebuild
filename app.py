@@ -6288,13 +6288,83 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
     # Get all non-dining optional activities
     all_activities_dict = get_optional_activities()
     available_activities = []
+
+    # Get all confirmed activities to exclude them from selection
+    trip_data = get_trip_data()
+    confirmed_activity_names = set()
+    for activity_proposal in trip_data.get('activity_proposals', {}).values():
+        if activity_proposal.get('status') == 'confirmed':
+            final_idx = activity_proposal.get('final_choice')
+            if final_idx is not None:
+                options = activity_proposal.get('activity_options', [])
+                if final_idx < len(options):
+                    confirmed_activity_names.add(options[final_idx]['name'])
+
     for category_name, items in all_activities_dict.items():
-        # Skip dining categories
-        if not any(word in category_name.lower() for word in ['dining', 'restaurant', 'breakfast', 'lunch', 'dinner', 'coffee', 'bar']):
-            available_activities.extend(items)
+        # Skip dining/restaurant categories - comprehensive filter
+        dining_keywords = ['dining', 'restaurant', 'breakfast', 'lunch', 'dinner', 'coffee', 'bar',
+                          'seafood', 'waterfront', 'italian', 'pizza', 'mexican', 'latin',
+                          'casual', 'comfort', 'food', 'deli', 'nightlife', 'cafes']
+        if not any(word in category_name.lower() for word in dining_keywords):
+            # Also filter out activities that have already been confirmed
+            for item in items:
+                if item['name'] not in confirmed_activity_names:
+                    available_activities.append(item)
+
+    # Check for pre-scheduled activities from the fixed itinerary (like boat tour)
+    _, activities_data = get_ultimate_trip_data()
+    scheduled_activities = {}
+    for activity in activities_data:
+        # Map activities to their time slots based on date and time
+        activity_date = activity.get('date', '')
+        activity_id = activity.get('id', '')
+        activity_type = activity.get('type', '')
+
+        # The boat tour on Saturday afternoon
+        if activity_id == 'act001' and activity_date == '2025-11-08':
+            scheduled_activities['sat_afternoon'] = {
+                'name': activity.get('activity', ''),
+                'time': activity.get('time', ''),
+                'duration': activity.get('duration', ''),
+                'cost': activity.get('cost', 0),
+                'notes': activity.get('notes', ''),
+                'location': activity.get('location', {}),
+                'what_to_bring': activity.get('what_to_bring', []),
+                'tips': activity.get('tips', [])
+            }
 
     for activity_slot in activity_slots:
         st.markdown(f"#### {activity_slot['label']}")
+
+        # Check if there's a pre-scheduled activity from the itinerary for this slot
+        scheduled_activity = scheduled_activities.get(activity_slot['id'])
+        if scheduled_activity:
+            st.info(f"🗓️ **SCHEDULED:** {scheduled_activity['name']}")
+            st.markdown(f"""
+            <div class="ultimate-card" style="border-left: 4px solid #2196f3;">
+                <div class="card-body">
+                    <p><strong>🎯 Activity:</strong> {scheduled_activity['name']}</p>
+                    <p><strong>⏰ Time:</strong> {scheduled_activity.get('time', 'N/A')}</p>
+                    <p><strong>⏱️ Duration:</strong> {scheduled_activity.get('duration', 'N/A')}</p>
+                    <p><strong>💰 Cost:</strong> ${scheduled_activity.get('cost', 0)} per person</p>
+                    <p><strong>📍 Location:</strong> {scheduled_activity.get('location', {}).get('name', 'N/A')}</p>
+                    <p><strong>📝 Notes:</strong> {scheduled_activity.get('notes', 'N/A')}</p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            if scheduled_activity.get('what_to_bring'):
+                st.markdown("**🎒 What to Bring:**")
+                for item in scheduled_activity['what_to_bring']:
+                    st.markdown(f"- {item}")
+
+            if scheduled_activity.get('tips'):
+                st.markdown("**💡 Tips:**")
+                for tip in scheduled_activity['tips']:
+                    st.markdown(f"- {tip}")
+
+            st.markdown("---")
+            continue  # Skip to next slot since this one is already scheduled
 
         # Get existing proposal
         proposal = get_activity_proposal(activity_slot['id'])
