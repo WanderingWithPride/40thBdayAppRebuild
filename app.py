@@ -65,15 +65,43 @@ st.set_page_config(
 # DATABASE PERSISTENCE LAYER
 # ============================================================================
 
+# Database configuration - supports both SQLite (local) and PostgreSQL (cloud)
 DB_FILE = "trip_data.db"
+DATABASE_URL = os.getenv('DATABASE_URL')  # PostgreSQL connection string for cloud deployments
+
+def get_db_connection():
+    """Get database connection - PostgreSQL if DATABASE_URL is set, otherwise SQLite"""
+    if DATABASE_URL:
+        import psycopg2
+        # Parse connection string and connect
+        conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+        return conn, 'postgresql'
+    else:
+        conn = get_db()
+        return conn, 'sqlite'
+
+def get_db():
+    """Simplified connection getter - returns just the connection"""
+    conn, _ = get_db_connection()
+    return conn
 
 def init_database():
-    """Initialize SQLite database for persistent storage"""
-    conn = sqlite3.connect(DB_FILE)
+    """Initialize database for persistent storage - supports both SQLite and PostgreSQL"""
+    conn, db_type = get_db_connection()
     cursor = conn.cursor()
 
+    # Syntax differs between SQLite and PostgreSQL
+    if db_type == 'postgresql':
+        autoincrement = 'SERIAL PRIMARY KEY'
+        blob_type = 'BYTEA'
+        boolean_type = 'BOOLEAN'
+    else:
+        autoincrement = 'INTEGER PRIMARY KEY AUTOINCREMENT'
+        blob_type = 'BLOB'
+        boolean_type = 'INTEGER'
+
     # Custom activities table
-    cursor.execute('''
+    cursor.execute(f'''
         CREATE TABLE IF NOT EXISTS custom_activities (
             id TEXT PRIMARY KEY,
             data TEXT NOT NULL,
@@ -82,7 +110,7 @@ def init_database():
     ''')
 
     # Packing list progress
-    cursor.execute('''
+    cursor.execute(f'''
         CREATE TABLE IF NOT EXISTS packing_progress (
             item_id TEXT PRIMARY KEY,
             packed INTEGER DEFAULT 0,
@@ -91,9 +119,9 @@ def init_database():
     ''')
 
     # Notes and memories
-    cursor.execute('''
+    cursor.execute(f'''
         CREATE TABLE IF NOT EXISTS notes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id {autoincrement},
             date TEXT,
             content TEXT,
             type TEXT DEFAULT 'note',
@@ -102,7 +130,7 @@ def init_database():
     ''')
 
     # John's preferences
-    cursor.execute('''
+    cursor.execute(f'''
         CREATE TABLE IF NOT EXISTS john_preferences (
             key TEXT PRIMARY KEY,
             value TEXT,
@@ -111,7 +139,7 @@ def init_database():
     ''')
 
     # Completed activities
-    cursor.execute('''
+    cursor.execute(f'''
         CREATE TABLE IF NOT EXISTS completed_activities (
             activity_id TEXT PRIMARY KEY,
             completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -119,11 +147,11 @@ def init_database():
     ''')
 
     # Photos storage
-    cursor.execute('''
+    cursor.execute(f'''
         CREATE TABLE IF NOT EXISTS photos (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id {autoincrement},
             filename TEXT,
-            photo_data BLOB,
+            photo_data {blob_type},
             caption TEXT,
             date TEXT,
             uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -131,9 +159,9 @@ def init_database():
     ''')
 
     # Notifications
-    cursor.execute('''
+    cursor.execute(f'''
         CREATE TABLE IF NOT EXISTS notifications (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id {autoincrement},
             title TEXT,
             message TEXT,
             type TEXT DEFAULT 'info',
@@ -143,9 +171,9 @@ def init_database():
     ''')
 
     # Manual TSA wait time updates
-    cursor.execute('''
+    cursor.execute(f'''
         CREATE TABLE IF NOT EXISTS tsa_manual_updates (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id {autoincrement},
             airport_code TEXT NOT NULL,
             wait_minutes INTEGER NOT NULL,
             reported_by TEXT,
@@ -155,7 +183,7 @@ def init_database():
     ''')
 
     # Meal proposals and voting
-    cursor.execute('''
+    cursor.execute(f'''
         CREATE TABLE IF NOT EXISTS meal_proposals (
             meal_id TEXT PRIMARY KEY,
             restaurant_options TEXT NOT NULL,
@@ -172,12 +200,12 @@ def init_database():
     try:
         cursor.execute("ALTER TABLE meal_proposals ADD COLUMN meal_time TEXT")
         conn.commit()
-    except sqlite3.OperationalError:
+    except Exception:
         # Column already exists, ignore
         pass
 
     # Activity proposals and voting
-    cursor.execute('''
+    cursor.execute(f'''
         CREATE TABLE IF NOT EXISTS activity_proposals (
             activity_slot_id TEXT PRIMARY KEY,
             activity_options TEXT NOT NULL,
@@ -192,13 +220,13 @@ def init_database():
     ''')
 
     # Alcohol/drink requests from John
-    cursor.execute('''
+    cursor.execute(f'''
         CREATE TABLE IF NOT EXISTS alcohol_requests (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id {autoincrement},
             item_name TEXT NOT NULL,
             quantity TEXT,
             notes TEXT,
-            purchased BOOLEAN DEFAULT 0,
+            purchased {boolean_type} DEFAULT 0,
             cost REAL DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -208,7 +236,7 @@ def init_database():
     try:
         cursor.execute("ALTER TABLE alcohol_requests ADD COLUMN cost REAL DEFAULT 0")
         conn.commit()
-    except sqlite3.OperationalError:
+    except Exception:
         # Column already exists, ignore
         pass
 
@@ -227,7 +255,7 @@ def init_database():
 def save_custom_activity(activity_dict):
     """Save a custom activity to database"""
     try:
-        conn = sqlite3.connect(DB_FILE)
+        conn = get_db()
         cursor = conn.cursor()
         activity_id = activity_dict.get('id', f"custom_{datetime.now().timestamp()}")
         activity_dict['id'] = activity_id
@@ -245,7 +273,7 @@ def save_custom_activity(activity_dict):
 def load_custom_activities():
     """Load all custom activities from database"""
     try:
-        conn = sqlite3.connect(DB_FILE)
+        conn = get_db()
         cursor = conn.cursor()
         cursor.execute("SELECT data FROM custom_activities")
         activities = [json.loads(row[0]) for row in cursor.fetchall()]
@@ -257,7 +285,7 @@ def load_custom_activities():
 
 def delete_custom_activity(activity_id):
     """Delete a custom activity"""
-    conn = sqlite3.connect(DB_FILE)
+    conn = get_db()
     cursor = conn.cursor()
     cursor.execute("DELETE FROM custom_activities WHERE id = ?", (activity_id,))
     conn.commit()
@@ -265,7 +293,7 @@ def delete_custom_activity(activity_id):
 
 def save_packing_progress(item_id, packed):
     """Save packing list checkbox state"""
-    conn = sqlite3.connect(DB_FILE)
+    conn = get_db()
     cursor = conn.cursor()
     cursor.execute(
         "INSERT OR REPLACE INTO packing_progress (item_id, packed, updated_at) VALUES (?, ?, ?)",
@@ -277,7 +305,7 @@ def save_packing_progress(item_id, packed):
 def load_packing_progress():
     """Load packing list progress"""
     try:
-        conn = sqlite3.connect(DB_FILE)
+        conn = get_db()
         cursor = conn.cursor()
         cursor.execute("SELECT item_id, packed FROM packing_progress")
         progress = {row[0]: bool(row[1]) for row in cursor.fetchall()}
@@ -289,7 +317,7 @@ def load_packing_progress():
 
 def save_note(date, content, note_type='note'):
     """Save a note or memory"""
-    conn = sqlite3.connect(DB_FILE)
+    conn = get_db()
     cursor = conn.cursor()
     cursor.execute(
         "INSERT INTO notes (date, content, type) VALUES (?, ?, ?)",
@@ -301,7 +329,7 @@ def save_note(date, content, note_type='note'):
 def load_notes(date=None):
     """Load notes, optionally filtered by date"""
     try:
-        conn = sqlite3.connect(DB_FILE)
+        conn = get_db()
         cursor = conn.cursor()
         if date:
             cursor.execute("SELECT id, date, content, type, created_at FROM notes WHERE date = ? ORDER BY created_at DESC", (date,))
@@ -316,7 +344,7 @@ def load_notes(date=None):
 
 def delete_note(note_id):
     """Delete a note"""
-    conn = sqlite3.connect(DB_FILE)
+    conn = get_db()
     cursor = conn.cursor()
     cursor.execute("DELETE FROM notes WHERE id = ?", (note_id,))
     conn.commit()
@@ -324,7 +352,7 @@ def delete_note(note_id):
 
 def save_john_preference(key, value):
     """Save John's preference"""
-    conn = sqlite3.connect(DB_FILE)
+    conn = get_db()
     cursor = conn.cursor()
     cursor.execute(
         "INSERT OR REPLACE INTO john_preferences (key, value, updated_at) VALUES (?, ?, ?)",
@@ -336,7 +364,7 @@ def save_john_preference(key, value):
 def load_john_preferences():
     """Load all of John's preferences"""
     try:
-        conn = sqlite3.connect(DB_FILE)
+        conn = get_db()
         cursor = conn.cursor()
         cursor.execute("SELECT key, value FROM john_preferences")
         prefs = {row[0]: row[1] for row in cursor.fetchall()}
@@ -357,7 +385,7 @@ def save_meal_proposal(meal_id, restaurant_options):
         bool: True if successful, False otherwise
     """
     try:
-        conn = sqlite3.connect(DB_FILE)
+        conn = get_db()
         cursor = conn.cursor()
         import json
         cursor.execute(
@@ -374,7 +402,7 @@ def save_meal_proposal(meal_id, restaurant_options):
 def get_meal_proposal(meal_id):
     """Get meal proposal for a specific meal"""
     try:
-        conn = sqlite3.connect(DB_FILE)
+        conn = get_db()
         cursor = conn.cursor()
         cursor.execute("SELECT restaurant_options, status, john_vote FROM meal_proposals WHERE meal_id = ?", (meal_id,))
         row = cursor.fetchone()
@@ -398,7 +426,7 @@ def save_john_meal_vote(meal_id, restaurant_choice):
         meal_id: String like "fri_dinner"
         restaurant_choice: Index (0-2) of chosen restaurant, or "none" if none work
     """
-    conn = sqlite3.connect(DB_FILE)
+    conn = get_db()
     cursor = conn.cursor()
     cursor.execute(
         "UPDATE meal_proposals SET john_vote = ?, status = ? WHERE meal_id = ?",
@@ -415,7 +443,7 @@ def finalize_meal_choice(meal_id, final_choice_index, meal_time=None):
         final_choice_index: Index (0-2) of final restaurant choice
         meal_time: Optional custom time for the meal (e.g., "7:30 PM")
     """
-    conn = sqlite3.connect(DB_FILE)
+    conn = get_db()
     cursor = conn.cursor()
     cursor.execute(
         "UPDATE meal_proposals SET final_choice = ?, status = ?, meal_time = ? WHERE meal_id = ?",
@@ -437,7 +465,7 @@ def save_activity_proposal(activity_slot_id, activity_options, date, time):
         bool: True if successful, False otherwise
     """
     try:
-        conn = sqlite3.connect(DB_FILE)
+        conn = get_db()
         cursor = conn.cursor()
         import json
         cursor.execute(
@@ -454,7 +482,7 @@ def save_activity_proposal(activity_slot_id, activity_options, date, time):
 def get_activity_proposal(activity_slot_id):
     """Get activity proposal for a specific time slot"""
     try:
-        conn = sqlite3.connect(DB_FILE)
+        conn = get_db()
         cursor = conn.cursor()
         cursor.execute("SELECT activity_options, status, john_vote, final_choice, activity_time, date FROM activity_proposals WHERE activity_slot_id = ?", (activity_slot_id,))
         row = cursor.fetchone()
@@ -481,7 +509,7 @@ def save_john_activity_vote(activity_slot_id, activity_choice):
         activity_slot_id: String like "sat_afternoon"
         activity_choice: Index (0-2) of chosen activity, or "none" if none work
     """
-    conn = sqlite3.connect(DB_FILE)
+    conn = get_db()
     cursor = conn.cursor()
     cursor.execute(
         "UPDATE activity_proposals SET john_vote = ?, status = ? WHERE activity_slot_id = ?",
@@ -497,7 +525,7 @@ def finalize_activity_choice(activity_slot_id, final_choice_index):
         activity_slot_id: String like "sat_afternoon"
         final_choice_index: Index (0-2) of final activity choice
     """
-    conn = sqlite3.connect(DB_FILE)
+    conn = get_db()
     cursor = conn.cursor()
     cursor.execute(
         "UPDATE activity_proposals SET final_choice = ?, status = ? WHERE activity_slot_id = ?",
@@ -514,7 +542,7 @@ def add_alcohol_request(item_name, quantity="", notes=""):
         quantity: Optional quantity (e.g., "6-pack", "1 bottle", "2 bottles")
         notes: Optional notes (e.g., "IPA preferred", "Red wine")
     """
-    conn = sqlite3.connect(DB_FILE)
+    conn = get_db()
     cursor = conn.cursor()
     cursor.execute(
         "INSERT INTO alcohol_requests (item_name, quantity, notes, purchased) VALUES (?, ?, ?, ?)",
@@ -530,7 +558,7 @@ def get_alcohol_requests():
         List of dicts with request details
     """
     try:
-        conn = sqlite3.connect(DB_FILE)
+        conn = get_db()
         cursor = conn.cursor()
         cursor.execute("SELECT id, item_name, quantity, notes, purchased, cost FROM alcohol_requests ORDER BY purchased ASC, created_at ASC")
         rows = cursor.fetchall()
@@ -559,7 +587,7 @@ def mark_alcohol_purchased(request_id, purchased=True, cost=0):
         purchased: True to mark as purchased, False to mark as not purchased
         cost: Cost of the item (total, not per person)
     """
-    conn = sqlite3.connect(DB_FILE)
+    conn = get_db()
     cursor = conn.cursor()
     cursor.execute(
         "UPDATE alcohol_requests SET purchased = ?, cost = ? WHERE id = ?",
@@ -574,7 +602,7 @@ def delete_alcohol_request(request_id):
     Args:
         request_id: ID of the request to delete
     """
-    conn = sqlite3.connect(DB_FILE)
+    conn = get_db()
     cursor = conn.cursor()
     cursor.execute("DELETE FROM alcohol_requests WHERE id = ?", (request_id,))
     conn.commit()
@@ -583,7 +611,7 @@ def delete_alcohol_request(request_id):
 def save_manual_tsa_update(airport_code, wait_minutes, reported_by="User", notes=""):
     """Save a manual TSA wait time update"""
     try:
-        conn = sqlite3.connect(DB_FILE)
+        conn = get_db()
         cursor = conn.cursor()
         cursor.execute(
             "INSERT INTO tsa_manual_updates (airport_code, wait_minutes, reported_by, notes, created_at) VALUES (?, ?, ?, ?, ?)",
@@ -607,7 +635,7 @@ def get_latest_manual_tsa_update(airport_code, max_age_hours=2):
         Dictionary with update info or None if no recent updates
     """
     try:
-        conn = sqlite3.connect(DB_FILE)
+        conn = get_db()
         cursor = conn.cursor()
 
         # Calculate cutoff time
@@ -638,7 +666,7 @@ def get_latest_manual_tsa_update(airport_code, max_age_hours=2):
 
 def mark_activity_completed(activity_id):
     """Mark an activity as completed"""
-    conn = sqlite3.connect(DB_FILE)
+    conn = get_db()
     cursor = conn.cursor()
     cursor.execute(
         "INSERT OR REPLACE INTO completed_activities (activity_id) VALUES (?)",
@@ -650,7 +678,7 @@ def mark_activity_completed(activity_id):
 def load_completed_activities():
     """Load all completed activity IDs"""
     try:
-        conn = sqlite3.connect(DB_FILE)
+        conn = get_db()
         cursor = conn.cursor()
         cursor.execute("SELECT activity_id FROM completed_activities")
         completed = [row[0] for row in cursor.fetchall()]
@@ -662,7 +690,7 @@ def load_completed_activities():
 
 def save_photo(filename, photo_bytes, caption, date):
     """Save a photo to database"""
-    conn = sqlite3.connect(DB_FILE)
+    conn = get_db()
     cursor = conn.cursor()
     cursor.execute(
         "INSERT INTO photos (filename, photo_data, caption, date) VALUES (?, ?, ?, ?)",
@@ -676,7 +704,7 @@ def save_photo(filename, photo_bytes, caption, date):
 def load_photos(date=None):
     """Load photos, optionally filtered by date"""
     try:
-        conn = sqlite3.connect(DB_FILE)
+        conn = get_db()
         cursor = conn.cursor()
         if date:
             cursor.execute("SELECT id, filename, photo_data, caption, date, uploaded_at FROM photos WHERE date = ? ORDER BY uploaded_at DESC", (date,))
@@ -700,7 +728,7 @@ def load_photos(date=None):
 
 def delete_photo(photo_id):
     """Delete a photo"""
-    conn = sqlite3.connect(DB_FILE)
+    conn = get_db()
     cursor = conn.cursor()
     cursor.execute("DELETE FROM photos WHERE id = ?", (photo_id,))
     conn.commit()
@@ -708,7 +736,7 @@ def delete_photo(photo_id):
 
 def add_notification(title, message, notif_type='info'):
     """Add a notification"""
-    conn = sqlite3.connect(DB_FILE)
+    conn = get_db()
     cursor = conn.cursor()
     cursor.execute(
         "INSERT INTO notifications (title, message, type) VALUES (?, ?, ?)",
@@ -720,7 +748,7 @@ def add_notification(title, message, notif_type='info'):
 def load_notifications(include_dismissed=False):
     """Load notifications"""
     try:
-        conn = sqlite3.connect(DB_FILE)
+        conn = get_db()
         cursor = conn.cursor()
         if include_dismissed:
             cursor.execute("SELECT id, title, message, type, created_at, dismissed FROM notifications ORDER BY created_at DESC")
@@ -744,7 +772,7 @@ def load_notifications(include_dismissed=False):
 
 def dismiss_notification(notif_id):
     """Dismiss a notification"""
-    conn = sqlite3.connect(DB_FILE)
+    conn = get_db()
     cursor = conn.cursor()
     cursor.execute("UPDATE notifications SET dismissed = 1 WHERE id = ?", (notif_id,))
     conn.commit()
@@ -2944,7 +2972,7 @@ def get_confirmed_meals_budget():
         List of dicts with meal info and costs
     """
     try:
-        conn = sqlite3.connect(DB_FILE)
+        conn = get_db()
         cursor = conn.cursor()
         cursor.execute("SELECT meal_id, restaurant_options, final_choice, meal_time FROM meal_proposals WHERE status = 'confirmed'")
         rows = cursor.fetchall()
@@ -2984,7 +3012,7 @@ def get_confirmed_activities_budget():
         List of dicts with activity info and costs
     """
     try:
-        conn = sqlite3.connect(DB_FILE)
+        conn = get_db()
         cursor = conn.cursor()
         cursor.execute("SELECT activity_slot_id, activity_options, final_choice, activity_time, date FROM activity_proposals WHERE status = 'confirmed'")
         rows = cursor.fetchall()
@@ -6447,7 +6475,7 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
     def get_used_restaurants():
         """Get list of restaurant names already confirmed or proposed"""
         used = set()
-        conn = sqlite3.connect(DB_FILE)
+        conn = get_db()
         cursor = conn.cursor()
         cursor.execute("SELECT restaurant_options FROM meal_proposals WHERE status IN ('confirmed', 'proposed', 'voted')")
         rows = cursor.fetchall()
@@ -6588,7 +6616,7 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
 
                 if st.button(f"🔄 Change {meal_slot['label']}", key=f"change_{meal_slot['id']}"):
                     # Reset to proposal stage
-                    conn = sqlite3.connect(DB_FILE)
+                    conn = get_db()
                     cursor = conn.cursor()
                     cursor.execute("UPDATE meal_proposals SET status = 'proposed', final_choice = NULL WHERE meal_id = ?", (meal_slot['id'],))
                     conn.commit()
@@ -6637,7 +6665,7 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             if john_vote == "none":
                 st.warning("❌ John said none of these work. Pick 3 new options!")
                 if st.button(f"Pick New Options for {meal_slot['label']}", key=f"repick_{meal_slot['id']}"):
-                    conn = sqlite3.connect(DB_FILE)
+                    conn = get_db()
                     cursor = conn.cursor()
                     cursor.execute("DELETE FROM meal_proposals WHERE meal_id = ?", (meal_slot['id'],))
                     conn.commit()
@@ -6697,7 +6725,7 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                 """, unsafe_allow_html=True)
 
             if st.button(f"Cancel Proposal for {meal_slot['label']}", key=f"cancel_{meal_slot['id']}"):
-                conn = sqlite3.connect(DB_FILE)
+                conn = get_db()
                 cursor = conn.cursor()
                 cursor.execute("DELETE FROM meal_proposals WHERE meal_id = ?", (meal_slot['id'],))
                 conn.commit()
@@ -6933,7 +6961,7 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                 """, unsafe_allow_html=True)
 
                 if st.button(f"🔄 Change {activity_slot['label']}", key=f"change_activity_{activity_slot['id']}"):
-                    conn = sqlite3.connect(DB_FILE)
+                    conn = get_db()
                     cursor = conn.cursor()
                     cursor.execute("UPDATE activity_proposals SET status = 'proposed', final_choice = NULL WHERE activity_slot_id = ?", (activity_slot['id'],))
                     conn.commit()
@@ -6964,7 +6992,7 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             if john_vote == "none":
                 st.warning("❌ John said none of these work. Pick 3 new options!")
                 if st.button(f"Pick New Options for {activity_slot['label']}", key=f"repick_activity_{activity_slot['id']}"):
-                    conn = sqlite3.connect(DB_FILE)
+                    conn = get_db()
                     cursor = conn.cursor()
                     cursor.execute("DELETE FROM activity_proposals WHERE activity_slot_id = ?", (activity_slot['id'],))
                     conn.commit()
@@ -6994,7 +7022,7 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                 """, unsafe_allow_html=True)
 
             if st.button(f"🔄 Pick Different Options", key=f"repick_proposed_{activity_slot['id']}"):
-                conn = sqlite3.connect(DB_FILE)
+                conn = get_db()
                 cursor = conn.cursor()
                 cursor.execute("DELETE FROM activity_proposals WHERE activity_slot_id = ?", (activity_slot['id'],))
                 conn.commit()
