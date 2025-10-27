@@ -1552,6 +1552,113 @@ def get_ritz_restaurant_menus():
         }
     }
 
+def get_ritz_spa_services():
+    """Complete spa treatment menu with actual pricing from poolside app"""
+    return {
+        "hours": "Call 904-277-1087 to book spa treatments",
+        "spa_phone": "904-277-1087",
+        "reservation_url": "ritzcarltonameliaisland.ipoolside.com",
+        "services": {
+            "Couples Massage": {
+                "price": "$410",
+                "note": "Please call 904-277-1087 to reserve couples massage"
+            },
+            "Massage Treatments": {
+                "Awakening Bamboo (100 min)": "$410 - Uplifting rhythmic bamboo massage, alleviates deep tension top to toe",
+                "Body Balancer (50 min)": "$205 - Back, neck & scalp treatment with exfoliation, massage, facial oil, scalp massage",
+                "Body Fortifying Massage (100 min)": "$410 - Deep muscle massage with hot stones, fortifying oil for neck/shoulders/back",
+                "CBD Relief & Recovery (50 min)": "$230 - Customized treatment with up to 4 activated hemp products",
+                "Deep Muscle Massage (100 min)": "$410 - Alleviate deep tension, combines deep movements with stretching",
+                "Deep Muscle Massage (50 min)": "$205 - Alleviate deep tension, combines deep movements with stretching",
+                "Stress Relief Massage (100 min)": "$390 - Traditional massage, moderate to firm pressure",
+                "Stress Relief Massage (50 min)": "$195 - Traditional massage, moderate to firm pressure",
+                "Custom Stone Massage (50 min)": "$205 - Warm volcanic or salt stones, moderate to deep pressure",
+                "Custom Stone Massage (100 min)": "$410 - Warm volcanic or salt stones, moderate to deep pressure",
+                "Relaxation Massage (100 min)": "$370 - Soothing aromatherapy with essential oils, gentle to moderate pressure",
+                "Relaxation Massage (50 min)": "$185 - Soothing aromatherapy with essential oils, gentle to moderate pressure",
+                "Naturally Nurtured Massage (50 min)": "$195 - Gentle restorative massage, ideal for expectant mothers (after first trimester)",
+                "Foot Renewal & Reflexology (50 min)": "$200 - Focus on pressure points to balance body's energy meridians",
+                "The Men's Massage (100 min)": "$410 - Full body massage with heated stones, facial massage, scalp massage",
+                "Men's Muscle Recovery (100 min)": "$410 - Deep muscle massage for tension relief",
+                "Men's Muscle Recovery (50 min)": "$205 - Deep muscle massage for tension relief"
+            },
+            "Body Treatments": {
+                "Ocean Healing (100 min)": "$385 - Therapeutic bath, sea salt exfoliation, warm salt stone massage (includes chromatherapy salt bath)",
+                "Ultimate Hydrating Wrap (150 min)": "$515 - Dilo/macadamia/sikeci nut oils with sea salt, deeply hydrating",
+                "Nourished Glow (45 min)": "$195 - Full body exfoliation, nourishing oil, personalized back massage",
+                "CBD Relief and Recovery with Bath (100 min)": "$460 - Customized hemp-based treatment with therapeutic bath",
+                "Men's Power Hour (45 min)": "$195 - Clarifying body exfoliation, back massage, oil application"
+            },
+            "Facial Treatments": {
+                "HydraFacial (100 min)": "$490 - Cleanse, exfoliate, extract, hydrate + LED therapy + lymph drainage",
+                "HydraFacial (50 min)": "$245 - Cleanse, gentle hydra-exfoliation, vortex extraction, hyaluronic acid infusion",
+                "Vitamin C Lighten and Brighten (100 min)": "$410 - Combat sun damage, reverse aging, restore luminosity + light therapy",
+                "Vitamin C Lighten and Brighten (50 min)": "$205 - Combat sun damage, reverse aging, restore luminosity + light therapy",
+                "Custom Facial (100 min)": "$410 - Purify, hydrate, brighten - tailored to your needs with ESPA products",
+                "Custom Facial (50 min)": "$205 - Purify, hydrate, brighten - tailored to your needs with ESPA products",
+                "Ultimate Radiance & Renewal (100 min)": "$380 - Age-defying crystal massage, lifting mask - perfect pre-event treatment",
+                "Skin Resurfacing Facial (100 min)": "$510 - Medical-grade peel, targets imperfections/discoloration/wrinkles + 30-day home care (Dr. Dennis Gross)",
+                "Skin Resurfacing Facial (50 min)": "$255 - Medical-grade peel, targets imperfections/discoloration/wrinkles + 30-day home care (Dr. Dennis Gross)",
+                "Reversive Facial (100 min)": "$470 - Reverse aging, reduce inflammation/redness with collagen and serums",
+                "Reversive Facial (50 min)": "$235 - Reverse aging, reduce inflammation/redness with collagen and serums",
+                "Organic Facial (100 min)": "$410 - All-natural organic fruit/vegetable/herbal extracts (Eminence products)",
+                "Organic Facial (50 min)": "$205 - All-natural organic fruit/vegetable/herbal extracts (Eminence products)",
+                "Age-Defying Facial (100 min)": "$370 - Combat visible aging signs, smooth fine lines with ESPA products",
+                "Age-Defying Facial (50 min)": "$185 - Combat visible aging signs, smooth fine lines with ESPA products",
+                "Natural Resilience (100 min)": "$465 - Inspired by Kobido massage art, jade rollers + pre/pro-biotic technology",
+                "The Men's Facial (100 min)": "$390 - Double cleanse, exfoliation, steam, extraction, facial massage with ESPA products",
+                "The Men's Facial (50 min)": "$195 - Double cleanse, exfoliation, steam, extraction, facial massage with ESPA products"
+            },
+            "LPG Endermologie (Advanced Technology)": {
+                "Body Cellulite Smoothing (50 min)": "$350 - Target stubborn fat, smooth cellulite, enhance leg shape. Visible results in 3 sessions. Includes reusable LPG Endermowear outfit",
+                "Body Detox & Lymphatic Renewal (50 min)": "$350 - Activate circulation, fight water retention, eliminate toxins, light legs feeling. Includes reusable LPG Endermowear",
+                "Body Resculpt & Firm Post Natal (50 min)": "$350 - Target tummy/waist/thighs/buttocks, firm skin, reshape curves. Includes reusable LPG Endermowear",
+                "Body Vitality Stress Sleep Reset (50 min)": "$350 - Reduce stress 20% after 1 session, 50% after 10 sessions. Boost immune system, improve sleep. Includes reusable LPG Endermowear",
+                "Face Bespoke Endermologie (50 min)": "$325 - Customized facial using patented Endermologie technology, stimulates collagen/elastin/hyaluronic acid naturally",
+                "Face Hydration Glow Booster (50 min)": "$325 - Activate micro-circulation, reduce puffiness/dark circles, restore radiant complexion",
+                "Face Skin Toning Pro Lift (50 min)": "$325 - Complete anti-aging for face/neck/decollete/hands. Lift, redefine contours, fill wrinkles"
+            },
+            "Wellness Technology": {
+                "Theralight 360 Red Light Therapy (15 min)": "$50 - Full-body photobiomodulation using low level laser. Relieve muscle tension, joint pain, inflammation. Enhanced energy, recovery, skin wellness. Note: No spa facility access included, can be added for $25 (guests) / $75 (non-guests)"
+            },
+            "Nail Services": {
+                "Ultimate Dragon Manicure with Gel Removal + Gel Polish": "$245 - Dragon fruit prebiotic extract, nourishing oils, gel removal + application",
+                "Ultimate Dragon Fruit Manicure (60 min)": "$95 - Soak, cut/file, exfoliation, cuticle work, massage, mask, polish/buff",
+                "Ultimate Dragon Pedicure with Gel Removal": "$205 - Gel removal, exfoliation, massage, mask, polish/buff (no gel application)",
+                "Ultimate Dragon Fruit Pedicure (60 min)": "$165 - Complete pedicure with dragon fruit treatment, polish/buff",
+                "CBD Relief Manicure (45 min)": "$100 - CBD products, soak, cut/file, cuticle work, hand cream, polish/buff",
+                "CBD Relief Pedicure (45 min)": "$130 - CBD products, exfoliation, cuticle work, body cream, polish/buff",
+                "Rescue Pedicure (75 min)": "$190 - Target calluses & cracked feet with Dilo oil, includes paraffin wax",
+                "Manicure with Gel Removal + Gel Polish": "$155 - Full manicure service with gel removal and application",
+                "Manicure (45 min)": "$75 - Essential maintenance, soak, cut/file, cuticle work, polish/buff",
+                "Pedicure with Gel Removal": "$145 - Gel removal, full pedicure, polish/buff only (no gel application)",
+                "Pedicure (45 min)": "$105 - Soak, file/shape, exfoliation, cuticle work, polish/buff",
+                "Ritz Kids Manicure (30 min)": "$45 - Ages 5-10",
+                "Ritz Kids Pedicure (30 min)": "$55 - Ages 5-10"
+            },
+            "Hair Services": {
+                "Blowdry Straighten or Curl": "$105",
+                "Haircut - Gentlemen's": "$50",
+                "Haircut - Ladies": "$95",
+                "KC Express Blow Out Smoothing Treatment": "$150 - Includes shampoo, smoothing treatment, blow-dry style + complimentary Keratin Obsessed take-home spray",
+                "Ritz Kids Haircut": "$35 - Ages 5-10, does not include shampoo and blow-dry",
+                "Shampoo and Blowdry Style": "$75"
+            },
+            "Spa Pool Cabanas & Daybeds": {
+                "Cabana Full Day": "$600 - Includes fridge with beverages, fruit plate, champagne bottle, sunscreen kit, towels, fan. Max 6 guests. Party must have one 50-min spa service + others purchase Spa Facility Day Pass",
+                "Cabana Half Day (4 hours)": "$300 - Same amenities as full day. Max 6 guests. Spa service + day pass required",
+                "Daybed Full Day": "$300 - Max 4 guests. Spa service + day pass required for non-service guests",
+                "Daybed Half Day (4 hours)": "$150 - Max 4 guests. Spa service + day pass required for non-service guests"
+            }
+        },
+        "notes": {
+            "booking": "Call 904-277-1087 or book through ritzcarltonameliaisland.ipoolside.com",
+            "series_recommended": "LPG Endermologie treatments: Ask about package pricing for series",
+            "spa_facility_access": "Spa facility day pass: $25 (resort guests), $75 (non-guests)",
+            "couples_massage": "Must call to reserve couples massage - cannot book online"
+        }
+    }
+
 def get_optional_activities():
     """ULTIMATE Amelia Island Guide - 100+ comprehensive options covering EVERYTHING you need!
 
