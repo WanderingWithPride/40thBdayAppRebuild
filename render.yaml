@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: birthday-trip-assistant
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run app.py --server.port=$PORT --server.address=0.0.0.0
+    envVars:
+      - key: TRIP_PASSWORD_HASH
+        value: a5be948874610641149611913c4924e5
