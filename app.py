@@ -5944,10 +5944,11 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                         <p><strong>🛎️ In-Room Dining:</strong> The Ritz-Carlton Amelia Island</p>
                         <p><strong>⏰ Order Time:</strong> Call by 8:30 AM for 9:00 AM delivery</p>
                         <p><strong>📞 Phone:</strong> Dial extension from room or 904-277-1100</p>
-                        <p><strong>🍳 View Menu:</strong> <a href="https://www.ritzcarlton.com/en/hotels/jaxab-the-ritz-carlton-amelia-island/dining" target="_blank" style="color: #2196f3;">Ritz-Carlton In-Room Dining Menu</a></p>
+                        <p><strong>🍳 Get Menu:</strong> Menu available in your room or call 904-277-1100 to hear options</p>
                         <p><strong>💡 Tip:</strong> Perfect way to relax on your birthday morning before spa at 10 AM!</p>
-                        <p><strong>🥐 Popular Items:</strong> Pancakes, eggs benedict, fresh fruit, pastries, coffee service</p>
+                        <p><strong>🥐 Popular Items:</strong> Pancakes, eggs benedict, fresh fruit, pastries, coffee service, omelets</p>
                         <p><strong>💰 Est. Cost:</strong> $25-45 per person (plus 18% service charge + delivery fee)</p>
+                        <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;"><em>💡 Pro tip: Menu booklet is in your room, or call ahead to ask about breakfast options and pricing</em></p>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -5999,6 +6000,10 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                     for idx, option in enumerate(budget_options):
                         col = cols[idx % 2]
                         with col:
+                            # Build optional fields
+                            phone_html = f"<p style='margin: 0.3rem 0; font-size: 0.9rem;'><strong>📞</strong> {option['phone']}</p>" if 'phone' in option else ""
+                            walk_time_html = f"<p style='margin: 0.3rem 0; font-size: 0.85rem; color: #666;'>🚶 {option['walk_time']}</p>" if 'walk_time' in option else ""
+
                             st.markdown(f"""
                             <div class="ultimate-card">
                                 <div class="card-body">
@@ -6007,8 +6012,8 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                                     <p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>💰</strong> {option['cost']}</p>
                                     <p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>🍽️</strong> {option['menu']}</p>
                                     <p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>⏰</strong> {option['time']}</p>
-                                    {f"<p style='margin: 0.3rem 0; font-size: 0.9rem;'><strong>📞</strong> {option['phone']}</p>" if 'phone' in option else ''}
-                                    {f"<p style='margin: 0.3rem 0; font-size: 0.85rem; color: #666;'>🚶 {option['walk_time']}</p>" if 'walk_time' in option else ''}
+                                    {phone_html}
+                                    {walk_time_html}
                                 </div>
                             </div>
                             """, unsafe_allow_html=True)
@@ -6177,24 +6182,50 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                         with col:
                             # Create card with description - escape HTML
                             import html
+                            import urllib.parse
                             safe_name = html.escape(restaurant['name'])
                             safe_desc = html.escape(restaurant.get('description', 'Great dining option'))
                             safe_cost = html.escape(restaurant.get('cost_range', 'N/A'))
                             safe_dress = html.escape(rest_details.get('dress_code', 'Casual'))
 
+                            # Get rating
+                            rating = restaurant.get('rating', 'N/A')
+
                             # Check for outdoor seating
                             has_outdoor = rest_details.get('outdoor_seating', False)
                             outdoor_icon = "🌤️ Outdoor seating" if has_outdoor else ""
 
+                            # Build links
+                            website_url = restaurant.get('booking_url', 'N/A')
+                            menu_url = rest_details.get('menu_url', 'N/A')
+
+                            # Generate Google and Yelp search URLs
+                            search_name = urllib.parse.quote(f"{restaurant['name']} Amelia Island FL")
+                            google_url = f"https://www.google.com/search?q={search_name}"
+                            yelp_url = f"https://www.yelp.com/search?find_desc={urllib.parse.quote(restaurant['name'])}&find_loc=Amelia+Island+FL"
+
+                            # Build links HTML
+                            links_html = ""
+                            if website_url != "N/A":
+                                links_html += f'<a href="{website_url}" target="_blank" style="color: #2196f3; font-size: 0.85rem; margin-right: 0.5rem;">🌐 Website</a>'
+                            if menu_url != "N/A":
+                                links_html += f'<a href="{menu_url}" target="_blank" style="color: #2196f3; font-size: 0.85rem; margin-right: 0.5rem;">📋 Menu</a>'
+                            links_html += f'<a href="{google_url}" target="_blank" style="color: #2196f3; font-size: 0.85rem; margin-right: 0.5rem;">⭐ Google</a>'
+                            links_html += f'<a href="{yelp_url}" target="_blank" style="color: #2196f3; font-size: 0.85rem;">📝 Yelp</a>'
+
                             border_color = "#4caf50" if is_selected else "#ddd"
                             st.markdown(f"""
-<div class="ultimate-card" style="border-left: 4px solid {border_color}; min-height: 200px;">
+<div class="ultimate-card" style="border-left: 4px solid {border_color}; min-height: 250px;">
 <div class="card-body">
 <h4 style="margin: 0 0 0.5rem 0;">{'✅ ' if is_selected else ''}{safe_name}</h4>
+<p style="margin: 0.3rem 0; font-size: 0.85rem; color: #ff9800;"><strong>⭐ {rating}</strong></p>
 <p style="margin: 0.5rem 0; font-size: 0.9rem; color: #666;">{safe_desc}</p>
 <p style="margin: 0.5rem 0;"><strong>💰</strong> {safe_cost}</p>
 <p style="margin: 0.5rem 0;"><strong>👔</strong> {safe_dress}</p>
 {f'<p style="margin: 0.5rem 0; font-size: 0.85rem; color: #2196f3;">{outdoor_icon}</p>' if has_outdoor else ''}
+<div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #eee;">
+{links_html}
+</div>
 </div>
 </div>
 """, unsafe_allow_html=True)
