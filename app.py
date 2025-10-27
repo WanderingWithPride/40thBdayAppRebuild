@@ -793,22 +793,30 @@ def dismiss_notification(notif_id):
 # ============================================================================
 # GITHUB STORAGE INITIALIZATION
 # ============================================================================
-# Load trip data from GitHub on first run
-_ = get_trip_data()  # This loads data into st.session_state.trip_data
+# Initialize session state ONCE (prevents recursion on re-runs)
+def init_session_state():
+    """Initialize session state data - only runs once"""
+    # Load trip data from GitHub on first run (get_trip_data handles its own initialization)
+    _ = get_trip_data()
 
-# Initialize session state with backward compatibility
-if 'password_verified' not in st.session_state:
-    st.session_state.password_verified = False
-if 'custom_activities' not in st.session_state:
-    st.session_state.custom_activities = load_custom_activities()
-if 'completed_activities' not in st.session_state:
-    st.session_state.completed_activities = load_completed_activities()
-if 'john_preferences' not in st.session_state:
-    st.session_state.john_preferences = load_john_preferences()
-if 'notifications' not in st.session_state:
-    st.session_state.notifications = []  # Initialize empty notifications
-if 'photos' not in st.session_state:
-    st.session_state.photos = []  # Initialize empty photos
+    # Initialize session state with backward compatibility
+    if 'password_verified' not in st.session_state:
+        st.session_state.password_verified = False
+    if 'custom_activities' not in st.session_state:
+        st.session_state.custom_activities = load_custom_activities()
+    if 'completed_activities' not in st.session_state:
+        st.session_state.completed_activities = load_completed_activities()
+    if 'john_preferences' not in st.session_state:
+        st.session_state.john_preferences = load_john_preferences()
+    if 'notifications' not in st.session_state:
+        st.session_state.notifications = []  # Initialize empty notifications
+    if 'photos' not in st.session_state:
+        st.session_state.photos = []  # Initialize empty photos
+    if 'init_complete' not in st.session_state:
+        st.session_state.init_complete = True
+
+# Call initialization
+init_session_state()
 # Note: Other data (meals, activities, alcohol, packing, notes) now stored in trip_data JSON
 
 # ============================================================================
