@@ -5219,7 +5219,8 @@ def render_explore_activities():
 
                     # Phone number if available
                     if activity.get('phone') and activity['phone'] != 'N/A':
-                        st.markdown(f"**📞 Phone:** {activity['phone']}")
+                        phone = activity['phone']
+                        st.markdown(f'**📞 Phone:** <a href="tel:{phone}" style="color: #2196f3; text-decoration: none;">{phone}</a>', unsafe_allow_html=True)
 
                     # Booking link if available
                     if activity.get('booking_url'):
@@ -5915,6 +5916,19 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                 booking_required = rest_details.get('booking_required', False)
                 booking_reminder = "📅 <strong>Reservation required!</strong> " if booking_required else ""
 
+                # Make links clickable
+                phone = final_restaurant.get('phone', 'N/A')
+                phone_html = f'<a href="tel:{phone}" style="color: #2196f3; text-decoration: none;">{phone}</a>' if phone != 'N/A' else 'N/A'
+
+                booking = final_restaurant.get('booking_url', 'N/A')
+                if booking and booking != 'N/A' and booking != 'Call to book' and booking.startswith('http'):
+                    booking_html = f'<a href="{booking}" target="_blank" style="color: #2196f3; text-decoration: none;">Book Now →</a>'
+                else:
+                    booking_html = booking
+
+                menu = rest_details.get('menu_url', 'N/A')
+                menu_html = f'<a href="{menu}" target="_blank" style="color: #2196f3; text-decoration: none;">View Menu →</a>' if menu != 'N/A' and menu.startswith('http') else menu
+
                 st.success(f"✅ **CONFIRMED:** {final_restaurant['name']}")
                 st.markdown(f"""
                 <div class="ultimate-card" style="border-left: 4px solid #4caf50;">
@@ -5922,9 +5936,9 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                         <p><strong>📍 Restaurant:</strong> {final_restaurant['name']}</p>
                         <p><strong>💰 Cost:</strong> {final_restaurant.get('cost_range', 'N/A')}</p>
                         <p><strong>👔 Dress Code:</strong> {rest_details.get('dress_code', 'Casual')}</p>
-                        <p><strong>📞 Phone:</strong> {final_restaurant.get('phone', 'N/A')}</p>
-                        <p><strong>🔗 Booking:</strong> {final_restaurant.get('booking_url', 'N/A')}</p>
-                        <p><strong>🍽️ Menu:</strong> {rest_details.get('menu_url', 'N/A')}</p>
+                        <p><strong>📞 Phone:</strong> {phone_html}</p>
+                        <p><strong>🔗 Booking:</strong> {booking_html}</p>
+                        <p><strong>🍽️ Menu:</strong> {menu_html}</p>
                         <p><strong>⏰ Time:</strong> {display_time}</p>
                         <p style="margin-top: 0.5rem;">{booking_reminder}</p>
                     </div>
@@ -5967,14 +5981,27 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                 is_johns_choice = (str(idx) == str(john_vote))
 
                 border_color = "#4caf50" if is_johns_choice else "#ddd"
+                # Make links clickable
+                phone = restaurant.get('phone', 'N/A')
+                phone_html = f'<a href="tel:{phone}" style="color: #2196f3; text-decoration: none;">{phone}</a>' if phone != 'N/A' else 'N/A'
+
+                booking = restaurant.get('booking_url', 'Call to book')
+                if booking and booking != 'N/A' and booking != 'Call to book' and booking.startswith('http'):
+                    booking_html = f'<a href="{booking}" target="_blank" style="color: #2196f3; text-decoration: none;">Book Online →</a>'
+                else:
+                    booking_html = booking
+
+                menu = rest_details.get('menu_url', 'N/A')
+                menu_html = f'<a href="{menu}" target="_blank" style="color: #2196f3; text-decoration: none;">View Menu →</a>' if menu != 'N/A' and menu.startswith('http') else menu
+
                 st.markdown(f"""
                 <div class="ultimate-card" style="border-left: 4px solid {border_color};">
                     <div class="card-body">
                         <h4 style="margin: 0;">{'✅ ' if is_johns_choice else ''}Option {idx + 1}: {restaurant['name']}</h4>
                         <p style="margin: 0.5rem 0;"><strong>💰</strong> {restaurant.get('cost_range', 'N/A')} | <strong>👔</strong> {rest_details.get('dress_code', 'Casual')}</p>
-                        <p style="margin: 0.5rem 0;"><strong>📞</strong> {restaurant.get('phone', 'N/A')}</p>
-                        <p style="margin: 0.5rem 0;"><strong>🔗 Booking:</strong> {restaurant.get('booking_url', 'Call to book')}</p>
-                        <p style="margin: 0.5rem 0;"><strong>🍽️ Menu:</strong> {rest_details.get('menu_url', 'N/A')}</p>
+                        <p style="margin: 0.5rem 0;"><strong>📞</strong> {phone_html}</p>
+                        <p style="margin: 0.5rem 0;"><strong>🔗 Booking:</strong> {booking_html}</p>
+                        <p style="margin: 0.5rem 0;"><strong>🍽️ Menu:</strong> {menu_html}</p>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -6028,14 +6055,28 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             options = proposal['restaurant_options']
             for idx, restaurant in enumerate(options):
                 rest_details = restaurant_details.get(restaurant['name'], {})
+
+                # Make links clickable
+                phone = restaurant.get('phone', 'N/A')
+                phone_html = f'<a href="tel:{phone}" style="color: #2196f3; text-decoration: none;">{phone}</a>' if phone != 'N/A' else 'N/A'
+
+                booking = restaurant.get('booking_url', 'Call to book')
+                if booking and booking != 'N/A' and booking != 'Call to book' and booking.startswith('http'):
+                    booking_html = f'<a href="{booking}" target="_blank" style="color: #2196f3; text-decoration: none;">Book Online →</a>'
+                else:
+                    booking_html = booking
+
+                menu = rest_details.get('menu_url', 'N/A')
+                menu_html = f'<a href="{menu}" target="_blank" style="color: #2196f3; text-decoration: none;">View Menu →</a>' if menu != 'N/A' and menu.startswith('http') else menu
+
                 st.markdown(f"""
                 <div class="ultimate-card">
                     <div class="card-body">
                         <h4 style="margin: 0;">Option {idx + 1}: {restaurant['name']}</h4>
                         <p style="margin: 0.5rem 0;"><strong>💰</strong> {restaurant.get('cost_range', 'N/A')} | <strong>👔</strong> {rest_details.get('dress_code', 'Casual')}</p>
-                        <p style="margin: 0.5rem 0;"><strong>📞</strong> {restaurant.get('phone', 'N/A')}</p>
-                        <p style="margin: 0.5rem 0;"><strong>🔗</strong> {restaurant.get('booking_url', 'Call to book')}</p>
-                        <p style="margin: 0.5rem 0;"><strong>🍽️ Menu:</strong> {rest_details.get('menu_url', 'N/A')}</p>
+                        <p style="margin: 0.5rem 0;"><strong>📞</strong> {phone_html}</p>
+                        <p style="margin: 0.5rem 0;"><strong>🔗</strong> {booking_html}</p>
+                        <p style="margin: 0.5rem 0;"><strong>🍽️ Menu:</strong> {menu_html}</p>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -6736,7 +6777,7 @@ def render_johns_page(df, activities_data, show_sensitive):
                 </div>
                 """, unsafe_allow_html=True)
 
-            st.markdown("**📞 To Book:** Call spa at 904-277-1087")
+            st.markdown('**📞 To Book:** <a href="tel:904-277-1087" style="color: #2196f3; text-decoration: none;">Call spa at 904-277-1087</a>', unsafe_allow_html=True)
 
         with subtab3:
             st.markdown("**🏖️ Nearby Activities** (during free time)")
@@ -7015,6 +7056,14 @@ def render_johns_page(df, activities_data, show_sensitive):
                 # Display options
                 for idx, restaurant in enumerate(options):
                     rest_details = restaurant_details.get(restaurant['name'], {})
+
+                    # Make links clickable
+                    phone = restaurant.get('phone', 'N/A')
+                    phone_html = f'<a href="tel:{phone}" style="color: #2196f3; text-decoration: none;">{phone}</a>' if phone != 'N/A' else 'N/A'
+
+                    menu = rest_details.get('menu_url', 'N/A')
+                    menu_html = f'<a href="{menu}" target="_blank" style="color: #2196f3; text-decoration: none;">View Menu →</a>' if menu != 'N/A' and menu.startswith('http') else menu
+
                     st.markdown(f"""
                     <div class="ultimate-card">
                         <div class="card-body">
@@ -7022,8 +7071,8 @@ def render_johns_page(df, activities_data, show_sensitive):
                             <p style="margin: 0.25rem 0;"><strong>📝 Description:</strong> {restaurant.get('description', 'N/A')}</p>
                             <p style="margin: 0.25rem 0;"><strong>💰 Cost:</strong> {restaurant.get('cost_range', 'N/A')}</p>
                             <p style="margin: 0.25rem 0;"><strong>👔 Dress Code:</strong> {rest_details.get('dress_code', 'Casual')}</p>
-                            <p style="margin: 0.25rem 0;"><strong>📞 Phone:</strong> {restaurant.get('phone', 'N/A')}</p>
-                            <p style="margin: 0.25rem 0;"><strong>🔗 Menu/Website:</strong> {rest_details.get('menu_url', 'N/A')}</p>
+                            <p style="margin: 0.25rem 0;"><strong>📞 Phone:</strong> {phone_html}</p>
+                            <p style="margin: 0.25rem 0;"><strong>🔗 Menu/Website:</strong> {menu_html}</p>
                             <p style="margin: 0.25rem 0;"><strong>💡 Tip:</strong> {restaurant.get('tips', 'N/A')}</p>
                         </div>
                     </div>
@@ -7307,6 +7356,18 @@ def render_johns_page(df, activities_data, show_sensitive):
                     activity_notes = activity_notes.replace('while I\'m getting pampered', 'while I\'m getting pampered')
                     # No additional changes needed - notes are already phrased for John
 
+                # Make phone and booking URL clickable
+                phone = activity.get('location', {}).get('phone', 'N/A')
+                phone_html = f'<a href="tel:{phone}" style="color: #2196f3; text-decoration: none;">{phone}</a>' if phone and phone != 'N/A' else 'N/A'
+
+                booking_url = activity.get('booking_url', '')
+                if booking_url and booking_url != 'N/A' and booking_url != 'Call to book' and booking_url.startswith('http'):
+                    booking_html = f'<a href="{booking_url}" target="_blank" style="color: #2196f3; text-decoration: none;">Book Online →</a>'
+                elif 'Call' in booking_url or phone != 'N/A':
+                    booking_html = 'Call to book'
+                else:
+                    booking_html = 'N/A'
+
                 # Escape HTML
                 import html
                 safe_activity_name = html.escape(activity_name)
@@ -7323,6 +7384,8 @@ def render_johns_page(df, activities_data, show_sensitive):
                         <p style="margin: 0.25rem 0;"><strong>📅 When:</strong> {safe_date} at {safe_time}</p>
                         <p style="margin: 0.25rem 0;"><strong>⏰ Duration:</strong> {safe_duration}</p>
                         <p style="margin: 0.25rem 0;"><strong>💰 Cost:</strong> {safe_cost} per person (if you join)</p>
+                        <p style="margin: 0.25rem 0;"><strong>📞 Phone:</strong> {phone_html}</p>
+                        <p style="margin: 0.25rem 0;"><strong>🔗 Booking:</strong> {booking_html}</p>
                         <p style="margin: 0.5rem 0; font-style: italic; color: #636e72;">{safe_notes}</p>
                     </div>
                 </div>
