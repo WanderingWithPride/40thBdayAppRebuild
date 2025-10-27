@@ -826,6 +826,29 @@ def get_ultimate_trip_data():
             "priority": 2
         },
         {
+            "id": "act001",
+            "date": "2025-11-08",
+            "time": "2:30 PM",
+            "activity": "Backwater Cat Eco Tour (for you)",
+            "type": "activity",
+            "duration": "2.5 hours",
+            "location": {
+                "name": "Dee Dee Bartels Boat Ramp",
+                "address": "Dee Dee Bartels Boat Ramp, Amelia Island, FL",
+                "lat": 30.6074,
+                "lon": -81.4493,
+                "phone": "904-753-7631"
+            },
+            "status": "URGENT",
+            "cost": 135,
+            "category": "Activity",
+            "notes": "Private boat tour exploring backwaters, marshes, and tidal creeks. See dolphins, birds, and coastal ecosystems! You're doing this either way - John can pay for this if he wants to join ($135 per person = $270 total for 2). Call 904-753-7631 to book.",
+            "what_to_bring": ["Sunglasses with strap", "Sunscreen (reapply!)", "Camera for wildlife", "Light windbreaker/jacket", "Non-slip shoes", "Dry bag for valuables", "Water bottle"],
+            "tips": ["⚠️ BOOKING REQUIRED - Call 904-753-7631 to reserve", "Best at golden hour for wildlife viewing", "Bring camera for dolphins and birds", "Wear layers - can be breezy on water", "Dramamine if prone to seasickness"],
+            "booking_url": "Call to book",
+            "priority": 1
+        },
+        {
             "id": "spa001",
             "date": "2025-11-09",
             "time": "10:00 AM",
@@ -4686,13 +4709,13 @@ def render_full_schedule(df, activities_data, show_sensitive):
                 activity_id = activity.get('id', '')
                 john_status_badge = ""
 
-                if activity_id in ['spa002', 'spa003']:  # Solo spa treatments
-                    pref_key = f"spa_opt_in_{activity_id}"
+                if activity_id in ['act001', 'spa002', 'spa003']:  # Activities John can opt into
+                    pref_key = f"activity_opt_in_{activity_id}"
                     status = john_prefs.get(pref_key, "not_decided")
                     if status == "interested":
-                        john_status_badge = '<p style="margin: 0.5rem 0;"><span style="background: #4caf50; color: white; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem;">💆 John: ✅ Wants This Too</span></p>'
+                        john_status_badge = '<p style="margin: 0.5rem 0;"><span style="background: #4caf50; color: white; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem;">👤 John: ✅ Wants This Too</span></p>'
                     elif status == "not_interested":
-                        john_status_badge = '<p style="margin: 0.5rem 0;"><span style="background: #9e9e9e; color: white; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem;">💆 John: Not interested</span></p>'
+                        john_status_badge = '<p style="margin: 0.5rem 0;"><span style="background: #9e9e9e; color: white; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem;">👤 John: Not interested</span></p>'
                     else:
                         john_status_badge = '<p style="margin: 0.5rem 0;"><span style="background: #ff9800; color: white; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem;">❓ John: Needs to Decide</span></p>'
 
@@ -6582,6 +6605,9 @@ def render_johns_page(df, activities_data, show_sensitive):
                         # For couples massage, replace payment language
                         activity_notes = activity_notes.replace('YOU\'RE PAYING for both ($245 each = $490 total)', 'Included - already covered for both of you')
                         activity_notes = activity_notes.replace('YOU\'RE PAYING', 'Included - already covered')
+                    elif activity_id == 'act001':
+                        # For boat trip, clean up the opt-in language
+                        activity_notes = activity_notes.replace('You\'re doing this either way - John can pay for this if he wants to join ($135 per person = $270 total for 2). ', 'Michael is doing this either way - you can join for $135. ')
                     elif activity['type'] == 'spa':
                         # Replace confusing language in spa notes - remove entire optional phrases
                         activity_notes = activity_notes.replace('John can pay for this if he wants (OR he can relax at pool/beach while you\'re getting pampered). ', '')
@@ -6629,9 +6655,9 @@ def render_johns_page(df, activities_data, show_sensitive):
                     pref_key = ""
 
                     # Check if this activity needs opt-in
-                    if activity_id in ['spa002', 'spa003'] and activity['type'] == 'spa':  # Solo spa treatments
+                    if activity_id in ['act001', 'spa002', 'spa003']:  # Activities John can opt into
                         needs_optin = True
-                        pref_key = f"spa_opt_in_{activity_id}"
+                        pref_key = f"activity_opt_in_{activity_id}"
 
                     if needs_optin:
                         current_status = john_prefs.get(pref_key, "not_decided")
