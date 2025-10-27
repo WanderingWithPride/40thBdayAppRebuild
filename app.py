@@ -5906,7 +5906,7 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
         # Saturday breakfast removed - John doesn't arrive until 12:00 PM
         {"id": "sat_lunch", "label": "Saturday Lunch (Nov 8)", "date": "2025-11-08", "time": "12:30 PM"},
         {"id": "sat_dinner", "label": "Saturday Dinner (Nov 8)", "date": "2025-11-08", "time": "7:00 PM"},
-        {"id": "sun_breakfast", "label": "Sunday Breakfast (Nov 9)", "date": "2025-11-09", "time": "9:00 AM"},
+        {"id": "sun_breakfast", "label": "Sunday Breakfast (Nov 9) - 🎂 Room Service!", "date": "2025-11-09", "time": "9:00 AM", "locked": True, "room_service": True},
         {"id": "sun_lunch", "label": "Sunday Lunch (Nov 9)", "date": "2025-11-09", "time": "12:30 PM"},
         {"id": "sun_dinner", "label": "Sunday Dinner (Nov 9) - 🎂 BIRTHDAY!", "date": "2025-11-09", "time": "7:00 PM", "locked": True},
         {"id": "mon_breakfast", "label": "Monday Breakfast (Nov 10)", "date": "2025-11-10", "time": "9:00 AM"},
@@ -5936,7 +5936,21 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
 
     for meal_slot in meal_slots:
         if meal_slot.get("locked"):
-            st.info(f"✅ **{meal_slot['label']}** - Already planned!")
+            if meal_slot.get("room_service"):
+                st.success(f"✅ **{meal_slot['label']}**")
+                st.markdown("""
+                <div class="ultimate-card" style="border-left: 4px solid #4caf50;">
+                    <div class="card-body">
+                        <p><strong>🛎️ In-Room Dining:</strong> The Ritz-Carlton Amelia Island</p>
+                        <p><strong>⏰ Order Time:</strong> Call by 8:30 AM for 9:00 AM delivery</p>
+                        <p><strong>📞 Phone:</strong> Dial extension from room or 904-277-1100</p>
+                        <p><strong>💡 Tip:</strong> Perfect way to relax on your birthday morning before spa at 10 AM!</p>
+                        <p><strong>🥐 Menu:</strong> Full breakfast menu available - pancakes, eggs benedict, fresh fruit, pastries, coffee</p>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                st.info(f"✅ **{meal_slot['label']}** - Already planned!")
             continue
 
         st.markdown(f"#### {meal_slot['label']}")
