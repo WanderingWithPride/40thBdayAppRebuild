@@ -6309,7 +6309,8 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
         # Skip dining/restaurant categories - comprehensive filter
         dining_keywords = ['dining', 'restaurant', 'breakfast', 'lunch', 'dinner', 'coffee', 'bar',
                           'seafood', 'waterfront', 'italian', 'pizza', 'mexican', 'latin',
-                          'casual', 'comfort', 'food', 'deli', 'nightlife', 'cafes']
+                          'casual', 'comfort', 'food', 'deli', 'nightlife', 'cafes',
+                          'asian', 'cuisine', 'sushi', 'brunch']
         if not any(word in category_name.lower() for word in dining_keywords):
             # Filter out activities that have been confirmed (unless repeatable)
             for item in items:
