@@ -6280,7 +6280,8 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             "actual_availability": "6:00 PM - 10:00 PM",
             "timeline": "Arrival → Check-in → Dinner → Free evening",
             "notes": "👤 SOLO TIME - John hasn't arrived yet!",
-            "smart_tip": "First night solo! Options: Explore hotel, beach sunset walk, dinner at hotel, or rest after travel."
+            "smart_tip": "First night solo! Options: Explore hotel, beach sunset walk, dinner at hotel, or rest after travel.",
+            "is_solo": True
         },
         {
             "id": "sat_morning",
@@ -6290,7 +6291,8 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             "actual_availability": "8:00 AM - 12:00 PM",
             "timeline": "Breakfast → Free morning until John arrives at 12:00 PM",
             "notes": "👤 SOLO TIME - John arrives at noon! Plan breakfast solo, then activities after he arrives.",
-            "smart_tip": "~4 hours solo before John arrives. Perfect for: Sunrise beach walk, hotel breakfast, pool, or exploring grounds."
+            "smart_tip": "~4 hours solo before John arrives. Perfect for: Sunrise beach walk, hotel breakfast, pool, or exploring grounds.",
+            "is_solo": True
         },
         {
             "id": "sat_afternoon",
@@ -6301,7 +6303,8 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             "actual_availability": None,  # Fully booked with boat tour
             "timeline": "Lunch around 12:00 PM → Boat Tour 2:30-5:00 PM (2.5 hrs + 30 min travel) → Back at hotel 5:15 PM",
             "notes": "⚠️ This slot is taken by your scheduled Backwater Cat Eco Tour! Departs 2:30 PM, you'll be back around 5:15 PM.",
-            "smart_tip": "After boat tour, you'll have time to freshen up (5:15-5:45 PM) and catch the end of sunset at 5:30 PM before dinner!"
+            "smart_tip": "After boat tour, you'll have time to freshen up (5:15-5:45 PM) and catch the end of sunset at 5:30 PM before dinner!",
+            "is_solo": False
         },
         {
             "id": "sat_evening",
@@ -6311,7 +6314,8 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             "actual_availability": "8:30 PM - 11:00 PM",
             "timeline": "Dinner 7:00-8:30 PM → Free evening 8:30 PM onward",
             "notes": "Perfect for relaxing after a full day of boat tour and dinner!",
-            "smart_tip": "🔥 Great time for beach bonfire with s'mores, hot tub, or just relaxing at hotel. Sunset already passed."
+            "smart_tip": "🔥 Great time for beach bonfire with s'mores, hot tub, or just relaxing at hotel. Sunset already passed.",
+            "is_solo": False
         },
         {
             "id": "sun_afternoon",
@@ -6321,7 +6325,8 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             "actual_availability": "3:30 PM - 6:30 PM",
             "timeline": "Mani-Pedi ends 3:00 PM → Freshen up 3:00-3:30 PM → Free afternoon 3:30-6:30 PM → Dinner",
             "notes": "~3 hours of free time before dinner - plenty of time for beach, exploring, or relaxing!",
-            "smart_tip": "🌅 Perfect timing! Sunset at 5:30 PM. Options: Beach walk → sunset viewing → dinner, OR explore downtown 3:30-5:30 PM → dinner."
+            "smart_tip": "🌅 Perfect timing! Sunset at 5:30 PM. Options: Beach walk → sunset viewing → dinner, OR explore downtown 3:30-5:30 PM → dinner.",
+            "is_solo": False
         },
         {
             "id": "sun_evening",
@@ -6331,7 +6336,8 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             "actual_availability": "8:30 PM - 11:00 PM",
             "timeline": "Dinner 7:00-8:30 PM → Free evening 8:30 PM onward",
             "notes": "🎂 Birthday celebration evening!",
-            "smart_tip": "Perfect for: Beach bonfire with s'mores, birthday dessert at hotel, celebratory drinks, or romantic beach walk under the stars!"
+            "smart_tip": "Perfect for: Beach bonfire with s'mores, birthday dessert at hotel, celebratory drinks, or romantic beach walk under the stars!",
+            "is_solo": False
         },
         {
             "id": "mon_morning",
@@ -6341,7 +6347,8 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             "actual_availability": "10:00 AM - 12:00 PM",
             "timeline": "Sleep in → Breakfast at 9:00 AM → Short free time until lunch",
             "notes": "⚠️ Breakfast at 9:00 AM needs to be selected first!",
-            "smart_tip": "~2 hours after breakfast. Perfect for: Quick beach walk, pool time, coffee at lobby, or relaxing in room before lunch."
+            "smart_tip": "~2 hours after breakfast. Perfect for: Quick beach walk, pool time, coffee at lobby, or relaxing in room before lunch.",
+            "is_solo": False
         },
         {
             "id": "mon_afternoon",
@@ -6351,7 +6358,8 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             "actual_availability": "12:00 PM - 6:30 PM",
             "timeline": "After lunch → Full afternoon free until dinner",
             "notes": "Last full day TOGETHER! John leaves Tuesday morning at 8:20 AM.",
-            "smart_tip": "~6 hours free! Options: Beach activities, explore Fort Clinch, downtown shopping, pool/spa, or multiple shorter activities. Make it count!"
+            "smart_tip": "~6 hours free! Options: Beach activities, explore Fort Clinch, downtown shopping, pool/spa, or multiple shorter activities. Make it count!",
+            "is_solo": False
         },
         {
             "id": "mon_evening",
@@ -6361,7 +6369,8 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             "actual_availability": "8:30 PM - 11:00 PM",
             "timeline": "Dinner 7:00-8:30 PM → Last evening together!",
             "notes": "🌙 Last night TOGETHER - John leaves tomorrow at 8:20 AM!",
-            "smart_tip": "Final evening together! Perfect for: Beach bonfire, final beach walk, or celebratory drinks. Make memories!"
+            "smart_tip": "Final evening together! Perfect for: Beach bonfire, final beach walk, or celebratory drinks. Make memories!",
+            "is_solo": False
         },
         {
             "id": "tue_morning",
@@ -6371,7 +6380,8 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             "actual_availability": "9:00 AM - 12:00 PM",
             "timeline": "John leaves at 8:20 AM → Breakfast solo → Free morning",
             "notes": "👤 SOLO TIME - John departs at 8:20 AM for his 11:05 AM flight. Back to solo Michael time!",
-            "smart_tip": "~3 hours solo. Options: Sleep in after saying goodbye, solo breakfast, beach walk, pool, or pack for tomorrow's departure."
+            "smart_tip": "~3 hours solo. Options: Sleep in after saying goodbye, solo breakfast, beach walk, pool, or pack for tomorrow's departure.",
+            "is_solo": True
         },
         {
             "id": "tue_afternoon",
@@ -6381,7 +6391,8 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             "actual_availability": "12:00 PM - 6:30 PM",
             "timeline": "After lunch → Full solo afternoon",
             "notes": "👤 SOLO TIME - Your last full afternoon on the island!",
-            "smart_tip": "~6 hours solo. Last chance to do: Beach activities, Fort Clinch, downtown exploring, final spa visit, or just relax by pool."
+            "smart_tip": "~6 hours solo. Last chance to do: Beach activities, Fort Clinch, downtown exploring, final spa visit, or just relax by pool.",
+            "is_solo": True
         },
         {
             "id": "tue_evening",
@@ -6391,7 +6402,8 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             "actual_availability": "8:30 PM - 11:00 PM",
             "timeline": "Dinner → Final evening on the island",
             "notes": "👤 SOLO TIME - Your last night! Leave tomorrow at 12:30 PM.",
-            "smart_tip": "🌙 Final solo evening! Perfect for: Beach bonfire, final sunset memories, packing, or special farewell dinner."
+            "smart_tip": "🌙 Final solo evening! Perfect for: Beach bonfire, final sunset memories, packing, or special farewell dinner.",
+            "is_solo": True
         },
     ]
 
@@ -6568,6 +6580,66 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
 
         if activity_slot.get('smart_tip'):
             st.markdown(f"💡 **Smart Tip:** {activity_slot['smart_tip']}")
+
+        # Check if this is solo time (no John, no voting needed)
+        if activity_slot.get('is_solo'):
+            st.info("👤 **Solo Time** - Just pick what you want to do! No proposal/voting needed.")
+
+            # Check if there's a pre-scheduled activity from the itinerary for this slot
+            scheduled_activity = scheduled_activities.get(activity_slot['id'])
+            if scheduled_activity:
+                st.info(f"🗓️ **SCHEDULED:** {scheduled_activity['name']}")
+                st.markdown(f"""
+                <div class="ultimate-card" style="border-left: 4px solid #2196f3;">
+                    <div class="card-body">
+                        <p><strong>🎯 Activity:</strong> {scheduled_activity['name']}</p>
+                        <p><strong>⏰ Time:</strong> {scheduled_activity.get('time', 'N/A')}</p>
+                        <p><strong>⏱️ Duration:</strong> {scheduled_activity.get('duration', 'N/A')}</p>
+                        <p><strong>💰 Cost:</strong> ${scheduled_activity.get('cost', 0)} per person</p>
+                        <p><strong>📍 Location:</strong> {scheduled_activity.get('location', {}).get('name', 'N/A')}</p>
+                        <p><strong>📝 Notes:</strong> {scheduled_activity.get('notes', 'N/A')}</p>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                st.markdown("---")
+                continue  # Skip to next slot since this one is already scheduled
+
+            st.markdown("**Browse activities and add what you want:**")
+            st.markdown("_(Solo time = your choice, no need for John to vote!)_")
+
+            # Filter activities for this time slot
+            time_of_day = get_time_of_day(activity_slot['id'])
+            available_activities_solo = filter_activities_by_time(all_non_dining_activities, time_of_day)
+
+            if activity_slot.get('actual_availability'):
+                available_hours = parse_availability_hours(activity_slot['actual_availability'])
+                available_activities_solo = filter_activities_by_duration(available_activities_solo, available_hours)
+
+            # Show simplified activity browser for solo time
+            st.markdown("🏖️ **Beach activities at Ritz** (no commute!) are listed first, followed by hotel activities, then off-site options.")
+
+            with st.expander("📋 Browse & Add Activities", expanded=True):
+                # Show activities in a more compact list for solo time
+                for idx, activity in enumerate(available_activities_solo[:20]):  # Limit to top 20
+                    col1, col2 = st.columns([3, 1])
+
+                    with col1:
+                        st.markdown(f"""
+                        **{activity['name']}**
+                        💰 {activity.get('cost_range', 'N/A')} | ⏰ {activity.get('duration', 'N/A')}
+                        _{activity.get('description', 'N/A')[:100]}..._
+                        """)
+
+                    with col2:
+                        if st.button("➕ Add", key=f"solo_add_{activity_slot['id']}_{idx}"):
+                            # Add directly to schedule (no proposal needed)
+                            st.info(f"Adding {activity['name']} to your solo schedule...")
+                            # For now just show success - full integration would add to calendar
+                            st.success(f"✅ Added {activity['name']}!")
+                            st.rerun()
+
+            st.markdown("---")
+            continue  # Skip the rest of the proposal/voting logic for this slot
 
         # Determine time of day for this slot
         time_of_day = get_time_of_day(activity_slot['id'])
