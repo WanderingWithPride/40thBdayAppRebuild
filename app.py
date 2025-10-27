@@ -5906,7 +5906,7 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
         # Saturday breakfast removed - John doesn't arrive until 12:00 PM
         {"id": "sat_lunch", "label": "Saturday Lunch (Nov 8)", "date": "2025-11-08", "time": "12:30 PM"},
         {"id": "sat_dinner", "label": "Saturday Dinner (Nov 8)", "date": "2025-11-08", "time": "7:00 PM"},
-        {"id": "sun_breakfast", "label": "Sunday Breakfast (Nov 9)", "date": "2025-11-09", "time": "9:00 AM"},
+        {"id": "sun_breakfast", "label": "Sunday Breakfast (Nov 9) - 🎂 Room Service!", "date": "2025-11-09", "time": "9:00 AM", "locked": True, "room_service": True},
         {"id": "sun_lunch", "label": "Sunday Lunch (Nov 9)", "date": "2025-11-09", "time": "12:30 PM"},
         {"id": "sun_dinner", "label": "Sunday Dinner (Nov 9) - 🎂 BIRTHDAY!", "date": "2025-11-09", "time": "7:00 PM", "locked": True},
         {"id": "mon_breakfast", "label": "Monday Breakfast (Nov 10)", "date": "2025-11-10", "time": "9:00 AM"},
@@ -5936,7 +5936,86 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
 
     for meal_slot in meal_slots:
         if meal_slot.get("locked"):
-            st.info(f"✅ **{meal_slot['label']}** - Already planned!")
+            if meal_slot.get("room_service"):
+                st.success(f"✅ **{meal_slot['label']}**")
+                st.markdown("""
+                <div class="ultimate-card" style="border-left: 4px solid #4caf50;">
+                    <div class="card-body">
+                        <p><strong>🛎️ In-Room Dining:</strong> The Ritz-Carlton Amelia Island</p>
+                        <p><strong>⏰ Order Time:</strong> Call by 8:30 AM for 9:00 AM delivery</p>
+                        <p><strong>📞 Phone:</strong> Dial extension from room or 904-277-1100</p>
+                        <p><strong>🍳 View Menu:</strong> <a href="https://www.ritzcarlton.com/en/hotels/jaxab-the-ritz-carlton-amelia-island/dining" target="_blank" style="color: #2196f3;">Ritz-Carlton In-Room Dining Menu</a></p>
+                        <p><strong>💡 Tip:</strong> Perfect way to relax on your birthday morning before spa at 10 AM!</p>
+                        <p><strong>🥐 Popular Items:</strong> Pancakes, eggs benedict, fresh fruit, pastries, coffee service</p>
+                        <p><strong>💰 Est. Cost:</strong> $25-45 per person (plus 18% service charge + delivery fee)</p>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                # Budget-friendly panic button
+                with st.expander("💡 **Budget-Friendly Alternative?** Click for walking-distance breakfast spots"):
+                    st.markdown("""
+                    <div style="background: #f5f5f5; padding: 1rem; border-radius: 8px; margin: 0.5rem 0;">
+                        <p style="margin: 0 0 0.5rem 0; font-weight: bold;">If room service prices are high, these spots are a short walk from the Ritz:</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    budget_options = [
+                        {
+                            "name": "First Drop Coffee (ON-SITE)",
+                            "distance": "In the hotel lobby",
+                            "cost": "$5-10 per person",
+                            "menu": "Espresso, pastries, light breakfast items",
+                            "time": "Opens 7:00 AM",
+                            "walk_time": "30 seconds from room"
+                        },
+                        {
+                            "name": "Coast Restaurant (ON-SITE)",
+                            "distance": "In the hotel",
+                            "cost": "$18-28 per person",
+                            "menu": "Full breakfast buffet or a la carte",
+                            "time": "Opens 7:00 AM",
+                            "walk_time": "1 minute from room"
+                        },
+                        {
+                            "name": "Aloha Bagel and Deli",
+                            "distance": "5 min drive (2 miles)",
+                            "cost": "$8-15 per person",
+                            "menu": "Fresh bagels, breakfast sandwiches, coffee",
+                            "time": "Opens 7:00 AM",
+                            "phone": "904-277-3073"
+                        },
+                        {
+                            "name": "Beach Diner",
+                            "distance": "8 min drive (3 miles)",
+                            "cost": "$10-20 per person",
+                            "menu": "Chocolate chip pancakes, omelettes, Fish & Grits",
+                            "time": "Opens early",
+                            "phone": "904-261-3663"
+                        }
+                    ]
+
+                    cols = st.columns(2)
+                    for idx, option in enumerate(budget_options):
+                        col = cols[idx % 2]
+                        with col:
+                            st.markdown(f"""
+                            <div class="ultimate-card">
+                                <div class="card-body">
+                                    <h4 style="margin: 0 0 0.5rem 0;">{option['name']}</h4>
+                                    <p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>📍</strong> {option['distance']}</p>
+                                    <p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>💰</strong> {option['cost']}</p>
+                                    <p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>🍽️</strong> {option['menu']}</p>
+                                    <p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>⏰</strong> {option['time']}</p>
+                                    {f"<p style='margin: 0.3rem 0; font-size: 0.9rem;'><strong>📞</strong> {option['phone']}</p>" if 'phone' in option else ''}
+                                    {f"<p style='margin: 0.3rem 0; font-size: 0.85rem; color: #666;'>🚶 {option['walk_time']}</p>" if 'walk_time' in option else ''}
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+
+                    st.info("💡 **Pro Tip**: First Drop Coffee is perfect for a quick coffee & pastry if you're rushing to spa!")
+            else:
+                st.info(f"✅ **{meal_slot['label']}** - Already planned!")
             continue
 
         st.markdown(f"#### {meal_slot['label']}")
