@@ -7089,38 +7089,43 @@ def render_johns_page(df, activities_data, show_sensitive):
         hotel_depart = departure_activity.get('time', '8:20 AM') if departure_activity else "8:20 AM"
         st.metric("🛫 Flight Departs", f"Tue {flight_departs}", delta=f"Leave hotel ~{hotel_depart}", delta_color="off")
 
-    # ============ YOUR FLIGHT & ARRIVAL ============
     st.markdown("---")
-    st.markdown("### ✈️ Your Flight & Arrival")
 
-    john_arrival = next((a for a in activities_data if a.get('id') == 'arr002'), None)
-    john_departure = next((a for a in activities_data if a.get('id') == 'dep001'), None)
+    # Create tabs for better organization
+    tab1, tab2, tab3, tab4 = st.tabs(["✈️ Trip Info", "💰 Budget & Drinks", "🍽️ Vote on Meals", "🎯 Vote on Activities"])
 
-    # Check if it's travel day
-    from datetime import date
-    today = date.today()
-    is_arrival_day = (today == date(2025, 11, 8))
-    is_departure_day = (today == date(2025, 11, 11))
+    with tab1:
+        # ============ YOUR FLIGHT & ARRIVAL ============
+        st.markdown("### ✈️ Your Flight & Arrival")
 
-    if john_arrival:
-        # Live flight tracking (only on travel day)
-        st.markdown("#### 🛬 Arrival Flight - Nov 8")
+        john_arrival = next((a for a in activities_data if a.get('id') == 'arr002'), None)
+        john_departure = next((a for a in activities_data if a.get('id') == 'dep001'), None)
 
-        if is_arrival_day:
-            st.success("🔴 **LIVE TRACKING ACTIVE** - Your flight today!")
-            if john_arrival.get('flight_number'):
-                render_flight_status_widget(john_arrival['flight_number'], '2025-11-08', compact=False)
-            # TSA wait times at DCA
-            st.markdown("**🛂 TSA Security Wait Time - DCA**")
-            render_tsa_wait_widget('DCA')
-        else:
-            if john_arrival.get('flight_number'):
-                render_flight_status_widget(john_arrival['flight_number'], '2025-11-08', compact=False)
+        # Check if it's travel day
+        from datetime import date
+        today = date.today()
+        is_arrival_day = (today == date(2025, 11, 8))
+        is_departure_day = (today == date(2025, 11, 11))
 
-        col1, col2 = st.columns([2, 1])
+        if john_arrival:
+            # Live flight tracking (only on travel day)
+            st.markdown("#### 🛬 Arrival Flight - Nov 8")
 
-        with col1:
-            st.markdown(f"""<div class="ultimate-card" style="border-left: 4px solid #4caf50; margin-top: 1rem;">
+            if is_arrival_day:
+                st.success("🔴 **LIVE TRACKING ACTIVE** - Your flight today!")
+                if john_arrival.get('flight_number'):
+                    render_flight_status_widget(john_arrival['flight_number'], '2025-11-08', compact=False)
+                # TSA wait times at DCA
+                st.markdown("**🛂 TSA Security Wait Time - DCA**")
+                render_tsa_wait_widget('DCA')
+            else:
+                if john_arrival.get('flight_number'):
+                    render_flight_status_widget(john_arrival['flight_number'], '2025-11-08', compact=False)
+
+            col1, col2 = st.columns([2, 1])
+
+            with col1:
+                st.markdown(f"""<div class="ultimate-card" style="border-left: 4px solid #4caf50; margin-top: 1rem;">
 <div class="card-body">
 <h4 style="margin: 0 0 0.5rem 0;">📍 Arrival Details</h4>
 <p style="margin: 0.5rem 0;">
@@ -7131,597 +7136,597 @@ def render_johns_page(df, activities_data, show_sensitive):
 </div>
 </div>""", unsafe_allow_html=True)
 
-        with col2:
-            st.markdown("**📋 Arrival Checklist**")
-            st.markdown("""
-            - ✅ ID/Boarding Pass
-            - ✅ Phone charged
-            - ✅ Track flight status
-            - ✅ Text when landing
-            - ✅ 45 min drive to hotel
-            """)
+            with col2:
+                st.markdown("**📋 Arrival Checklist**")
+                st.markdown("""
+                - ✅ ID/Boarding Pass
+                - ✅ Phone charged
+                - ✅ Track flight status
+                - ✅ Text when landing
+                - ✅ 45 min drive to hotel
+                """)
 
-    # John's departure flight
-    if john_departure:
-        st.markdown("#### 🛫 Departure Flight - Nov 11")
+        # John's departure flight
+        if john_departure:
+            st.markdown("#### 🛫 Departure Flight - Nov 11")
 
-        if is_departure_day:
-            st.success("🔴 **LIVE TRACKING ACTIVE** - Your departure today!")
-            if john_departure.get('flight_number'):
-                render_flight_status_widget(john_departure['flight_number'], '2025-11-11', compact=False)
-            # TSA wait times at JAX
-            st.markdown("**🛂 TSA Security Wait Time - JAX**")
-            render_tsa_wait_widget('JAX')
-        else:
-            if john_departure.get('flight_number'):
-                render_flight_status_widget(john_departure['flight_number'], '2025-11-11', compact=False)
+            if is_departure_day:
+                st.success("🔴 **LIVE TRACKING ACTIVE** - Your departure today!")
+                if john_departure.get('flight_number'):
+                    render_flight_status_widget(john_departure['flight_number'], '2025-11-11', compact=False)
+                # TSA wait times at JAX
+                st.markdown("**🛂 TSA Security Wait Time - JAX**")
+                render_tsa_wait_widget('JAX')
+            else:
+                if john_departure.get('flight_number'):
+                    render_flight_status_widget(john_departure['flight_number'], '2025-11-11', compact=False)
 
-        # Traffic to airport (always show, but emphasize on day-of)
-        st.markdown("**🚗 Traffic to Airport**")
-        render_traffic_widget(
-            "4750 Amelia Island Parkway, Amelia Island, FL",
-            "2400 Yankee Clipper Dr, Jacksonville, FL 32218",
-            "Hotel → JAX Airport"
-        )
+            # Traffic to airport (always show, but emphasize on day-of)
+            st.markdown("**🚗 Traffic to Airport**")
+            render_traffic_widget(
+                "4750 Amelia Island Parkway, Amelia Island, FL",
+                "2400 Yankee Clipper Dr, Jacksonville, FL 32218",
+                "Hotel → JAX Airport"
+            )
 
-        st.info(f"💡 **Pro Tip:** Leave hotel by 8:20 AM for {john_departure.get('flight_departure_time', '11:05 AM')} flight (45 min drive + 2 hrs early)")
+            st.info(f"💡 **Pro Tip:** Leave hotel by 8:20 AM for {john_departure.get('flight_departure_time', '11:05 AM')} flight (45 min drive + 2 hrs early)")
 
-    # ============ DAY-BY-DAY SCHEDULE ============
-    st.markdown("---")
-    st.markdown("### 📅 Your Day-by-Day Schedule")
+        # ============ DAY-BY-DAY SCHEDULE ============
+        st.markdown("---")
+        st.markdown("### 📅 Your Day-by-Day Schedule")
 
-    # Filter John's relevant activities (Nov 8-11)
-    john_start = '2025-11-08'
-    john_end = '2025-11-11'
-    johns_activities = [a for a in activities_data if a['date'] >= john_start and a['date'] <= john_end]
+        # Filter John's relevant activities (Nov 8-11)
+        john_start = '2025-11-08'
+        john_end = '2025-11-11'
+        johns_activities = [a for a in activities_data if a['date'] >= john_start and a['date'] <= john_end]
 
-    # Group by date
-    from itertools import groupby
-    johns_activities_sorted = sorted(johns_activities, key=lambda x: (x['date'], x['time']))
+        # Group by date
+        from itertools import groupby
+        johns_activities_sorted = sorted(johns_activities, key=lambda x: (x['date'], x['time']))
 
-    for date_str, day_activities in groupby(johns_activities_sorted, key=lambda x: x['date']):
-        date_obj = pd.to_datetime(date_str)
-        day_activities_list = list(day_activities)
+        for date_str, day_activities in groupby(johns_activities_sorted, key=lambda x: x['date']):
+            date_obj = pd.to_datetime(date_str)
+            day_activities_list = list(day_activities)
 
-        # Determine if there are partner-only activities (spa)
-        partner_spa_times = [a for a in day_activities_list if a['type'] == 'spa']
+            # Determine if there are partner-only activities (spa)
+            partner_spa_times = [a for a in day_activities_list if a['type'] == 'spa']
 
-        with st.expander(f"**{date_obj.strftime('%A, %B %d')}** ({len(day_activities_list)} activities)", expanded=(date_str == john_start)):
-            for activity in day_activities_list:
-                # Determine if John is included and payment status
-                is_john_activity = False
-                activity_note = ""
-                activity_id = activity.get('id', '')
+            with st.expander(f"**{date_obj.strftime('%A, %B %d')}** ({len(day_activities_list)} activities)", expanded=(date_str == john_start)):
+                for activity in day_activities_list:
+                    # Determine if John is included and payment status
+                    is_john_activity = False
+                    activity_note = ""
+                    activity_id = activity.get('id', '')
 
-                # Check if it's a couples spa activity (spa001)
-                is_couples_spa = activity['type'] == 'spa' and 'Couples' in activity.get('activity', '')
+                    # Check if it's a couples spa activity (spa001)
+                    is_couples_spa = activity['type'] == 'spa' and 'Couples' in activity.get('activity', '')
 
-                # Check if it's the birthday dinner (din001) - ONLY meal covered by user
-                is_birthday_dinner = activity_id == 'din001'
+                    # Check if it's the birthday dinner (din001) - ONLY meal covered by user
+                    is_birthday_dinner = activity_id == 'din001'
 
-                # Determine badge and color
-                if is_birthday_dinner:
-                    is_john_activity = True
-                    activity_note = "✅ Included - Michael's Treat"
-                    border_color = "#4caf50"  # Green for covered
-                elif is_couples_spa:
-                    is_john_activity = True
-                    activity_note = "✅ Included - Already Covered"
-                    border_color = "#4caf50"  # Green for covered
-                elif activity['type'] == 'transport':
-                    is_john_activity = True
-                    activity_note = "🚕 Your Transportation"
-                    border_color = "#2196f3"  # Blue for transport
-                elif activity['type'] == 'dining':
-                    is_john_activity = True
-                    activity_note = "💰 Going Dutch (Each Pays Own)"
-                    border_color = "#ff9800"  # Orange for split
-                elif activity['type'] == 'activity' or activity['type'] == 'beach':
-                    is_john_activity = True
-                    activity_note = "🎯 Shared Activity (Each Pays Own)"
-                    border_color = "#ff9800"  # Orange for split
-                elif activity['type'] == 'spa':
-                    activity_note = "💆 Michael's Spa Time (Your Free Time!)"
-                    border_color = "#ff9800"  # Orange for free time
-                else:
-                    border_color = "#9e9e9e"  # Grey for other
+                    # Determine badge and color
+                    if is_birthday_dinner:
+                        is_john_activity = True
+                        activity_note = "✅ Included - Michael's Treat"
+                        border_color = "#4caf50"  # Green for covered
+                    elif is_couples_spa:
+                        is_john_activity = True
+                        activity_note = "✅ Included - Already Covered"
+                        border_color = "#4caf50"  # Green for covered
+                    elif activity['type'] == 'transport':
+                        is_john_activity = True
+                        activity_note = "🚕 Your Transportation"
+                        border_color = "#2196f3"  # Blue for transport
+                    elif activity['type'] == 'dining':
+                        is_john_activity = True
+                        activity_note = "💰 Going Dutch (Each Pays Own)"
+                        border_color = "#ff9800"  # Orange for split
+                    elif activity['type'] == 'activity' or activity['type'] == 'beach':
+                        is_john_activity = True
+                        activity_note = "🎯 Shared Activity (Each Pays Own)"
+                        border_color = "#ff9800"  # Orange for split
+                    elif activity['type'] == 'spa':
+                        activity_note = "💆 Michael's Spa Time (Your Free Time!)"
+                        border_color = "#ff9800"  # Orange for free time
+                    else:
+                        border_color = "#9e9e9e"  # Grey for other
 
-                # Clean up activity name for John's view (remove "for you" text)
-                activity_name = activity['activity'].replace('(for you)', '(for Michael)').replace('(For You)', '(For Michael)')
+                    # Clean up activity name for John's view (remove "for you" text)
+                    activity_name = activity['activity'].replace('(for you)', '(for Michael)').replace('(For You)', '(For Michael)')
 
-                # Clean up notes for John's view
-                activity_notes = activity.get('notes', '')
-                if is_couples_spa:
-                    # For couples massage, replace payment language
-                    activity_notes = activity_notes.replace('YOU\'RE PAYING for both ($245 each = $490 total)', 'Included - already covered for both of you')
-                    activity_notes = activity_notes.replace('YOU\'RE PAYING', 'Included - already covered')
-                elif activity['type'] == 'spa':
-                    # Replace confusing language in spa notes - remove entire optional phrases
-                    activity_notes = activity_notes.replace('John can pay for this if he wants (OR he can relax at pool/beach while you\'re getting pampered). ', '')
-                    activity_notes = activity_notes.replace('John can pay for this if he wants (OR he can relax at pool/beach). ', '')
-                    activity_notes = activity_notes.replace('you\'re getting pampered', 'Michael is getting pampered')
-                    activity_notes = activity_notes.replace('you\'re', 'Michael is')
-                    if activity_notes and not activity_notes.endswith('Enjoy your free time!'):
-                        activity_notes += ' Enjoy your free time!'
+                    # Clean up notes for John's view
+                    activity_notes = activity.get('notes', '')
+                    if is_couples_spa:
+                        # For couples massage, replace payment language
+                        activity_notes = activity_notes.replace('YOU\'RE PAYING for both ($245 each = $490 total)', 'Included - already covered for both of you')
+                        activity_notes = activity_notes.replace('YOU\'RE PAYING', 'Included - already covered')
+                    elif activity['type'] == 'spa':
+                        # Replace confusing language in spa notes - remove entire optional phrases
+                        activity_notes = activity_notes.replace('John can pay for this if he wants (OR he can relax at pool/beach while you\'re getting pampered). ', '')
+                        activity_notes = activity_notes.replace('John can pay for this if he wants (OR he can relax at pool/beach). ', '')
+                        activity_notes = activity_notes.replace('you\'re getting pampered', 'Michael is getting pampered')
+                        activity_notes = activity_notes.replace('you\'re', 'Michael is')
+                        if activity_notes and not activity_notes.endswith('Enjoy your free time!'):
+                            activity_notes += ' Enjoy your free time!'
 
-                # Build duration text (fixes nested f-string issue)
-                duration_text = ""
-                if activity.get('duration'):
-                    duration_text = f"• {activity.get('duration', '')}"
+                    # Build duration text (fixes nested f-string issue)
+                    duration_text = ""
+                    if activity.get('duration'):
+                        duration_text = f"• {activity.get('duration', '')}"
 
-                # Escape HTML to prevent broken rendering
-                import html
-                safe_activity_name = html.escape(activity_name)
-                safe_time = html.escape(activity['time'])
-                safe_duration_text = html.escape(duration_text)
-                safe_location = html.escape(activity['location']['name'])
-                safe_notes = html.escape(activity_notes)
-                safe_notes = safe_notes.replace('\n', '<br>')
-                safe_activity_note = html.escape(activity_note)
+                    # Escape HTML to prevent broken rendering
+                    import html
+                    safe_activity_name = html.escape(activity_name)
+                    safe_time = html.escape(activity['time'])
+                    safe_duration_text = html.escape(duration_text)
+                    safe_location = html.escape(activity['location']['name'])
+                    safe_notes = html.escape(activity_notes)
+                    safe_notes = safe_notes.replace('\n', '<br>')
+                    safe_activity_note = html.escape(activity_note)
 
-                st.markdown(f"""
-                <div class="ultimate-card" style="border-left: 4px solid {border_color}; margin-bottom: 1rem;">
-                    <div class="card-body">
-                        <div style="display: flex; justify-content: space-between; align-items: start;">
-                            <div style="flex: 1;">
-                                <h4 style="margin: 0 0 0.5rem 0;">{safe_activity_name}</h4>
-                                <p style="margin: 0.25rem 0;"><strong>⏰ {safe_time}</strong> {safe_duration_text}</p>
-                                <p style="margin: 0.25rem 0;">📍 {safe_location}</p>
-                                <p style="margin: 0.5rem 0; font-style: italic; font-size: 0.9rem;">{safe_notes}</p>
-                            </div>
-                            <div style="margin-left: 1rem;">
-                                <span style="background: {border_color}; color: white; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem; white-space: nowrap;">{safe_activity_note}</span>
+                    st.markdown(f"""
+                    <div class="ultimate-card" style="border-left: 4px solid {border_color}; margin-bottom: 1rem;">
+                        <div class="card-body">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div style="flex: 1;">
+                                    <h4 style="margin: 0 0 0.5rem 0;">{safe_activity_name}</h4>
+                                    <p style="margin: 0.25rem 0;"><strong>⏰ {safe_time}</strong> {safe_duration_text}</p>
+                                    <p style="margin: 0.25rem 0;">📍 {safe_location}</p>
+                                    <p style="margin: 0.5rem 0; font-style: italic; font-size: 0.9rem;">{safe_notes}</p>
+                                </div>
+                                <div style="margin-left: 1rem;">
+                                    <span style="background: {border_color}; color: white; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem; white-space: nowrap;">{safe_activity_note}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                """, unsafe_allow_html=True)
+                    """, unsafe_allow_html=True)
 
-                # Add opt-in buttons for activities that need John's decision
-                needs_optin = False
-                pref_key = ""
+                    # Add opt-in buttons for activities that need John's decision
+                    needs_optin = False
+                    pref_key = ""
 
-                # Check if this activity needs opt-in
-                if activity_id == 'act001':  # Backwater Cat Tour
-                    needs_optin = True
-                    pref_key = f"activity_opt_in_{activity_id}"
-                elif activity_id in ['spa002', 'spa003'] and activity['type'] == 'spa':  # Solo spa treatments
-                    needs_optin = True
-                    pref_key = f"spa_opt_in_{activity_id}"
+                    # Check if this activity needs opt-in
+                    if activity_id == 'act001':  # Backwater Cat Tour
+                        needs_optin = True
+                        pref_key = f"activity_opt_in_{activity_id}"
+                    elif activity_id in ['spa002', 'spa003'] and activity['type'] == 'spa':  # Solo spa treatments
+                        needs_optin = True
+                        pref_key = f"spa_opt_in_{activity_id}"
 
-                if needs_optin:
-                    current_status = john_prefs.get(pref_key, "not_decided")
+                    if needs_optin:
+                        current_status = john_prefs.get(pref_key, "not_decided")
 
-                    col1, col2, col3 = st.columns([1, 1, 2])
-                    with col1:
-                        if st.button(f"✅ Count Me In!", key=f"optin_{activity_id}_{date_str}", use_container_width=True):
-                            save_john_preference(pref_key, "interested")
-                            st.success("You're in!")
-                            st.rerun()
+                        col1, col2, col3 = st.columns([1, 1, 2])
+                        with col1:
+                            if st.button(f"✅ Count Me In!", key=f"optin_{activity_id}_{date_str}", use_container_width=True):
+                                save_john_preference(pref_key, "interested")
+                                st.success("You're in!")
+                                st.rerun()
 
-                    with col2:
-                        if st.button(f"❌ Not for Me", key=f"optout_{activity_id}_{date_str}", use_container_width=True):
-                            save_john_preference(pref_key, "not_interested")
-                            st.info("Got it!")
-                            st.rerun()
+                        with col2:
+                            if st.button(f"❌ Not for Me", key=f"optout_{activity_id}_{date_str}", use_container_width=True):
+                                save_john_preference(pref_key, "not_interested")
+                                st.info("Got it!")
+                                st.rerun()
 
-                    with col3:
-                        if current_status == "interested":
-                            st.success("✅ **You're In!** - Michael will see this")
-                        elif current_status == "not_interested":
-                            st.info("❌ **Not Interested** - Michael will see this")
-                        else:
-                            st.warning("❓ **Please decide** - Michael needs to know")
+                        with col3:
+                            if current_status == "interested":
+                                st.success("✅ **You're In!** - Michael will see this")
+                            elif current_status == "not_interested":
+                                st.info("❌ **Not Interested** - Michael will see this")
+                            else:
+                                st.warning("❓ **Please decide** - Michael needs to know")
 
-            # Show free time suggestion if partner has spa
-            if partner_spa_times:
-                st.markdown("""
-                <div class="info-box info-success">
-                    <strong>💡 Free Time Ideas:</strong> While Michael is at the spa, enjoy the pool, hot tub, beach, or book your own spa treatment!
-                </div>
-                """, unsafe_allow_html=True)
+                # Show free time suggestion if partner has spa
+                if partner_spa_times:
+                    st.markdown("""
+                    <div class="info-box info-success">
+                        <strong>💡 Free Time Ideas:</strong> While Michael is at the spa, enjoy the pool, hot tub, beach, or book your own spa treatment!
+                    </div>
+                    """, unsafe_allow_html=True)
 
-    # ============ THINGS TO DO (FREE TIME) ============
-    st.markdown("---")
-    st.markdown("### 🎯 Things You Might Enjoy")
+        # ============ THINGS TO DO (FREE TIME) ============
+        st.markdown("---")
+        st.markdown("### 🎯 Things You Might Enjoy")
 
-    tab1, tab2, tab3 = st.tabs(["🏊 Pool & Beach", "💆 Optional Spa", "🎮 Activities"])
+        tab1, tab2, tab3 = st.tabs(["🏊 Pool & Beach", "💆 Optional Spa", "🎮 Activities"])
 
-    with tab1:
-        st.markdown("""
-        <div class="ultimate-card">
-            <div class="card-body">
-                <h4 style="margin: 0 0 0.5rem 0;">🌴 Complimentary Resort Access</h4>
-                <p style="margin: 0.5rem 0;">Enjoy unlimited access to world-class facilities:</p>
-                <ul style="margin: 0.5rem 0;">
-                    <li><strong>Multiple Pools</strong> - Oceanfront infinity pool, family pool, adult-only pool</li>
-                    <li><strong>Hot Tubs</strong> - Several whirlpool spas throughout the property</li>
-                    <li><strong>Private Beach</strong> - Beach chairs, umbrellas, and towel service included</li>
-                    <li><strong>Poolside Bar</strong> - Cocktails and light fare available</li>
-                    <li><strong>Beach Activities</strong> - Volleyball, paddleboards, kayaks (some may have fees)</li>
-                </ul>
-                <p style="margin: 0.5rem 0 0 0; font-style: italic; color: #666;">📍 All facilities are steps from your room. Towels available at pool & beach stations.</p>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with tab2:
-        st.markdown("""
-        <div class="info-box" style="background: linear-gradient(135deg, #e3f2fd 0%, #e1f5fe 100%);">
-            <strong>ℹ️ Optional Services:</strong> Book any spa treatment at your own expense. Call 904-277-1087 or ask hotel concierge.
-        </div>
-        """, unsafe_allow_html=True)
-
-        spa_options = [
-            {"name": "Gentleman's Facial", "cost": "$165", "duration": "50 min", "desc": "Designed for men's skin. Addresses shaving irritation and deep cleaning."},
-            {"name": "Aromatherapy Massage", "cost": "$185-245", "duration": "50-80 min", "desc": "Relaxing full-body massage with essential oils."},
-            {"name": "Hot Stone Massage", "cost": "$205", "duration": "80 min", "desc": "Therapeutic massage with heated stones to ease muscle tension."},
-            {"name": "Sports Massage", "cost": "$195", "duration": "50 min", "desc": "Deep tissue massage focused on muscle recovery."},
-        ]
-
-        for spa in spa_options:
-            st.markdown(f"""
-            <div class="ultimate-card">
-                <div class="card-body">
-                    <h4 style="margin: 0 0 0.25rem 0;">{spa['name']}</h4>
-                    <p style="margin: 0.25rem 0; color: #666;"><strong>{spa['duration']} • {spa['cost']}</strong></p>
-                    <p style="margin: 0.5rem 0; font-size: 0.9rem;">{spa['desc']}</p>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        st.markdown("**📞 To Book:** Call spa at 904-277-1087")
-
-    with tab3:
-        st.markdown("**🏖️ Nearby Activities** (during free time)")
-
-        optional_ideas = [
-            {"name": "Golf at Oak Marsh", "desc": "18-hole championship course on property", "cost": "~$150+"},
-            {"name": "Bike Rental", "desc": "Explore the island on two wheels", "cost": "~$30/day"},
-            {"name": "Historic Downtown Fernandina", "desc": "Shopping, dining, art galleries - 15 min drive", "cost": "Free"},
-            {"name": "Fort Clinch State Park", "desc": "Historic fort, fishing pier, nature trails", "cost": "$6 entry"},
-        ]
-
-        for idea in optional_ideas:
-            st.markdown(f"**{idea['name']}** ({idea['cost']})")
-            st.caption(idea['desc'])
-            st.markdown("")
-
-    # ============ PRACTICAL ESSENTIALS ============
-    st.markdown("---")
-    st.markdown("### 🎒 What to Pack (Your Essentials)")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.markdown("""
-        **🚨 Must Have:**
-        - ✈️ ID & boarding pass
-        - 💳 Credit card & cash
-        - 📱 Phone & charger
-        - 🧴 Toiletries & medications
-        - 🩳 Swimsuit (for pool/beach!)
-
-        **👕 Clothing:**
-        - Casual resort wear
-        - Swimwear & cover-up
-        - Comfortable walking shoes
-        - Sandals/flip-flops
-        - Light jacket (evenings can be cool)
-        """)
-
-    with col2:
-        st.markdown("""
-        **🌞 Beach Essentials:**
-        - Sunglasses
-        - Sunscreen SPF 50+
-        - Hat or cap
-        - Beach read or e-reader
-
-        **💼 Nice to Have:**
-        - Camera
-        - Headphones
-        - Workout clothes (if using gym)
-        - Golf gear (if playing)
-        """)
-
-    # ============ QUICK REFERENCE ============
-    st.markdown("---")
-    st.markdown("### 📞 Quick Reference")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.markdown("""
-        <div class="ultimate-card">
-            <div class="card-body">
-                <h4 style="margin: 0 0 0.5rem 0;">🏨 Hotel Information</h4>
-                <p style="margin: 0.25rem 0;"><strong>The Ritz-Carlton, Amelia Island</strong></p>
-                <p style="margin: 0.25rem 0;">4750 Amelia Island Parkway<br>Amelia Island, FL 32034</p>
-                <p style="margin: 0.5rem 0 0 0;">
-                    📞 <strong>Main:</strong> 904-277-1100<br>
-                    🧖 <strong>Spa:</strong> 904-277-1087<br>
-                    🍽️ <strong>Dining:</strong> 904-277-1100<br>
-                </p>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        st.markdown("""
-        <div class="ultimate-card" style="margin-top: 1rem;">
-            <div class="card-body">
-                <h4 style="margin: 0 0 0.5rem 0;">🚗 Getting Around</h4>
-                <p style="margin: 0.25rem 0;">
-                    <strong>Airport to Hotel:</strong> 45 min drive<br>
-                    <strong>Rental Car/Uber:</strong> Arrange at JAX<br>
-                    <strong>Valet Parking:</strong> $40/day at hotel<br>
-                </p>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with col2:
-        # Get weather
-        weather = get_weather_ultimate()
-        if weather and 'forecast' in weather:
-            # Calculate average temp from forecast
-            forecast = weather['forecast']
-            if forecast:
-                avg_temp = sum([day.get('temp', 75) for day in forecast]) / len(forecast)
-            else:
-                avg_temp = weather.get('current', {}).get('temperature', 75)
-
-            st.markdown(f"""
-            <div class="ultimate-card">
-                <div class="card-body">
-                    <h4 style="margin: 0 0 0.5rem 0;">🌤️ Weather Forecast</h4>
-                    <p style="margin: 0.25rem 0;">
-                        <strong>Average:</strong> {avg_temp:.0f}°F<br>
-                        <strong>Conditions:</strong> Partly cloudy<br>
-                        <strong>What to Expect:</strong> Pleasant beach weather!
-                    </p>
-                    <p style="margin: 0.5rem 0 0 0; font-style: italic; font-size: 0.85rem;">
-                        Pack sunscreen and light layers.
-                    </p>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            # Fallback if weather API unavailable
+        with tab1:
             st.markdown("""
             <div class="ultimate-card">
                 <div class="card-body">
-                    <h4 style="margin: 0 0 0.5rem 0;">🌤️ Weather Forecast</h4>
-                    <p style="margin: 0.25rem 0;">
-                        <strong>Average:</strong> 75°F<br>
-                        <strong>Conditions:</strong> Pleasant<br>
-                        <strong>What to Expect:</strong> Nice beach weather!
-                    </p>
-                    <p style="margin: 0.5rem 0 0 0; font-style: italic; font-size: 0.85rem;">
-                        Pack sunscreen and light layers.
-                    </p>
+                    <h4 style="margin: 0 0 0.5rem 0;">🌴 Complimentary Resort Access</h4>
+                    <p style="margin: 0.5rem 0;">Enjoy unlimited access to world-class facilities:</p>
+                    <ul style="margin: 0.5rem 0;">
+                        <li><strong>Multiple Pools</strong> - Oceanfront infinity pool, family pool, adult-only pool</li>
+                        <li><strong>Hot Tubs</strong> - Several whirlpool spas throughout the property</li>
+                        <li><strong>Private Beach</strong> - Beach chairs, umbrellas, and towel service included</li>
+                        <li><strong>Poolside Bar</strong> - Cocktails and light fare available</li>
+                        <li><strong>Beach Activities</strong> - Volleyball, paddleboards, kayaks (some may have fees)</li>
+                    </ul>
+                    <p style="margin: 0.5rem 0 0 0; font-style: italic; color: #666;">📍 All facilities are steps from your room. Towels available at pool & beach stations.</p>
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
-        st.markdown("""
-        <div class="ultimate-card" style="margin-top: 1rem;">
-            <div class="card-body">
-                <h4 style="margin: 0 0 0.5rem 0;">💡 Good to Know</h4>
-                <p style="margin: 0.25rem 0;">
-                    🏨 <strong>Check-in:</strong> 4:00 PM<br>
-                    🚪 <strong>Check-out:</strong> 11:00 AM<br>
-                    📶 <strong>WiFi:</strong> Complimentary<br>
-                    🏋️ <strong>Fitness Center:</strong> 24/7 access<br>
-                    ☕ <strong>Coffee:</strong> In-room Nespresso<br>
-                </p>
+        with tab2:
+            st.markdown("""
+            <div class="info-box" style="background: linear-gradient(135deg, #e3f2fd 0%, #e1f5fe 100%);">
+                <strong>ℹ️ Optional Services:</strong> Book any spa treatment at your own expense. Call 904-277-1087 or ask hotel concierge.
             </div>
-        </div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
 
-    # ============ BUDGET OVERVIEW ============
-    st.markdown("---")
-    st.markdown("### 💰 Your Trip Budget")
-    render_budget_widget(activities_data, show_sensitive, view_mode='john')
+            spa_options = [
+                {"name": "Gentleman's Facial", "cost": "$165", "duration": "50 min", "desc": "Designed for men's skin. Addresses shaving irritation and deep cleaning."},
+                {"name": "Aromatherapy Massage", "cost": "$185-245", "duration": "50-80 min", "desc": "Relaxing full-body massage with essential oils."},
+                {"name": "Hot Stone Massage", "cost": "$205", "duration": "80 min", "desc": "Therapeutic massage with heated stones to ease muscle tension."},
+                {"name": "Sports Massage", "cost": "$195", "duration": "50 min", "desc": "Deep tissue massage focused on muscle recovery."},
+            ]
 
-    # ============ ALCOHOL/DRINK REQUESTS ============
-    st.markdown("---")
-    st.markdown("### 🍺 Drink Requests")
-
-    st.markdown("""
-    <div class="info-box" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;">
-        <h4 style="margin: 0; color: white;">🍺 Michael's Booze Run!</h4>
-        <p style="margin: 0.5rem 0 0 0; opacity: 0.95;">Michael will do a booze run when he arrives (Friday night or Saturday morning). Submit your drink requests below!</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # Get existing requests
-    all_requests = get_alcohol_requests()
-
-    # Show existing requests
-    if all_requests:
-        st.markdown("**Your Current Requests:**")
-        for request in all_requests:
-            if not request['purchased']:
-                quantity_str = f" - {request['quantity']}" if request['quantity'] else ""
-                notes_str = f" ({request['notes']})" if request['notes'] else ""
-
-                col1, col2 = st.columns([4, 1])
-                with col1:
-                    st.markdown(f"- **{request['item_name']}**{quantity_str}{notes_str}")
-                with col2:
-                    if st.button("🗑️", key=f"delete_request_{request['id']}", help="Delete this request"):
-                        delete_alcohol_request(request['id'])
-                        st.rerun()
-
-        # Show purchased items
-        purchased_items = [r for r in all_requests if r['purchased']]
-        if purchased_items:
-            with st.expander("✅ Already Purchased"):
-                total_purchased_cost = sum(r['cost'] for r in purchased_items)
-                if total_purchased_cost > 0:
-                    st.info(f"💰 **Total spent:** ${total_purchased_cost:.2f} (Your share: ${total_purchased_cost/2:.2f})")
-
-                for request in purchased_items:
-                    quantity_str = f" - {request['quantity']}" if request['quantity'] else ""
-                    notes_str = f" ({request['notes']})" if request['notes'] else ""
-                    cost_str = f" - ${request['cost']:.2f}" if request['cost'] > 0 else ""
-                    st.markdown(f"- ~~**{request['item_name']}**{quantity_str}{notes_str}~~{cost_str}")
-
-    # Add new request form
-    st.markdown("---")
-    st.markdown("**Add New Request:**")
-
-    with st.form("add_alcohol_request", clear_on_submit=True):
-        col1, col2 = st.columns(2)
-        with col1:
-            item_name = st.text_input("Item Name", placeholder="e.g., Beer, Wine, Vodka, Mixers")
-        with col2:
-            quantity = st.text_input("Quantity (optional)", placeholder="e.g., 6-pack, 2 bottles")
-
-        notes = st.text_input("Notes (optional)", placeholder="e.g., IPA preferred, Red wine, Any brand")
-
-        submitted = st.form_submit_button("➕ Add Request", type="primary", use_container_width=True)
-        if submitted:
-            if item_name:
-                add_alcohol_request(item_name, quantity, notes)
-                st.success(f"✅ Added {item_name} to your requests!")
-                st.rerun()
-            else:
-                st.error("Please enter an item name")
-
-    # ============ MEAL VOTING SECTION ============
-    st.markdown("---")
-    st.markdown("### 🍽️ Vote on Meal Options")
-
-    st.markdown("""
-    <div class="info-box" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
-        <h4 style="margin: 0; color: white;">🗳️ Your Input Needed!</h4>
-        <p style="margin: 0.5rem 0 0 0; opacity: 0.95;">Michael has proposed restaurant options for meals. Vote on which ones work for you!</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # Get all meal proposals
-    meal_slots = [
-        {"id": "fri_dinner", "label": "Friday Dinner (Nov 7)", "date": "2025-11-07"},
-        {"id": "sat_breakfast", "label": "Saturday Breakfast (Nov 8)", "date": "2025-11-08"},
-        {"id": "sat_lunch", "label": "Saturday Lunch (Nov 8)", "date": "2025-11-08"},
-        {"id": "sat_dinner", "label": "Saturday Dinner (Nov 8)", "date": "2025-11-08"},
-        {"id": "sun_breakfast", "label": "Sunday Breakfast (Nov 9)", "date": "2025-11-09"},
-        {"id": "sun_lunch", "label": "Sunday Lunch (Nov 9)", "date": "2025-11-09"},
-        {"id": "sun_dinner", "label": "Sunday Dinner (Nov 9)", "date": "2025-11-09"},
-        {"id": "mon_breakfast", "label": "Monday Breakfast (Nov 10)", "date": "2025-11-10"},
-        {"id": "mon_lunch", "label": "Monday Lunch (Nov 10)", "date": "2025-11-10"},
-        {"id": "mon_dinner", "label": "Monday Dinner (Nov 10)", "date": "2025-11-10"},
-        {"id": "tue_breakfast", "label": "Tuesday Breakfast (Nov 11)", "date": "2025-11-11"},
-    ]
-
-    restaurant_details = get_restaurant_details()
-    has_proposals = False
-
-    for meal_slot in meal_slots:
-        proposal = get_meal_proposal(meal_slot['id'])
-
-        if proposal and proposal['status'] == 'proposed':
-            has_proposals = True
-            st.markdown(f"#### {meal_slot['label']}")
-            st.markdown("**Michael proposed these 3 options. Which works for you?**")
-
-            options = proposal['restaurant_options']
-
-            # Display options
-            for idx, restaurant in enumerate(options):
-                rest_details = restaurant_details.get(restaurant['name'], {})
+            for spa in spa_options:
                 st.markdown(f"""
                 <div class="ultimate-card">
                     <div class="card-body">
-                        <h4 style="margin: 0 0 0.5rem 0;">Option {idx + 1}: {restaurant['name']}</h4>
-                        <p style="margin: 0.25rem 0;"><strong>📝 Description:</strong> {restaurant.get('description', 'N/A')}</p>
-                        <p style="margin: 0.25rem 0;"><strong>💰 Cost:</strong> {restaurant.get('cost_range', 'N/A')}</p>
-                        <p style="margin: 0.25rem 0;"><strong>👔 Dress Code:</strong> {rest_details.get('dress_code', 'Casual')}</p>
-                        <p style="margin: 0.25rem 0;"><strong>📞 Phone:</strong> {restaurant.get('phone', 'N/A')}</p>
-                        <p style="margin: 0.25rem 0;"><strong>🔗 Menu/Website:</strong> {rest_details.get('menu_url', 'N/A')}</p>
-                        <p style="margin: 0.25rem 0;"><strong>💡 Tip:</strong> {restaurant.get('tips', 'N/A')}</p>
+                        <h4 style="margin: 0 0 0.25rem 0;">{spa['name']}</h4>
+                        <p style="margin: 0.25rem 0; color: #666;"><strong>{spa['duration']} • {spa['cost']}</strong></p>
+                        <p style="margin: 0.5rem 0; font-size: 0.9rem;">{spa['desc']}</p>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
 
-            # Voting buttons
-            st.markdown("**Cast Your Vote:**")
-            col1, col2, col3, col4 = st.columns(4)
+            st.markdown("**📞 To Book:** Call spa at 904-277-1087")
 
+        with tab3:
+            st.markdown("**🏖️ Nearby Activities** (during free time)")
+
+            optional_ideas = [
+                {"name": "Golf at Oak Marsh", "desc": "18-hole championship course on property", "cost": "~$150+"},
+                {"name": "Bike Rental", "desc": "Explore the island on two wheels", "cost": "~$30/day"},
+                {"name": "Historic Downtown Fernandina", "desc": "Shopping, dining, art galleries - 15 min drive", "cost": "Free"},
+                {"name": "Fort Clinch State Park", "desc": "Historic fort, fishing pier, nature trails", "cost": "$6 entry"},
+            ]
+
+            for idea in optional_ideas:
+                st.markdown(f"**{idea['name']}** ({idea['cost']})")
+                st.caption(idea['desc'])
+                st.markdown("")
+
+        # ============ PRACTICAL ESSENTIALS ============
+        st.markdown("---")
+        st.markdown("### 🎒 What to Pack (Your Essentials)")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.markdown("""
+            **🚨 Must Have:**
+            - ✈️ ID & boarding pass
+            - 💳 Credit card & cash
+            - 📱 Phone & charger
+            - 🧴 Toiletries & medications
+            - 🩳 Swimsuit (for pool/beach!)
+
+            **👕 Clothing:**
+            - Casual resort wear
+            - Swimwear & cover-up
+            - Comfortable walking shoes
+            - Sandals/flip-flops
+            - Light jacket (evenings can be cool)
+            """)
+
+        with col2:
+            st.markdown("""
+            **🌞 Beach Essentials:**
+            - Sunglasses
+            - Sunscreen SPF 50+
+            - Hat or cap
+            - Beach read or e-reader
+
+            **💼 Nice to Have:**
+            - Camera
+            - Headphones
+            - Workout clothes (if using gym)
+            - Golf gear (if playing)
+            """)
+
+        # ============ QUICK REFERENCE ============
+        st.markdown("---")
+        st.markdown("### 📞 Quick Reference")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.markdown("""
+            <div class="ultimate-card">
+                <div class="card-body">
+                    <h4 style="margin: 0 0 0.5rem 0;">🏨 Hotel Information</h4>
+                    <p style="margin: 0.25rem 0;"><strong>The Ritz-Carlton, Amelia Island</strong></p>
+                    <p style="margin: 0.25rem 0;">4750 Amelia Island Parkway<br>Amelia Island, FL 32034</p>
+                    <p style="margin: 0.5rem 0 0 0;">
+                        📞 <strong>Main:</strong> 904-277-1100<br>
+                        🧖 <strong>Spa:</strong> 904-277-1087<br>
+                        🍽️ <strong>Dining:</strong> 904-277-1100<br>
+                    </p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            st.markdown("""
+            <div class="ultimate-card" style="margin-top: 1rem;">
+                <div class="card-body">
+                    <h4 style="margin: 0 0 0.5rem 0;">🚗 Getting Around</h4>
+                    <p style="margin: 0.25rem 0;">
+                        <strong>Airport to Hotel:</strong> 45 min drive<br>
+                        <strong>Rental Car/Uber:</strong> Arrange at JAX<br>
+                        <strong>Valet Parking:</strong> $40/day at hotel<br>
+                    </p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with col2:
+            # Get weather
+            weather = get_weather_ultimate()
+            if weather and 'forecast' in weather:
+                # Calculate average temp from forecast
+                forecast = weather['forecast']
+                if forecast:
+                    avg_temp = sum([day.get('temp', 75) for day in forecast]) / len(forecast)
+                else:
+                    avg_temp = weather.get('current', {}).get('temperature', 75)
+
+                st.markdown(f"""
+                <div class="ultimate-card">
+                    <div class="card-body">
+                        <h4 style="margin: 0 0 0.5rem 0;">🌤️ Weather Forecast</h4>
+                        <p style="margin: 0.25rem 0;">
+                            <strong>Average:</strong> {avg_temp:.0f}°F<br>
+                            <strong>Conditions:</strong> Partly cloudy<br>
+                            <strong>What to Expect:</strong> Pleasant beach weather!
+                        </p>
+                        <p style="margin: 0.5rem 0 0 0; font-style: italic; font-size: 0.85rem;">
+                            Pack sunscreen and light layers.
+                        </p>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                # Fallback if weather API unavailable
+                st.markdown("""
+                <div class="ultimate-card">
+                    <div class="card-body">
+                        <h4 style="margin: 0 0 0.5rem 0;">🌤️ Weather Forecast</h4>
+                        <p style="margin: 0.25rem 0;">
+                            <strong>Average:</strong> 75°F<br>
+                            <strong>Conditions:</strong> Pleasant<br>
+                            <strong>What to Expect:</strong> Nice beach weather!
+                        </p>
+                        <p style="margin: 0.5rem 0 0 0; font-style: italic; font-size: 0.85rem;">
+                            Pack sunscreen and light layers.
+                        </p>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+            st.markdown("""
+            <div class="ultimate-card" style="margin-top: 1rem;">
+                <div class="card-body">
+                    <h4 style="margin: 0 0 0.5rem 0;">💡 Good to Know</h4>
+                    <p style="margin: 0.25rem 0;">
+                        🏨 <strong>Check-in:</strong> 4:00 PM<br>
+                        🚪 <strong>Check-out:</strong> 11:00 AM<br>
+                        📶 <strong>WiFi:</strong> Complimentary<br>
+                        🏋️ <strong>Fitness Center:</strong> 24/7 access<br>
+                        ☕ <strong>Coffee:</strong> In-room Nespresso<br>
+                    </p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    with tab2:
+        # ============ BUDGET OVERVIEW ============
+        st.markdown("### 💰 Your Trip Budget")
+        render_budget_widget(activities_data, show_sensitive, view_mode='john')
+
+        # ============ ALCOHOL/DRINK REQUESTS ============
+        st.markdown("---")
+        st.markdown("### 🍺 Drink Requests")
+
+        st.markdown("""
+        <div class="info-box" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;">
+            <h4 style="margin: 0; color: white;">🍺 Michael's Booze Run!</h4>
+            <p style="margin: 0.5rem 0 0 0; opacity: 0.95;">Michael will do a booze run when he arrives (Friday night or Saturday morning). Submit your drink requests below!</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Get existing requests
+        all_requests = get_alcohol_requests()
+
+        # Show existing requests
+        if all_requests:
+            st.markdown("**Your Current Requests:**")
+            for request in all_requests:
+                if not request['purchased']:
+                    quantity_str = f" - {request['quantity']}" if request['quantity'] else ""
+                    notes_str = f" ({request['notes']})" if request['notes'] else ""
+
+                    col1, col2 = st.columns([4, 1])
+                    with col1:
+                        st.markdown(f"- **{request['item_name']}**{quantity_str}{notes_str}")
+                    with col2:
+                        if st.button("🗑️", key=f"delete_request_{request['id']}", help="Delete this request"):
+                            delete_alcohol_request(request['id'])
+                            st.rerun()
+
+            # Show purchased items
+            purchased_items = [r for r in all_requests if r['purchased']]
+            if purchased_items:
+                with st.expander("✅ Already Purchased"):
+                    total_purchased_cost = sum(r['cost'] for r in purchased_items)
+                    if total_purchased_cost > 0:
+                        st.info(f"💰 **Total spent:** ${total_purchased_cost:.2f} (Your share: ${total_purchased_cost/2:.2f})")
+
+                    for request in purchased_items:
+                        quantity_str = f" - {request['quantity']}" if request['quantity'] else ""
+                        notes_str = f" ({request['notes']})" if request['notes'] else ""
+                        cost_str = f" - ${request['cost']:.2f}" if request['cost'] > 0 else ""
+                        st.markdown(f"- ~~**{request['item_name']}**{quantity_str}{notes_str}~~{cost_str}")
+
+        # Add new request form
+        st.markdown("---")
+        st.markdown("**Add New Request:**")
+
+        with st.form("add_alcohol_request", clear_on_submit=True):
+            col1, col2 = st.columns(2)
             with col1:
-                if st.button(f"✅ Option 1", key=f"vote_{meal_slot['id']}_0", use_container_width=True, type="primary"):
-                    save_john_meal_vote(meal_slot['id'], "0")
-                    st.success("Vote recorded!")
-                    st.rerun()
-
+                item_name = st.text_input("Item Name", placeholder="e.g., Beer, Wine, Vodka, Mixers")
             with col2:
-                if st.button(f"✅ Option 2", key=f"vote_{meal_slot['id']}_1", use_container_width=True, type="primary"):
-                    save_john_meal_vote(meal_slot['id'], "1")
-                    st.success("Vote recorded!")
+                quantity = st.text_input("Quantity (optional)", placeholder="e.g., 6-pack, 2 bottles")
+
+            notes = st.text_input("Notes (optional)", placeholder="e.g., IPA preferred, Red wine, Any brand")
+
+            submitted = st.form_submit_button("➕ Add Request", type="primary", use_container_width=True)
+            if submitted:
+                if item_name:
+                    add_alcohol_request(item_name, quantity, notes)
+                    st.success(f"✅ Added {item_name} to your requests!")
                     st.rerun()
+                else:
+                    st.error("Please enter an item name")
 
-            with col3:
-                if st.button(f"✅ Option 3", key=f"vote_{meal_slot['id']}_2", use_container_width=True, type="primary"):
-                    save_john_meal_vote(meal_slot['id'], "2")
-                    st.success("Vote recorded!")
-                    st.rerun()
+    with tab3:
+        # ============ MEAL VOTING SECTION ============
+        st.markdown("### 🍽️ Vote on Meal Options")
 
-            with col4:
-                if st.button(f"❌ None Work", key=f"vote_{meal_slot['id']}_none", use_container_width=True):
-                    save_john_meal_vote(meal_slot['id'], "none")
-                    st.info("Michael will pick new options.")
-                    st.rerun()
+        st.markdown("""
+        <div class="info-box" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+            <h4 style="margin: 0; color: white;">🗳️ Your Input Needed!</h4>
+            <p style="margin: 0.5rem 0 0 0; opacity: 0.95;">Michael has proposed restaurant options for meals. Vote on which ones work for you!</p>
+        </div>
+        """, unsafe_allow_html=True)
 
-            # John can propose alternatives
-            with st.expander("💡 **Don't like these options? Suggest 3 alternatives!**"):
-                st.markdown("**Browse all available restaurants and pick 3 you'd prefer:**")
+        # Get all meal proposals
+        meal_slots = [
+            {"id": "fri_dinner", "label": "Friday Dinner (Nov 7)", "date": "2025-11-07"},
+            {"id": "sat_breakfast", "label": "Saturday Breakfast (Nov 8)", "date": "2025-11-08"},
+            {"id": "sat_lunch", "label": "Saturday Lunch (Nov 8)", "date": "2025-11-08"},
+            {"id": "sat_dinner", "label": "Saturday Dinner (Nov 8)", "date": "2025-11-08"},
+            {"id": "sun_breakfast", "label": "Sunday Breakfast (Nov 9)", "date": "2025-11-09"},
+            {"id": "sun_lunch", "label": "Sunday Lunch (Nov 9)", "date": "2025-11-09"},
+            {"id": "sun_dinner", "label": "Sunday Dinner (Nov 9)", "date": "2025-11-09"},
+            {"id": "mon_breakfast", "label": "Monday Breakfast (Nov 10)", "date": "2025-11-10"},
+            {"id": "mon_lunch", "label": "Monday Lunch (Nov 10)", "date": "2025-11-10"},
+            {"id": "mon_dinner", "label": "Monday Dinner (Nov 10)", "date": "2025-11-10"},
+            {"id": "tue_breakfast", "label": "Tuesday Breakfast (Nov 11)", "date": "2025-11-11"},
+        ]
 
-                # Get meal type
-                meal_type = "breakfast" if "breakfast" in meal_slot['label'].lower() else ("lunch" if "lunch" in meal_slot['label'].lower() else "dinner")
+        restaurant_details = get_restaurant_details()
+        has_proposals = False
 
-                # Get available restaurants (same filtering logic as Michael's side)
-                restaurants_dict = get_optional_activities()
-                meal_date_str = meal_slot.get('date', '2025-11-08')  # Default to Nov 8 if not specified
-                from datetime import datetime
-                meal_date = datetime.strptime(meal_date_str, '%Y-%m-%d')
-                day_of_week = meal_date.weekday()
+        for meal_slot in meal_slots:
+            proposal = get_meal_proposal(meal_slot['id'])
 
-                # Smart filtering
-                meal_appropriate_restaurants = []
-                for category_name, items in restaurants_dict.items():
-                    for restaurant in items:
-                        rest_name = restaurant['name']
-                        rest_details = restaurant_details.get(rest_name, {})
-                        serves_list = rest_details.get('serves', [])
-                        days_open = rest_details.get('days_open', [0,1,2,3,4,5,6])
+            if proposal and proposal['status'] == 'proposed':
+                has_proposals = True
+                st.markdown(f"#### {meal_slot['label']}")
+                st.markdown("**Michael proposed these 3 options. Which works for you?**")
 
-                        if meal_type in serves_list and day_of_week in days_open:
-                            meal_appropriate_restaurants.append(restaurant)
+                options = proposal['restaurant_options']
 
-                # Initialize John's selection state
-                john_selection_key = f"john_alternative_{meal_slot['id']}"
-                if john_selection_key not in st.session_state:
-                    st.session_state[john_selection_key] = []
+                # Display options
+                for idx, restaurant in enumerate(options):
+                    rest_details = restaurant_details.get(restaurant['name'], {})
+                    st.markdown(f"""
+                    <div class="ultimate-card">
+                        <div class="card-body">
+                            <h4 style="margin: 0 0 0.5rem 0;">Option {idx + 1}: {restaurant['name']}</h4>
+                            <p style="margin: 0.25rem 0;"><strong>📝 Description:</strong> {restaurant.get('description', 'N/A')}</p>
+                            <p style="margin: 0.25rem 0;"><strong>💰 Cost:</strong> {restaurant.get('cost_range', 'N/A')}</p>
+                            <p style="margin: 0.25rem 0;"><strong>👔 Dress Code:</strong> {rest_details.get('dress_code', 'Casual')}</p>
+                            <p style="margin: 0.25rem 0;"><strong>📞 Phone:</strong> {restaurant.get('phone', 'N/A')}</p>
+                            <p style="margin: 0.25rem 0;"><strong>🔗 Menu/Website:</strong> {rest_details.get('menu_url', 'N/A')}</p>
+                            <p style="margin: 0.25rem 0;"><strong>💡 Tip:</strong> {restaurant.get('tips', 'N/A')}</p>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
 
-                st.markdown(f"**Selected: {len(st.session_state[john_selection_key])}/3**")
+                # Voting buttons
+                st.markdown("**Cast Your Vote:**")
+                col1, col2, col3, col4 = st.columns(4)
 
-                # Show available restaurants
-                cols = st.columns(3)
-                for idx, restaurant in enumerate(meal_appropriate_restaurants):
-                    col = cols[idx % 3]
-                    is_selected = restaurant['name'] in st.session_state[john_selection_key]
-                    rest_details_local = restaurant_details.get(restaurant['name'], {})
+                with col1:
+                    if st.button(f"✅ Option 1", key=f"vote_{meal_slot['id']}_0", use_container_width=True, type="primary"):
+                        save_john_meal_vote(meal_slot['id'], "0")
+                        st.success("Vote recorded!")
+                        st.rerun()
 
-                    with col:
-                        import html
-                        safe_name = html.escape(restaurant['name'])
-                        safe_desc = html.escape(restaurant.get('description', 'Great dining option'))
-                        safe_cost = html.escape(restaurant.get('cost_range', 'N/A'))
+                with col2:
+                    if st.button(f"✅ Option 2", key=f"vote_{meal_slot['id']}_1", use_container_width=True, type="primary"):
+                        save_john_meal_vote(meal_slot['id'], "1")
+                        st.success("Vote recorded!")
+                        st.rerun()
 
-                        border_color = "#4caf50" if is_selected else "#ddd"
-                        st.markdown(f"""
+                with col3:
+                    if st.button(f"✅ Option 3", key=f"vote_{meal_slot['id']}_2", use_container_width=True, type="primary"):
+                        save_john_meal_vote(meal_slot['id'], "2")
+                        st.success("Vote recorded!")
+                        st.rerun()
+
+                with col4:
+                    if st.button(f"❌ None Work", key=f"vote_{meal_slot['id']}_none", use_container_width=True):
+                        save_john_meal_vote(meal_slot['id'], "none")
+                        st.info("Michael will pick new options.")
+                        st.rerun()
+
+                # John can propose alternatives
+                with st.expander("💡 **Don't like these options? Suggest 3 alternatives!**"):
+                    st.markdown("**Browse all available restaurants and pick 3 you'd prefer:**")
+
+                    # Get meal type
+                    meal_type = "breakfast" if "breakfast" in meal_slot['label'].lower() else ("lunch" if "lunch" in meal_slot['label'].lower() else "dinner")
+
+                    # Get available restaurants (same filtering logic as Michael's side)
+                    restaurants_dict = get_optional_activities()
+                    meal_date_str = meal_slot.get('date', '2025-11-08')  # Default to Nov 8 if not specified
+                    from datetime import datetime
+                    meal_date = datetime.strptime(meal_date_str, '%Y-%m-%d')
+                    day_of_week = meal_date.weekday()
+
+                    # Smart filtering
+                    meal_appropriate_restaurants = []
+                    for category_name, items in restaurants_dict.items():
+                        for restaurant in items:
+                            rest_name = restaurant['name']
+                            rest_details = restaurant_details.get(rest_name, {})
+                            serves_list = rest_details.get('serves', [])
+                            days_open = rest_details.get('days_open', [0,1,2,3,4,5,6])
+
+                            if meal_type in serves_list and day_of_week in days_open:
+                                meal_appropriate_restaurants.append(restaurant)
+
+                    # Initialize John's selection state
+                    john_selection_key = f"john_alternative_{meal_slot['id']}"
+                    if john_selection_key not in st.session_state:
+                        st.session_state[john_selection_key] = []
+
+                    st.markdown(f"**Selected: {len(st.session_state[john_selection_key])}/3**")
+
+                    # Show available restaurants
+                    cols = st.columns(3)
+                    for idx, restaurant in enumerate(meal_appropriate_restaurants):
+                        col = cols[idx % 3]
+                        is_selected = restaurant['name'] in st.session_state[john_selection_key]
+                        rest_details_local = restaurant_details.get(restaurant['name'], {})
+
+                        with col:
+                            import html
+                            safe_name = html.escape(restaurant['name'])
+                            safe_desc = html.escape(restaurant.get('description', 'Great dining option'))
+                            safe_cost = html.escape(restaurant.get('cost_range', 'N/A'))
+
+                            border_color = "#4caf50" if is_selected else "#ddd"
+                            st.markdown(f"""
 <div class="ultimate-card" style="border-left: 4px solid {border_color}; min-height: 150px;">
 <div class="card-body">
 <h4 style="margin: 0 0 0.5rem 0; font-size: 0.95rem;">{'✅ ' if is_selected else ''}{safe_name}</h4>
@@ -7731,163 +7736,163 @@ def render_johns_page(df, activities_data, show_sensitive):
 </div>
 """, unsafe_allow_html=True)
 
-                        # Toggle button
-                        if is_selected:
-                            if st.button(f"Remove", key=f"john_remove_{meal_slot['id']}_{idx}", use_container_width=True):
-                                st.session_state[john_selection_key].remove(restaurant['name'])
-                                st.rerun()
-                        else:
-                            if len(st.session_state[john_selection_key]) < 3:
-                                if st.button(f"Select", key=f"john_select_{meal_slot['id']}_{idx}", use_container_width=True):
-                                    st.session_state[john_selection_key].append(restaurant['name'])
+                            # Toggle button
+                            if is_selected:
+                                if st.button(f"Remove", key=f"john_remove_{meal_slot['id']}_{idx}", use_container_width=True):
+                                    st.session_state[john_selection_key].remove(restaurant['name'])
                                     st.rerun()
                             else:
-                                st.button(f"Max 3", key=f"john_disabled_{meal_slot['id']}_{idx}", use_container_width=True, disabled=True)
+                                if len(st.session_state[john_selection_key]) < 3:
+                                    if st.button(f"Select", key=f"john_select_{meal_slot['id']}_{idx}", use_container_width=True):
+                                        st.session_state[john_selection_key].append(restaurant['name'])
+                                        st.rerun()
+                                else:
+                                    st.button(f"Max 3", key=f"john_disabled_{meal_slot['id']}_{idx}", use_container_width=True, disabled=True)
 
-                # Send counter-proposal button
-                if len(st.session_state[john_selection_key]) == 3:
-                    st.markdown("---")
-                    if st.button(f"✅ Send My 3 Alternatives to Michael", key=f"john_counter_{meal_slot['id']}", type="primary", use_container_width=True):
-                        # Get full restaurant data
-                        selected_restaurants = []
-                        all_restaurants = []
-                        for category_name, items in restaurants_dict.items():
-                            all_restaurants.extend(items)
+                    # Send counter-proposal button
+                    if len(st.session_state[john_selection_key]) == 3:
+                        st.markdown("---")
+                        if st.button(f"✅ Send My 3 Alternatives to Michael", key=f"john_counter_{meal_slot['id']}", type="primary", use_container_width=True):
+                            # Get full restaurant data
+                            selected_restaurants = []
+                            all_restaurants = []
+                            for category_name, items in restaurants_dict.items():
+                                all_restaurants.extend(items)
 
-                        for name in st.session_state[john_selection_key]:
-                            rest = next((r for r in all_restaurants if r['name'] == name), None)
-                            if rest:
-                                selected_restaurants.append(rest)
+                            for name in st.session_state[john_selection_key]:
+                                rest = next((r for r in all_restaurants if r['name'] == name), None)
+                                if rest:
+                                    selected_restaurants.append(rest)
 
-                        if len(selected_restaurants) == 3:
-                            # Save as a new proposal from John (replace Michael's)
-                            save_meal_proposal(meal_slot['id'], selected_restaurants)
-                            # Clear selection
-                            st.session_state[john_selection_key] = []
-                            st.success("Counter-proposal sent to Michael! He can now vote on your 3 choices.")
-                            st.rerun()
+                            if len(selected_restaurants) == 3:
+                                # Save as a new proposal from John (replace Michael's)
+                                save_meal_proposal(meal_slot['id'], selected_restaurants)
+                                # Clear selection
+                                st.session_state[john_selection_key] = []
+                                st.success("Counter-proposal sent to Michael! He can now vote on your 3 choices.")
+                                st.rerun()
 
-            st.markdown("---")
+                st.markdown("---")
 
-        elif proposal and proposal['status'] == 'voted':
-            # Already voted
-            st.success(f"✅ **{meal_slot['label']}** - You voted! Waiting for Michael to confirm.")
+            elif proposal and proposal['status'] == 'voted':
+                # Already voted
+                st.success(f"✅ **{meal_slot['label']}** - You voted! Waiting for Michael to confirm.")
 
-        elif proposal and proposal['status'] == 'confirmed':
-            # Confirmed
-            final_idx = proposal.get('final_choice')
-            if final_idx is not None:
-                final_restaurant = proposal['restaurant_options'][final_idx]
-                st.success(f"✅ **{meal_slot['label']}** - Confirmed: {final_restaurant['name']}")
+            elif proposal and proposal['status'] == 'confirmed':
+                # Confirmed
+                final_idx = proposal.get('final_choice')
+                if final_idx is not None:
+                    final_restaurant = proposal['restaurant_options'][final_idx]
+                    st.success(f"✅ **{meal_slot['label']}** - Confirmed: {final_restaurant['name']}")
 
-    if not has_proposals:
-        st.info("👀 No meal proposals yet. Michael will add options soon!")
+            if not has_proposals:
+                st.info("👀 No meal proposals yet. Michael will add options soon!")
 
-    # ============ ACTIVITY VOTING SECTION ============
-    st.markdown("---")
-    st.markdown("### 🎯 Vote on Activity Options")
+    with tab4:
+        # ============ ACTIVITY VOTING SECTION ============
+        st.markdown("### 🎯 Vote on Activity Options")
 
-    st.markdown("""
-    <div class="info-box" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
-        <h4 style="margin: 0; color: white;">🎯 Your Input Needed!</h4>
-        <p style="margin: 0.5rem 0 0 0; opacity: 0.95;">Michael has proposed activity options. Vote on which ones work for you!</p>
-    </div>
-    """, unsafe_allow_html=True)
+        st.markdown("""
+        <div class="info-box" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+            <h4 style="margin: 0; color: white;">🎯 Your Input Needed!</h4>
+            <p style="margin: 0.5rem 0 0 0; opacity: 0.95;">Michael has proposed activity options. Vote on which ones work for you!</p>
+        </div>
+        """, unsafe_allow_html=True)
 
-    # Get all activity proposals
-    activity_slots = [
-        {"id": "sat_afternoon", "label": "Saturday Afternoon (Nov 8)"},
-        {"id": "sat_evening", "label": "Saturday Evening (Nov 8)"},
-        {"id": "sun_afternoon", "label": "Sunday Afternoon (Nov 9)"},
-        {"id": "sun_evening", "label": "Sunday Evening (Nov 9)"},
-        {"id": "mon_morning", "label": "Monday Morning (Nov 10)"},
-        {"id": "mon_afternoon", "label": "Monday Afternoon (Nov 10)"},
-        {"id": "mon_evening", "label": "Monday Evening (Nov 10)"},
-    ]
+        # Get all activity proposals
+        activity_slots = [
+            {"id": "sat_afternoon", "label": "Saturday Afternoon (Nov 8)"},
+            {"id": "sat_evening", "label": "Saturday Evening (Nov 8)"},
+            {"id": "sun_afternoon", "label": "Sunday Afternoon (Nov 9)"},
+            {"id": "sun_evening", "label": "Sunday Evening (Nov 9)"},
+            {"id": "mon_morning", "label": "Monday Morning (Nov 10)"},
+            {"id": "mon_afternoon", "label": "Monday Afternoon (Nov 10)"},
+            {"id": "mon_evening", "label": "Monday Evening (Nov 10)"},
+        ]
 
-    has_activity_proposals = False
+        has_activity_proposals = False
 
-    for activity_slot in activity_slots:
-        proposal = get_activity_proposal(activity_slot['id'])
+        for activity_slot in activity_slots:
+            proposal = get_activity_proposal(activity_slot['id'])
 
-        if proposal and proposal['status'] == 'proposed':
-            has_activity_proposals = True
-            st.markdown(f"#### {activity_slot['label']}")
-            st.markdown("**Michael proposed these 3 options. Which works for you?**")
+            if proposal and proposal['status'] == 'proposed':
+                has_activity_proposals = True
+                st.markdown(f"#### {activity_slot['label']}")
+                st.markdown("**Michael proposed these 3 options. Which works for you?**")
 
-            options = proposal['activity_options']
+                options = proposal['activity_options']
 
-            # Display options
-            for idx, activity in enumerate(options):
-                st.markdown(f"""
-                <div class="ultimate-card">
-                    <div class="card-body">
-                        <h4 style="margin: 0 0 0.5rem 0;">Option {idx + 1}: {activity['name']}</h4>
-                        <p style="margin: 0.25rem 0;"><strong>📝 Description:</strong> {activity.get('description', 'N/A')[:120]}...</p>
-                        <p style="margin: 0.25rem 0;"><strong>💰 Cost:</strong> {activity.get('cost_range', 'N/A')}</p>
-                        <p style="margin: 0.25rem 0;"><strong>⏰ Duration:</strong> {activity.get('duration', 'N/A')}</p>
+                # Display options
+                for idx, activity in enumerate(options):
+                    st.markdown(f"""
+                    <div class="ultimate-card">
+                        <div class="card-body">
+                            <h4 style="margin: 0 0 0.5rem 0;">Option {idx + 1}: {activity['name']}</h4>
+                            <p style="margin: 0.25rem 0;"><strong>📝 Description:</strong> {activity.get('description', 'N/A')[:120]}...</p>
+                            <p style="margin: 0.25rem 0;"><strong>💰 Cost:</strong> {activity.get('cost_range', 'N/A')}</p>
+                            <p style="margin: 0.25rem 0;"><strong>⏰ Duration:</strong> {activity.get('duration', 'N/A')}</p>
+                        </div>
                     </div>
-                </div>
-                """, unsafe_allow_html=True)
+                    """, unsafe_allow_html=True)
 
-            # Voting buttons
-            st.markdown("**Cast Your Vote:**")
-            col1, col2, col3, col4 = st.columns(4)
+                # Voting buttons
+                st.markdown("**Cast Your Vote:**")
+                col1, col2, col3, col4 = st.columns(4)
 
-            with col1:
-                if st.button(f"✅ Option 1", key=f"vote_activity_{activity_slot['id']}_0", use_container_width=True, type="primary"):
-                    save_john_activity_vote(activity_slot['id'], "0")
-                    st.success("Vote recorded!")
-                    st.rerun()
+                with col1:
+                    if st.button(f"✅ Option 1", key=f"vote_activity_{activity_slot['id']}_0", use_container_width=True, type="primary"):
+                        save_john_activity_vote(activity_slot['id'], "0")
+                        st.success("Vote recorded!")
+                        st.rerun()
 
-            with col2:
-                if st.button(f"✅ Option 2", key=f"vote_activity_{activity_slot['id']}_1", use_container_width=True, type="primary"):
-                    save_john_activity_vote(activity_slot['id'], "1")
-                    st.success("Vote recorded!")
-                    st.rerun()
+                with col2:
+                    if st.button(f"✅ Option 2", key=f"vote_activity_{activity_slot['id']}_1", use_container_width=True, type="primary"):
+                        save_john_activity_vote(activity_slot['id'], "1")
+                        st.success("Vote recorded!")
+                        st.rerun()
 
-            with col3:
-                if st.button(f"✅ Option 3", key=f"vote_activity_{activity_slot['id']}_2", use_container_width=True, type="primary"):
-                    save_john_activity_vote(activity_slot['id'], "2")
-                    st.success("Vote recorded!")
-                    st.rerun()
+                with col3:
+                    if st.button(f"✅ Option 3", key=f"vote_activity_{activity_slot['id']}_2", use_container_width=True, type="primary"):
+                        save_john_activity_vote(activity_slot['id'], "2")
+                        st.success("Vote recorded!")
+                        st.rerun()
 
-            with col4:
-                if st.button(f"❌ None Work", key=f"vote_activity_{activity_slot['id']}_none", use_container_width=True):
-                    save_john_activity_vote(activity_slot['id'], "none")
-                    st.info("Michael will pick new options.")
-                    st.rerun()
+                with col4:
+                    if st.button(f"❌ None Work", key=f"vote_activity_{activity_slot['id']}_none", use_container_width=True):
+                        save_john_activity_vote(activity_slot['id'], "none")
+                        st.info("Michael will pick new options.")
+                        st.rerun()
 
-            st.markdown("---")
+                st.markdown("---")
 
-        elif proposal and proposal['status'] == 'voted':
-            # Already voted
-            st.success(f"✅ **{activity_slot['label']}** - You voted! Waiting for Michael to confirm.")
+            elif proposal and proposal['status'] == 'voted':
+                # Already voted
+                st.success(f"✅ **{activity_slot['label']}** - You voted! Waiting for Michael to confirm.")
 
-        elif proposal and proposal['status'] == 'confirmed':
-            # Confirmed
-            final_idx = proposal.get('final_choice')
-            if final_idx is not None and final_idx < len(proposal['activity_options']):
-                final_activity = proposal['activity_options'][final_idx]
-                st.success(f"✅ **{activity_slot['label']}** - Confirmed: {final_activity['name']}")
+            elif proposal and proposal['status'] == 'confirmed':
+                # Confirmed
+                final_idx = proposal.get('final_choice')
+                if final_idx is not None and final_idx < len(proposal['activity_options']):
+                    final_activity = proposal['activity_options'][final_idx]
+                    st.success(f"✅ **{activity_slot['label']}** - Confirmed: {final_activity['name']}")
 
-    if not has_activity_proposals:
-        st.info("👀 No activity proposals yet. Michael will add options soon!")
+        if not has_activity_proposals:
+            st.info("👀 No activity proposals yet. Michael will add options soon!")
 
-    # Final tips
-    st.markdown("---")
-    st.markdown("""
-    <div class="info-box info-success">
-        <h4 style="margin: 0 0 0.5rem 0;">✨ Tips for a Great Trip</h4>
-        <ul style="margin: 0;">
-            <li>Download the American Airlines app for mobile boarding pass</li>
-            <li>Bring a refillable water bottle - stay hydrated in the sun</li>
-            <li>The resort is walkable - comfortable shoes recommended</li>
-            <li>Try the Salt restaurant for breakfast - amazing ocean views!</li>
-            <li>Sunset at the beach is spectacular - bring your camera around 6 PM</li>
-        </ul>
-    </div>
-    """, unsafe_allow_html=True)
+        # Final tips
+        st.markdown("---")
+        st.markdown("""
+        <div class="info-box info-success">
+            <h4 style="margin: 0 0 0.5rem 0;">✨ Tips for a Great Trip</h4>
+            <ul style="margin: 0;">
+                <li>Download the American Airlines app for mobile boarding pass</li>
+                <li>Bring a refillable water bottle - stay hydrated in the sun</li>
+                <li>The resort is walkable - comfortable shoes recommended</li>
+                <li>Try the Salt restaurant for breakfast - amazing ocean views!</li>
+                <li>Sunset at the beach is spectacular - bring your camera around 6 PM</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
 
 
 def render_birthday_page():
