@@ -1622,50 +1622,52 @@ def get_smart_packing_list():
     }
 
 def get_restaurant_details():
-    """Get enhanced restaurant details including dress code, menu URLs, etc.
+    """Get enhanced restaurant details including dress code, menu URLs, operating hours, etc.
 
     Returns a dict mapping restaurant name to additional details
+    Days: 0=Mon, 1=Tue, 2=Wed, 3=Thu, 4=Fri, 5=Sat, 6=Sun
+    serves: list of meal types (breakfast, lunch, dinner)
     """
     return {
-        "Le Clos": {"dress_code": "Business Casual", "menu_url": "N/A"},
-        "Espana Restaurant & Tapas": {"dress_code": "Casual", "menu_url": "N/A"},
-        "Burlingame": {"dress_code": "Smart Casual", "menu_url": "N/A"},
-        "Lagniappe": {"dress_code": "Smart Casual", "menu_url": "N/A"},
-        "Cucina South": {"dress_code": "Business Casual", "menu_url": "N/A"},
-        "Brett's Waterway Cafe": {"dress_code": "Casual", "menu_url": "N/A"},
-        "Salty Pelican Bar & Grill": {"dress_code": "Casual", "menu_url": "https://saltypelican.com"},
-        "Sandbar": {"dress_code": "Resort Casual", "menu_url": "https://sandbaramelia.com"},
-        "The Boat House": {"dress_code": "Casual", "menu_url": "https://boathouseamelia.com"},
-        "Down Under": {"dress_code": "Very Casual", "menu_url": "N/A"},
-        "Timoti's Seafood Shak": {"dress_code": "Very Casual", "menu_url": "https://timotis.com"},
-        "Salt Life Food Shack": {"dress_code": "Casual", "menu_url": "https://www.saltlifefoodshack.com"},
-        "Ciao Italian Eatery": {"dress_code": "Casual", "menu_url": "https://ciaoitalianeats.com"},
-        "Arte Pizza": {"dress_code": "Very Casual", "menu_url": "https://artepizzabar.com"},
-        "Mezcal Spirit of Oaxaca": {"dress_code": "Casual", "menu_url": "N/A"},
-        "Tortuga Jacks": {"dress_code": "Very Casual", "menu_url": "N/A"},
-        "Wicked Bao": {"dress_code": "Casual", "menu_url": "N/A"},
-        "Akari Sushi": {"dress_code": "Casual", "menu_url": "N/A"},
-        "Hana Sushi": {"dress_code": "Casual", "menu_url": "N/A"},
-        "29 South": {"dress_code": "Smart Casual", "menu_url": "N/A"},
-        "Beach Diner": {"dress_code": "Very Casual", "menu_url": "N/A"},
-        "Sliders Seaside Grill": {"dress_code": "Beachwear/Casual", "menu_url": "N/A"},
-        "Fantastic Fudge": {"dress_code": "Any", "menu_url": "N/A"},
-        "Café Karibo": {"dress_code": "Casual", "menu_url": "N/A"},
-        "Amelia Island Coffee": {"dress_code": "Any", "menu_url": "N/A"},
-        "First Drop Coffee": {"dress_code": "Resort Casual", "menu_url": "N/A"},
-        "Mocama Coffee": {"dress_code": "Casual", "menu_url": "N/A"},
-        "Hola Cuban Cafe": {"dress_code": "Casual", "menu_url": "N/A"},
-        "Nana Teresa's Bake Shop": {"dress_code": "Any", "menu_url": "N/A"},
-        "Aloha Bagel and Deli": {"dress_code": "Casual", "menu_url": "https://aloha-bagel.com"},
-        "4th Street Deli": {"dress_code": "Casual", "menu_url": "N/A"},
-        "Salt (AAA Five Diamond)": {"dress_code": "Resort Elegant (jackets optional, no shorts/flip-flops)", "menu_url": "https://www.ritzcarlton.com/en/hotels/jaxab-the-ritz-carlton-amelia-island/dining"},
-        "Coast": {"dress_code": "Resort Casual", "menu_url": "https://www.ritzcarlton.com/en/hotels/jaxab-the-ritz-carlton-amelia-island/dining"},
-        "Coquina": {"dress_code": "Beachwear/Casual", "menu_url": "N/A"},
-        "Tidewater Grill": {"dress_code": "Resort Casual", "menu_url": "N/A"},
-        "Lobby Bar": {"dress_code": "Resort Casual", "menu_url": "N/A"},
-        "Dune Bar": {"dress_code": "Beachwear/Casual", "menu_url": "N/A"},
-        "Pogo's": {"dress_code": "Casual", "menu_url": "N/A"},
-        "David's Restaurant & Lounge": {"dress_code": "Business Casual (no shorts/flip-flops)", "menu_url": "N/A"},
+        "Le Clos": {"dress_code": "Business Casual", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
+        "Espana Restaurant & Tapas": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
+        "Burlingame": {"dress_code": "Smart Casual", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
+        "Lagniappe": {"dress_code": "Smart Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
+        "Cucina South": {"dress_code": "Business Casual", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
+        "Brett's Waterway Cafe": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
+        "Salty Pelican Bar & Grill": {"dress_code": "Casual", "menu_url": "https://saltypelican.com", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
+        "Sandbar": {"dress_code": "Resort Casual", "menu_url": "https://sandbaramelia.com", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
+        "The Boat House": {"dress_code": "Casual", "menu_url": "https://boathouseamelia.com", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
+        "Down Under": {"dress_code": "Very Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
+        "Timoti's Seafood Shak": {"dress_code": "Very Casual", "menu_url": "https://timotis.com", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
+        "Salt Life Food Shack": {"dress_code": "Casual", "menu_url": "https://www.saltlifefoodshack.com", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
+        "Ciao Italian Eatery": {"dress_code": "Casual", "menu_url": "https://ciaoitalianeats.com", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
+        "Arte Pizza": {"dress_code": "Very Casual", "menu_url": "https://artepizzabar.com", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
+        "Mezcal Spirit of Oaxaca": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
+        "Tortuga Jacks": {"dress_code": "Very Casual", "menu_url": "N/A", "serves": ["breakfast"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
+        "Wicked Bao": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
+        "Akari Sushi": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
+        "Hana Sushi": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
+        "29 South": {"dress_code": "Smart Casual", "menu_url": "N/A", "serves": ["breakfast", "lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
+        "Beach Diner": {"dress_code": "Very Casual", "menu_url": "N/A", "serves": ["breakfast", "lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
+        "Sliders Seaside Grill": {"dress_code": "Beachwear/Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
+        "Fantastic Fudge": {"dress_code": "Any", "menu_url": "N/A", "serves": ["breakfast", "lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
+        "Café Karibo": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["breakfast", "lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
+        "Amelia Island Coffee": {"dress_code": "Any", "menu_url": "N/A", "serves": ["breakfast"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
+        "First Drop Coffee": {"dress_code": "Resort Casual", "menu_url": "N/A", "serves": ["breakfast"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
+        "Mocama Coffee": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["breakfast"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
+        "Hola Cuban Cafe": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["breakfast", "lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
+        "Nana Teresa's Bake Shop": {"dress_code": "Any", "menu_url": "N/A", "serves": ["breakfast"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
+        "Aloha Bagel and Deli": {"dress_code": "Casual", "menu_url": "https://aloha-bagel.com", "serves": ["breakfast", "lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
+        "4th Street Deli": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch"], "days_open": [0,1,2,3,4,5], "outdoor_seating": False},  # Closed Sundays
+        "Salt (AAA Five Diamond)": {"dress_code": "Resort Elegant (jackets optional, no shorts/flip-flops)", "menu_url": "https://www.ritzcarlton.com/en/hotels/jaxab-the-ritz-carlton-amelia-island/dining", "serves": ["dinner"], "days_open": [1,2,3,4,5], "outdoor_seating": False},  # Tue-Sat only
+        "Coast": {"dress_code": "Resort Casual", "menu_url": "https://www.ritzcarlton.com/en/hotels/jaxab-the-ritz-carlton-amelia-island/dining", "serves": ["breakfast", "lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
+        "Coquina": {"dress_code": "Beachwear/Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
+        "Tidewater Grill": {"dress_code": "Resort Casual", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
+        "Lobby Bar": {"dress_code": "Resort Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
+        "Dune Bar": {"dress_code": "Beachwear/Casual", "menu_url": "N/A", "serves": ["lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
+        "Pogo's": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
+        "David's Restaurant & Lounge": {"dress_code": "Business Casual (no shorts/flip-flops)", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
     }
 
 def get_optional_activities():
@@ -5872,6 +5874,15 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
     </div>
     """, unsafe_allow_html=True)
 
+    # Weather context for outdoor dining
+    st.markdown("""
+    <div class="info-box" style="background: linear-gradient(135deg, #56ccf2 0%, #2f80ed 100%); color: white; margin-bottom: 1rem;">
+        <h4 style="margin: 0; color: white;">🌤️ November Weather</h4>
+        <p style="margin: 0.5rem 0 0 0; opacity: 0.95;">Average: 75°F • Partly cloudy • Low humidity</p>
+        <p style="margin: 0.3rem 0 0 0; opacity: 0.9; font-size: 0.9rem;">Perfect for outdoor dining! Restaurants with 🌤️ have outdoor seating options.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
     st.markdown("""
     <div class="info-box" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
         <h4 style="margin: 0; color: white;">🎯 Coordinate Meals with John</h4>
@@ -6036,33 +6047,33 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             with st.expander(f"📝 **Propose 3 Options for {meal_slot['label']}**", expanded=True):
                 st.markdown("**Select 3 restaurants to propose to John:**")
                 meal_type = "breakfast" if "breakfast" in meal_slot['label'].lower() else ("lunch" if "lunch" in meal_slot['label'].lower() else "dinner")
-                st.info(f"💡 Showing {meal_type}-appropriate restaurants only. Click on each card to select. Duplicates and already-booked restaurants are filtered out.")
+
+                # Parse date to get day of week (0=Mon, 6=Sun)
+                from datetime import datetime
+                meal_date = datetime.strptime(meal_slot['date'], '%Y-%m-%d')
+                day_of_week = meal_date.weekday()
+                day_names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
+                st.info(f"💡 Showing {meal_type} options open on {day_names[day_of_week]}. Filters: serves {meal_type}, open that day, not already booked.")
 
                 # Get already-used restaurants
                 used_restaurants = get_used_restaurants()
 
-                # Define appropriate restaurant categories for each meal type
-                breakfast_categories = ['🥞 Breakfast & Brunch', '☕ Coffee & Cafes', '🥖 Delis & Lunch Spots']
-                lunch_categories = ['🦞 Seafood & Waterfront', '🍕 Italian & Pizza', '🌮 Mexican & Latin',
-                                   '🍜 Asian Cuisine', '🍔 Casual & Comfort Food', '🥖 Delis & Lunch Spots',
-                                   '🏨 Ritz-Carlton Dining']  # Some Ritz options good for lunch
-                dinner_categories = ['🍽️ Fine Dining', '🦞 Seafood & Waterfront', '🍕 Italian & Pizza',
-                                    '🌮 Mexican & Latin', '🍜 Asian Cuisine', '🏨 Ritz-Carlton Dining']
-
-                # Filter restaurants based on meal type and categories
+                # Smart filtering based on restaurant operating data
                 meal_appropriate_restaurants = []
-                if meal_type == "breakfast":
-                    for category_name, items in restaurants_dict.items():
-                        if any(cat in category_name for cat in breakfast_categories):
-                            meal_appropriate_restaurants.extend(items)
-                elif meal_type == "lunch":
-                    for category_name, items in restaurants_dict.items():
-                        if any(cat in category_name for cat in lunch_categories):
-                            meal_appropriate_restaurants.extend(items)
-                else:  # dinner
-                    for category_name, items in restaurants_dict.items():
-                        if any(cat in category_name for cat in dinner_categories):
-                            meal_appropriate_restaurants.extend(items)
+                for category_name, items in restaurants_dict.items():
+                    for restaurant in items:
+                        rest_name = restaurant['name']
+                        rest_details = restaurant_details.get(rest_name, {})
+
+                        # Check if restaurant serves this meal type
+                        serves_list = rest_details.get('serves', [])
+                        # Check if restaurant is open on this day
+                        days_open = rest_details.get('days_open', [0,1,2,3,4,5,6])
+
+                        # Only include if: serves the meal AND open on that day
+                        if meal_type in serves_list and day_of_week in days_open:
+                            meal_appropriate_restaurants.append(restaurant)
 
                 # Filter out used restaurants
                 available_restaurants = [r for r in meal_appropriate_restaurants if r['name'] not in used_restaurants]
@@ -6092,6 +6103,10 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                             safe_cost = html.escape(restaurant.get('cost_range', 'N/A'))
                             safe_dress = html.escape(rest_details.get('dress_code', 'Casual'))
 
+                            # Check for outdoor seating
+                            has_outdoor = rest_details.get('outdoor_seating', False)
+                            outdoor_icon = "🌤️ Outdoor seating" if has_outdoor else ""
+
                             border_color = "#4caf50" if is_selected else "#ddd"
                             st.markdown(f"""
 <div class="ultimate-card" style="border-left: 4px solid {border_color}; min-height: 200px;">
@@ -6100,6 +6115,7 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
 <p style="margin: 0.5rem 0; font-size: 0.9rem; color: #666;">{safe_desc}</p>
 <p style="margin: 0.5rem 0;"><strong>💰</strong> {safe_cost}</p>
 <p style="margin: 0.5rem 0;"><strong>👔</strong> {safe_dress}</p>
+{f'<p style="margin: 0.5rem 0; font-size: 0.85rem; color: #2196f3;">{outdoor_icon}</p>' if has_outdoor else ''}
 </div>
 </div>
 """, unsafe_allow_html=True)
