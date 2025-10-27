@@ -1,47 +1,5 @@
 {
-  "meal_proposals": {
-    "sat_lunch": {
-      "meal_id": "sat_lunch",
-      "restaurant_options": [
-        {
-          "name": "Brett's Waterway Cafe",
-          "description": "Waterfront dining with marina views, fresh catch daily. \u2705 NON-SEAFOOD: Steaks, chicken, burgers available",
-          "cost_range": "$20-40 per person",
-          "duration": "1.5-2 hours",
-          "phone": "904-261-2660",
-          "booking_url": "https://www.opentable.com/r/bretts-waterway-cafe-fernandina-beach",
-          "tips": "Amazing sunset views. Has steaks, chicken, and burgers for non-seafood eaters!",
-          "rating": "4.7/5"
-        },
-        {
-          "name": "Salty Pelican Bar & Grill",
-          "description": "Heart of downtown waterfront, blackened grouper tacos, fresh oysters, fried tuna. \u2705 NON-SEAFOOD: Burgers, chicken sandwiches, steaks",
-          "cost_range": "$18-35 per person",
-          "duration": "1-2 hours",
-          "phone": "904-277-3811",
-          "booking_url": "https://saltypelican.com",
-          "tips": "Best place to catch sunset over the river. Full bar & grill menu with chicken, burgers, steaks!",
-          "rating": "4.6/5"
-        },
-        {
-          "name": "Beach Diner",
-          "description": "Family owned unique breakfast & lunch, Chocolate Chip Pancakes, Shrimp & Crab Omelette, Fish & Grits",
-          "cost_range": "$10-20 per person",
-          "duration": "1-1.5 hours",
-          "phone": "904-261-3663",
-          "booking_url": "N/A",
-          "tips": "Popular local spot, expect a wait on weekends",
-          "rating": "4.6/5"
-        }
-      ],
-      "status": "proposed",
-      "john_vote": null,
-      "final_choice": null,
-      "meal_time": null,
-      "created_at": "2025-10-27T17:11:29.241542",
-      "updated_at": "2025-10-27T17:11:29.241554"
-    }
-  },
+  "meal_proposals": {},
   "activity_proposals": {},
   "john_preferences": {
     "avoid_seafood_focused": "false",
@@ -54,5 +12,5 @@
   "completed_activities": [],
   "notifications": [],
   "tsa_updates": [],
-  "last_updated": "2025-10-27T17:11:29.241564"
+  "last_updated": "2025-10-27T18:02:43.774697"
 }
