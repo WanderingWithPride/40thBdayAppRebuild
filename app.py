@@ -5897,7 +5897,7 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
     # Flatten all restaurant options
     all_restaurants = []
     for category_name, items in restaurants_dict.items():
-        if any(word in category_name.lower() for word in ['dining', 'fine dining', 'seafood', 'italian', 'mexican', 'asian', 'breakfast', 'casual', 'coffee', 'ritz-carlton dining', 'bars']):
+        if any(word in category_name.lower() for word in ['dining', 'fine dining', 'seafood', 'italian', 'mexican', 'asian', 'breakfast', 'casual', 'coffee', 'ritz-carlton dining', 'bars', 'deli', 'lunch']):
             all_restaurants.extend(items)
 
     # Define meal slots - ONLY for days when John is there (Nov 8-11)
