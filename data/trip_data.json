@@ -340,6 +340,50 @@
       "submitted_by": "Michael",
       "created_at": "2025-10-27T22:37:03.547428",
       "updated_at": "2025-10-27T22:37:03.547438"
+    },
+    "sun_afternoon": {
+      "activity_slot_id": "sun_afternoon",
+      "activity_options": [
+        {
+          "name": "Private Beach Cabanas",
+          "description": "Reserve private poolside or beachside cabanas for ultimate luxury",
+          "cost_range": "Varies (call for pricing)",
+          "duration": "Half day or full day",
+          "phone": "904-277-1100",
+          "booking_url": "N/A",
+          "tips": "Book early - these go fast! Includes shade, seating, and service",
+          "rating": "5.0/5"
+        },
+        {
+          "name": "Historic Carriage Tour",
+          "description": "Romantic horse-drawn carriage ride through Victorian historic district",
+          "cost_range": "$60-80 per couple",
+          "duration": "45-60 minutes",
+          "phone": "904-556-7594",
+          "booking_url": "N/A",
+          "tips": "Perfect for special occasions, sunset tours available",
+          "rating": "4.8/5"
+        },
+        {
+          "name": "1.5 Miles Private Beach Access",
+          "description": "Exclusive access to pristine private beaches with summer service",
+          "cost_range": "FREE (hotel guests)",
+          "duration": "All day",
+          "phone": "N/A",
+          "booking_url": "N/A",
+          "tips": "Beach chairs and umbrellas provided in summer season",
+          "rating": "5.0/5",
+          "is_repeatable": true
+        }
+      ],
+      "status": "proposed",
+      "john_vote": null,
+      "final_choice": null,
+      "activity_time": "2025-11-09",
+      "date": "After spa",
+      "submitted_by": "Michael",
+      "created_at": "2025-10-27T22:57:57.109990",
+      "updated_at": "2025-10-27T22:57:57.110025"
     }
   },
   "john_preferences": {
@@ -353,5 +397,5 @@
   "completed_activities": [],
   "notifications": [],
   "tsa_updates": [],
-  "last_updated": "2025-10-27T22:37:03.547449"
+  "last_updated": "2025-10-27T22:57:57.110041"
 }
