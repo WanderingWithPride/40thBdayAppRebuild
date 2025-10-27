@@ -6000,23 +6000,23 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                     for idx, option in enumerate(budget_options):
                         col = cols[idx % 2]
                         with col:
-                            # Build optional fields
-                            phone_html = f"<p style='margin: 0.3rem 0; font-size: 0.9rem;'><strong>📞</strong> {option['phone']}</p>" if 'phone' in option else ""
-                            walk_time_html = f"<p style='margin: 0.3rem 0; font-size: 0.85rem; color: #666;'>🚶 {option['walk_time']}</p>" if 'walk_time' in option else ""
+                            # Build complete HTML card
+                            phone_line = f"<p style='margin: 0.3rem 0; font-size: 0.9rem;'><strong>📞</strong> {option['phone']}</p>" if 'phone' in option else ""
+                            walk_line = f"<p style='margin: 0.3rem 0; font-size: 0.85rem; color: #666;'>🚶 {option['walk_time']}</p>" if 'walk_time' in option else ""
 
-                            st.markdown(f"""
-                            <div class="ultimate-card">
-                                <div class="card-body">
-                                    <h4 style="margin: 0 0 0.5rem 0;">{option['name']}</h4>
-                                    <p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>📍</strong> {option['distance']}</p>
-                                    <p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>💰</strong> {option['cost']}</p>
-                                    <p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>🍽️</strong> {option['menu']}</p>
-                                    <p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>⏰</strong> {option['time']}</p>
-                                    {phone_html}
-                                    {walk_time_html}
-                                </div>
-                            </div>
-                            """, unsafe_allow_html=True)
+                            card_html = f"""<div class="ultimate-card">
+<div class="card-body">
+<h4 style="margin: 0 0 0.5rem 0;">{option['name']}</h4>
+<p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>📍</strong> {option['distance']}</p>
+<p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>💰</strong> {option['cost']}</p>
+<p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>🍽️</strong> {option['menu']}</p>
+<p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>⏰</strong> {option['time']}</p>
+{phone_line}
+{walk_line}
+</div>
+</div>"""
+
+                            st.markdown(card_html, unsafe_allow_html=True)
 
                     st.info("💡 **Pro Tip**: First Drop Coffee is perfect for a quick coffee & pastry if you're rushing to spa!")
             else:
