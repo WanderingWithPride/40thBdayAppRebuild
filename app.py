@@ -889,7 +889,7 @@ def get_ultimate_trip_data():
             "status": "URGENT",
             "cost": 195,
             "category": "Spa",
-            "notes": "Advanced HydraFacial for glowing skin - perfect before birthday dinner! John can pay for this if he wants (OR he can relax at pool/beach). Call 904-277-1087 to book.",
+            "notes": "Advanced HydraFacial for glowing skin - perfect before birthday dinner! Want me to book one for you at the same time? You'd pay for yours ($195). Otherwise you can relax at pool/beach. Call 904-277-1087 to book.",
             "what_to_bring": ["Clean face (no makeup)", "Hair tie if needed", "Arrive on time from massage"],
             "tips": ["Immediate results - perfect timing before dinner!", "Ask about serums for your skin type", "Hydrating and gentle"],
             "booking_url": "https://www.ritzcarlton.com/en/hotels/jaxam-the-ritz-carlton-amelia-island/spa/",
@@ -912,7 +912,7 @@ def get_ultimate_trip_data():
             "status": "URGENT",
             "cost": 150,
             "category": "Spa",
-            "notes": "Complete mani-pedi combo with everything! John can pay for this if he wants (OR he can relax at pool/beach while you're getting pampered). Call 904-277-1087 to book. Perfect timing after facial!",
+            "notes": "Complete mani-pedi combo with everything! Want me to book one for you at the same time? You'd pay for yours ($150). Otherwise you can relax at pool/beach while I'm getting pampered. Call 904-277-1087 to book. Perfect timing after facial!",
             "what_to_bring": ["Flip flops", "Let nails dry before dinner prep", "Choose neutral or birthday colors!"],
             "tips": ["Includes sugar scrub and paraffin treatment", "Takes about 2 hours total", "Perfect for birthday photos!", "Schedule gives you time before getting ready for dinner at 7pm"],
             "booking_url": "https://www.ritzcarlton.com/en/hotels/jaxam-the-ritz-carlton-amelia-island/spa/",
@@ -6607,15 +6607,10 @@ def render_johns_page(df, activities_data, show_sensitive):
                         activity_notes = activity_notes.replace('YOU\'RE PAYING', 'Included - already covered')
                     elif activity_id == 'act001':
                         # For boat trip, clean up the opt-in language
-                        activity_notes = activity_notes.replace('You\'re doing this either way - John can pay for this if he wants to join ($135 per person = $270 total for 2). ', 'Michael is doing this either way - you can join for $135. ')
+                        activity_notes = activity_notes.replace('You\'re doing this either way - John can pay for this if he wants to join ($135 per person = $270 total for 2). ', 'Michael is doing this either way - want to join for $135? ')
                     elif activity['type'] == 'spa':
-                        # Replace confusing language in spa notes - remove entire optional phrases
-                        activity_notes = activity_notes.replace('John can pay for this if he wants (OR he can relax at pool/beach while you\'re getting pampered). ', '')
-                        activity_notes = activity_notes.replace('John can pay for this if he wants (OR he can relax at pool/beach). ', '')
-                        activity_notes = activity_notes.replace('you\'re getting pampered', 'Michael is getting pampered')
-                        activity_notes = activity_notes.replace('you\'re', 'Michael is')
-                        if activity_notes and not activity_notes.endswith('Enjoy your free time!'):
-                            activity_notes += ' Enjoy your free time!'
+                        # Notes are already phrased for John's view - no changes needed
+                        pass
 
                     # Build duration text (fixes nested f-string issue)
                     duration_text = ""
@@ -7303,12 +7298,12 @@ def render_johns_page(df, activities_data, show_sensitive):
 
                 # Clean up notes based on activity type
                 if activity_id == 'act001':
-                    activity_notes = activity_notes.replace('You\'re doing this either way - John can pay for this if he wants to join ($135 per person = $270 total for 2). ', 'Michael is doing this either way - you can join for $135. ')
+                    activity_notes = activity_notes.replace('You\'re doing this either way - John can pay for this if he wants to join ($135 per person = $270 total for 2). ', 'I\'m doing this either way - want to join for $135? ')
                 elif activity['type'] == 'spa':
-                    activity_notes = activity_notes.replace('John can pay for this if he wants (OR he can relax at pool/beach while you\'re getting pampered). ', '')
-                    activity_notes = activity_notes.replace('John can pay for this if he wants (OR he can relax at pool/beach). ', '')
-                    activity_notes = activity_notes.replace('you\'re getting pampered', 'Michael is getting pampered')
-                    activity_notes = activity_notes.replace('you\'re', 'Michael is')
+                    # Convert "you" references to "I/me" for John's view
+                    activity_notes = activity_notes.replace('you at the same time? You\'d pay for yours', 'you at the same time? You\'d pay for yours')
+                    activity_notes = activity_notes.replace('while I\'m getting pampered', 'while I\'m getting pampered')
+                    # No additional changes needed - notes are already phrased for John
 
                 # Escape HTML
                 import html
