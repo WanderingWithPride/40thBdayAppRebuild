@@ -1629,45 +1629,45 @@ def get_restaurant_details():
     serves: list of meal types (breakfast, lunch, dinner)
     """
     return {
-        "Le Clos": {"dress_code": "Business Casual", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Espana Restaurant & Tapas": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Burlingame": {"dress_code": "Smart Casual", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Lagniappe": {"dress_code": "Smart Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Cucina South": {"dress_code": "Business Casual", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Brett's Waterway Cafe": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
-        "Salty Pelican Bar & Grill": {"dress_code": "Casual", "menu_url": "https://saltypelican.com", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
-        "Sandbar": {"dress_code": "Resort Casual", "menu_url": "https://sandbaramelia.com", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
-        "The Boat House": {"dress_code": "Casual", "menu_url": "https://boathouseamelia.com", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
-        "Down Under": {"dress_code": "Very Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
-        "Timoti's Seafood Shak": {"dress_code": "Very Casual", "menu_url": "https://timotis.com", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
-        "Salt Life Food Shack": {"dress_code": "Casual", "menu_url": "https://www.saltlifefoodshack.com", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
-        "Ciao Italian Eatery": {"dress_code": "Casual", "menu_url": "https://ciaoitalianeats.com", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Arte Pizza": {"dress_code": "Very Casual", "menu_url": "https://artepizzabar.com", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Mezcal Spirit of Oaxaca": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Tortuga Jacks": {"dress_code": "Very Casual", "menu_url": "N/A", "serves": ["breakfast"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
-        "Wicked Bao": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Akari Sushi": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Hana Sushi": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "29 South": {"dress_code": "Smart Casual", "menu_url": "N/A", "serves": ["breakfast", "lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Beach Diner": {"dress_code": "Very Casual", "menu_url": "N/A", "serves": ["breakfast", "lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Sliders Seaside Grill": {"dress_code": "Beachwear/Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
-        "Fantastic Fudge": {"dress_code": "Any", "menu_url": "N/A", "serves": ["breakfast", "lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Café Karibo": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["breakfast", "lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
-        "Amelia Island Coffee": {"dress_code": "Any", "menu_url": "N/A", "serves": ["breakfast"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "First Drop Coffee": {"dress_code": "Resort Casual", "menu_url": "N/A", "serves": ["breakfast"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Mocama Coffee": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["breakfast"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Hola Cuban Cafe": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["breakfast", "lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Nana Teresa's Bake Shop": {"dress_code": "Any", "menu_url": "N/A", "serves": ["breakfast"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Aloha Bagel and Deli": {"dress_code": "Casual", "menu_url": "https://aloha-bagel.com", "serves": ["breakfast", "lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "4th Street Deli": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch"], "days_open": [0,1,2,3,4,5], "outdoor_seating": False},  # Closed Sundays
-        "Salt (AAA Five Diamond)": {"dress_code": "Resort Elegant (jackets optional, no shorts/flip-flops)", "menu_url": "https://www.ritzcarlton.com/en/hotels/jaxab-the-ritz-carlton-amelia-island/dining", "serves": ["dinner"], "days_open": [1,2,3,4,5], "outdoor_seating": False},  # Tue-Sat only
-        "Coast": {"dress_code": "Resort Casual", "menu_url": "https://www.ritzcarlton.com/en/hotels/jaxab-the-ritz-carlton-amelia-island/dining", "serves": ["breakfast", "lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Coquina": {"dress_code": "Beachwear/Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
-        "Tidewater Grill": {"dress_code": "Resort Casual", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
-        "Lobby Bar": {"dress_code": "Resort Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "Dune Bar": {"dress_code": "Beachwear/Casual", "menu_url": "N/A", "serves": ["lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True},
-        "Pogo's": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
-        "David's Restaurant & Lounge": {"dress_code": "Business Casual (no shorts/flip-flops)", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False},
+        "Le Clos": {"dress_code": "Business Casual", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": True},
+        "Espana Restaurant & Tapas": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": True},
+        "Burlingame": {"dress_code": "Smart Casual", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": True},
+        "Lagniappe": {"dress_code": "Smart Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": True},
+        "Cucina South": {"dress_code": "Business Casual", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": True},
+        "Brett's Waterway Cafe": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True, "booking_required": True},
+        "Salty Pelican Bar & Grill": {"dress_code": "Casual", "menu_url": "https://saltypelican.com", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True, "booking_required": False},
+        "Sandbar": {"dress_code": "Resort Casual", "menu_url": "https://sandbaramelia.com", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True, "booking_required": True},
+        "The Boat House": {"dress_code": "Casual", "menu_url": "https://boathouseamelia.com", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True, "booking_required": True},
+        "Down Under": {"dress_code": "Very Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True, "booking_required": False},
+        "Timoti's Seafood Shak": {"dress_code": "Very Casual", "menu_url": "https://timotis.com", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True, "booking_required": False},
+        "Salt Life Food Shack": {"dress_code": "Casual", "menu_url": "https://www.saltlifefoodshack.com", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True, "booking_required": False},
+        "Ciao Italian Eatery": {"dress_code": "Casual", "menu_url": "https://ciaoitalianeats.com", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": True},
+        "Arte Pizza": {"dress_code": "Very Casual", "menu_url": "https://artepizzabar.com", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": False},
+        "Mezcal Spirit of Oaxaca": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": False},
+        "Tortuga Jacks": {"dress_code": "Very Casual", "menu_url": "N/A", "serves": ["breakfast"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True, "booking_required": False},
+        "Wicked Bao": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": False},
+        "Akari Sushi": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": False},
+        "Hana Sushi": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": False},
+        "29 South": {"dress_code": "Smart Casual", "menu_url": "N/A", "serves": ["breakfast", "lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": True},
+        "Beach Diner": {"dress_code": "Very Casual", "menu_url": "N/A", "serves": ["breakfast", "lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": False},
+        "Sliders Seaside Grill": {"dress_code": "Beachwear/Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True, "booking_required": False},
+        "Fantastic Fudge": {"dress_code": "Any", "menu_url": "N/A", "serves": ["breakfast", "lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": False},
+        "Café Karibo": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["breakfast", "lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True, "booking_required": False},
+        "Amelia Island Coffee": {"dress_code": "Any", "menu_url": "N/A", "serves": ["breakfast"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": False},
+        "First Drop Coffee": {"dress_code": "Resort Casual", "menu_url": "N/A", "serves": ["breakfast"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": False},
+        "Mocama Coffee": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["breakfast"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": False},
+        "Hola Cuban Cafe": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["breakfast", "lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": False},
+        "Nana Teresa's Bake Shop": {"dress_code": "Any", "menu_url": "N/A", "serves": ["breakfast"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": False},
+        "Aloha Bagel and Deli": {"dress_code": "Casual", "menu_url": "https://aloha-bagel.com", "serves": ["breakfast", "lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": False},
+        "4th Street Deli": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch"], "days_open": [0,1,2,3,4,5], "outdoor_seating": False, "booking_required": False},  # Closed Sundays
+        "Salt (AAA Five Diamond)": {"dress_code": "Resort Elegant (jackets optional, no shorts/flip-flops)", "menu_url": "https://www.ritzcarlton.com/en/hotels/jaxab-the-ritz-carlton-amelia-island/dining", "serves": ["dinner"], "days_open": [1,2,3,4,5], "outdoor_seating": False, "booking_required": True},  # Tue-Sat only
+        "Coast": {"dress_code": "Resort Casual", "menu_url": "https://www.ritzcarlton.com/en/hotels/jaxab-the-ritz-carlton-amelia-island/dining", "serves": ["breakfast", "lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": True},
+        "Coquina": {"dress_code": "Beachwear/Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True, "booking_required": False},
+        "Tidewater Grill": {"dress_code": "Resort Casual", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True, "booking_required": False},
+        "Lobby Bar": {"dress_code": "Resort Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": False},
+        "Dune Bar": {"dress_code": "Beachwear/Casual", "menu_url": "N/A", "serves": ["lunch"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": True, "booking_required": False},
+        "Pogo's": {"dress_code": "Casual", "menu_url": "N/A", "serves": ["lunch", "dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": False},
+        "David's Restaurant & Lounge": {"dress_code": "Business Casual (no shorts/flip-flops)", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": True},
     }
 
 def get_optional_activities():
@@ -6220,6 +6220,10 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                             has_outdoor = rest_details.get('outdoor_seating', False)
                             outdoor_icon = "🌤️ Outdoor seating (perfect 75° weather!)" if has_outdoor else ""
 
+                            # Check for booking requirement
+                            booking_required = rest_details.get('booking_required', False)
+                            booking_icon = "📅 Reservation required" if booking_required else ""
+
                             # Build links
                             website_url = restaurant.get('booking_url', 'N/A')
                             menu_url = rest_details.get('menu_url', 'N/A')
@@ -6248,6 +6252,7 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
 <p style="margin: 0.5rem 0;"><strong>💰</strong> {safe_cost}</p>
 <p style="margin: 0.5rem 0; cursor: help;" title="{safe_dress_tooltip}"><strong>👔</strong> {safe_dress} <span style="font-size: 0.75rem; color: #999;">ⓘ</span></p>
 {f'<p style="margin: 0.5rem 0; font-size: 0.85rem; color: #2196f3;">{outdoor_icon}</p>' if has_outdoor else ''}
+{f'<p style="margin: 0.5rem 0; font-size: 0.85rem; color: #ff5722; font-weight: bold;">{booking_icon}</p>' if booking_required else ''}
 <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #eee;">
 {links_html}
 </div>
