@@ -199,9 +199,18 @@ def init_database():
             quantity TEXT,
             notes TEXT,
             purchased BOOLEAN DEFAULT 0,
+            cost REAL DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+
+    # Migration: Add cost column if it doesn't exist
+    try:
+        cursor.execute("ALTER TABLE alcohol_requests ADD COLUMN cost REAL DEFAULT 0")
+        conn.commit()
+    except sqlite3.OperationalError:
+        # Column already exists, ignore
+        pass
 
     # Set default preferences if they don't exist
     cursor.execute("SELECT COUNT(*) FROM john_preferences WHERE key = 'avoid_seafood_focused'")
@@ -507,7 +516,7 @@ def get_alcohol_requests():
     try:
         conn = sqlite3.connect(DB_FILE)
         cursor = conn.cursor()
-        cursor.execute("SELECT id, item_name, quantity, notes, purchased FROM alcohol_requests ORDER BY purchased ASC, created_at ASC")
+        cursor.execute("SELECT id, item_name, quantity, notes, purchased, cost FROM alcohol_requests ORDER BY purchased ASC, created_at ASC")
         rows = cursor.fetchall()
         conn.close()
 
@@ -518,25 +527,27 @@ def get_alcohol_requests():
                 'item_name': row[1],
                 'quantity': row[2],
                 'notes': row[3],
-                'purchased': bool(row[4])
+                'purchased': bool(row[4]),
+                'cost': float(row[5]) if row[5] else 0.0
             })
         return requests
     except Exception as e:
         print(f"Error loading alcohol requests: {e}")
         return []
 
-def mark_alcohol_purchased(request_id, purchased=True):
+def mark_alcohol_purchased(request_id, purchased=True, cost=0):
     """Mark an alcohol request as purchased
 
     Args:
         request_id: ID of the request
         purchased: True to mark as purchased, False to mark as not purchased
+        cost: Cost of the item (total, not per person)
     """
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     cursor.execute(
-        "UPDATE alcohol_requests SET purchased = ? WHERE id = ?",
-        (1 if purchased else 0, request_id)
+        "UPDATE alcohol_requests SET purchased = ?, cost = ? WHERE id = ?",
+        (1 if purchased else 0, cost, request_id)
     )
     conn.commit()
     conn.close()
@@ -3004,6 +3015,27 @@ def get_confirmed_activities_budget():
 
     return activities
 
+def get_confirmed_alcohol_budget():
+    """Get budget totals from all purchased alcohol
+
+    Returns:
+        List of dicts with alcohol info and costs
+    """
+    alcohol_items = []
+    all_requests = get_alcohol_requests()
+
+    for request in all_requests:
+        if request['purchased'] and request['cost'] > 0:
+            alcohol_items.append({
+                'id': request['id'],
+                'name': request['item_name'],
+                'quantity': request['quantity'],
+                'total_cost': request['cost'],
+                'category': 'Alcohol/Drinks'
+            })
+
+    return alcohol_items
+
 def calculate_trip_budget(activities_data):
     """Calculate total trip budget with spending breakdown including meals
 
@@ -3048,6 +3080,18 @@ def calculate_trip_budget(activities_data):
             category_costs[category] = 0
         category_costs[category] += cost
 
+    # Add confirmed alcohol purchases
+    confirmed_alcohol = get_confirmed_alcohol_budget()
+    for alcohol_item in confirmed_alcohol:
+        cost = alcohol_item['total_cost']
+        category = alcohol_item['category']
+
+        total_cost += cost
+
+        if category not in category_costs:
+            category_costs[category] = 0
+        category_costs[category] += cost
+
     return {
         'total': total_cost,
         'by_category': category_costs,
@@ -3055,7 +3099,9 @@ def calculate_trip_budget(activities_data):
         'confirmed_meals': confirmed_meals,
         'confirmed_meals_total': sum(m['total_cost'] for m in confirmed_meals),
         'confirmed_activities': confirmed_activities,
-        'confirmed_activities_total': sum(a['total_cost'] for a in confirmed_activities)
+        'confirmed_activities_total': sum(a['total_cost'] for a in confirmed_activities),
+        'confirmed_alcohol': confirmed_alcohol,
+        'confirmed_alcohol_total': sum(a['total_cost'] for a in confirmed_alcohol)
     }
 
 
@@ -3073,8 +3119,10 @@ def render_budget_widget(activities_data, show_sensitive=True, view_mode='michae
 
     budget_data = calculate_trip_budget(activities_data)
 
-    # Calculate shares (simplified: split dining costs 50/50, Michael pays for activities)
-    johns_share = budget_data.get('confirmed_meals_total', 0) / 2
+    # Calculate shares (simplified: split dining and alcohol costs 50/50, Michael pays for activities)
+    meals_split = budget_data.get('confirmed_meals_total', 0) / 2
+    alcohol_split = budget_data.get('confirmed_alcohol_total', 0) / 2
+    johns_share = meals_split + alcohol_split
     michaels_share = budget_data['total'] - johns_share
 
     if view_mode == 'john':
@@ -3133,6 +3181,15 @@ def render_budget_widget(activities_data, show_sensitive=True, view_mode='michae
                 st.markdown("**🎯 Confirmed Activities:**")
                 for activity in budget_data['confirmed_activities']:
                     st.markdown(f"- **{activity['name']}**: ${activity['cost_per_person']:.0f}/person × 2 = ${activity['total_cost']:.0f}")
+
+            # Show confirmed alcohol details
+            if budget_data.get('confirmed_alcohol'):
+                st.markdown("---")
+                st.markdown("**🍺 Alcohol/Drinks (Split 50/50):**")
+                for item in budget_data['confirmed_alcohol']:
+                    quantity_str = f" - {item['quantity']}" if item.get('quantity') else ""
+                    split_cost = item['total_cost'] / 2
+                    st.markdown(f"- **{item['name']}**{quantity_str}: ${item['total_cost']:.2f} (${split_cost:.2f} each)")
 
 
 # ============================================================================
@@ -6242,7 +6299,7 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                 quantity_str = f" - {request['quantity']}" if request['quantity'] else ""
                 notes_str = f" ({request['notes']})" if request['notes'] else ""
 
-                col1, col2 = st.columns([4, 1])
+                col1, col2, col3 = st.columns([3, 1, 1])
                 with col1:
                     st.markdown(f"""
                     <div class="ultimate-card" style="padding: 0.5rem;">
@@ -6250,9 +6307,18 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                     </div>
                     """, unsafe_allow_html=True)
                 with col2:
+                    cost_input = st.number_input(
+                        "Cost",
+                        min_value=0.0,
+                        step=1.0,
+                        key=f"cost_{request['id']}",
+                        label_visibility="collapsed",
+                        placeholder="$0.00"
+                    )
+                with col3:
                     if st.button("✅ Got it", key=f"purchase_{request['id']}", use_container_width=True):
-                        mark_alcohol_purchased(request['id'], True)
-                        st.success(f"✅ Marked {request['item_name']} as purchased!")
+                        mark_alcohol_purchased(request['id'], True, cost_input)
+                        st.success(f"✅ Marked {request['item_name']} as purchased for ${cost_input:.2f}!")
                         st.rerun()
         else:
             st.success("🎉 **All items purchased!** Shopping complete!")
@@ -6260,16 +6326,20 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
         # Show purchased items
         if purchased:
             with st.expander(f"✅ Already Purchased ({len(purchased)} items)"):
+                total_purchased_cost = sum(r['cost'] for r in purchased)
+                st.info(f"💰 **Total spent on alcohol:** ${total_purchased_cost:.2f} (Split 50/50: ${total_purchased_cost/2:.2f} each)")
+
                 for request in purchased:
                     quantity_str = f" - {request['quantity']}" if request['quantity'] else ""
                     notes_str = f" ({request['notes']})" if request['notes'] else ""
+                    cost_str = f" - ${request['cost']:.2f}" if request['cost'] > 0 else ""
 
                     col1, col2 = st.columns([4, 1])
                     with col1:
-                        st.markdown(f"- ~~**{request['item_name']}**{quantity_str}{notes_str}~~")
+                        st.markdown(f"- ~~**{request['item_name']}**{quantity_str}{notes_str}~~{cost_str}")
                     with col2:
                         if st.button("↩️ Undo", key=f"unpurchase_{request['id']}", help="Mark as not purchased"):
-                            mark_alcohol_purchased(request['id'], False)
+                            mark_alcohol_purchased(request['id'], False, 0)
                             st.rerun()
 
         st.info("💡 **Tip:** ABC Fine Wine & Spirits and Total Wine are nearby. Also, there's a Publix 5 mins away for mixers/snacks!")
@@ -7488,10 +7558,15 @@ def render_johns_page(df, activities_data, show_sensitive):
         purchased_items = [r for r in all_requests if r['purchased']]
         if purchased_items:
             with st.expander("✅ Already Purchased"):
+                total_purchased_cost = sum(r['cost'] for r in purchased_items)
+                if total_purchased_cost > 0:
+                    st.info(f"💰 **Total spent:** ${total_purchased_cost:.2f} (Your share: ${total_purchased_cost/2:.2f})")
+
                 for request in purchased_items:
                     quantity_str = f" - {request['quantity']}" if request['quantity'] else ""
                     notes_str = f" ({request['notes']})" if request['notes'] else ""
-                    st.markdown(f"- ~~**{request['item_name']}**{quantity_str}{notes_str}~~")
+                    cost_str = f" - ${request['cost']:.2f}" if request['cost'] > 0 else ""
+                    st.markdown(f"- ~~**{request['item_name']}**{quantity_str}{notes_str}~~{cost_str}")
 
     # Add new request form
     st.markdown("---")
