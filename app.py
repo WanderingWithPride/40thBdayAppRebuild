@@ -162,10 +162,19 @@ def init_database():
             status TEXT DEFAULT 'proposed',
             john_vote TEXT,
             final_choice INTEGER,
+            meal_time TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+
+    # Migration: Add meal_time column if it doesn't exist
+    try:
+        cursor.execute("ALTER TABLE meal_proposals ADD COLUMN meal_time TEXT")
+        conn.commit()
+    except sqlite3.OperationalError:
+        # Column already exists, ignore
+        pass
 
     # Set default preferences if they don't exist
     cursor.execute("SELECT COUNT(*) FROM john_preferences WHERE key = 'avoid_seafood_focused'")
@@ -354,18 +363,19 @@ def save_john_meal_vote(meal_id, restaurant_choice):
     conn.commit()
     conn.close()
 
-def finalize_meal_choice(meal_id, final_choice_index):
+def finalize_meal_choice(meal_id, final_choice_index, meal_time=None):
     """Finalize meal choice and mark as confirmed
 
     Args:
         meal_id: String like "fri_dinner"
         final_choice_index: Index (0-2) of final restaurant choice
+        meal_time: Optional custom time for the meal (e.g., "7:30 PM")
     """
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     cursor.execute(
-        "UPDATE meal_proposals SET final_choice = ?, status = ? WHERE meal_id = ?",
-        (final_choice_index, "confirmed", meal_id)
+        "UPDATE meal_proposals SET final_choice = ?, status = ?, meal_time = ? WHERE meal_id = ?",
+        (final_choice_index, "confirmed", meal_time, meal_id)
     )
     conn.commit()
     conn.close()
@@ -4838,11 +4848,14 @@ def render_full_schedule(df, activities_data, show_sensitive):
                         final_restaurant = proposal['restaurant_options'][final_idx]
                         rest_details = get_restaurant_details().get(final_restaurant['name'], {})
 
+                        # Use custom meal time if set, otherwise use default
+                        display_time = proposal.get('meal_time') or meal_slot['time']
+
                         # Create a meal activity
                         meal_activity = {
                             'id': f"meal_{meal_slot['id']}",
                             'date': date_str,
-                            'time': meal_slot['time'],
+                            'time': display_time,
                             'activity': f"🍽️ {final_restaurant['name']}",
                             'description': final_restaurant.get('description', ''),
                             'type': 'dining',
@@ -5900,6 +5913,31 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
         if any(word in category_name.lower() for word in ['dining', 'fine dining', 'seafood', 'italian', 'mexican', 'asian', 'breakfast', 'casual', 'coffee', 'ritz-carlton dining', 'bars', 'deli', 'lunch']):
             all_restaurants.extend(items)
 
+    # Define daily schedule context (activities that affect meal times)
+    def get_daily_schedule(date_str):
+        """Get scheduled activities for a given date to show meal time constraints"""
+        schedules = {
+            "2025-11-08": [  # Saturday
+                {"time": "12:00 PM", "activity": "John arrives at hotel", "icon": "✈️"},
+                {"time": "3:30 PM", "activity": "Backwater Cat Eco Tour (2 hours)", "icon": "🚤"},
+            ],
+            "2025-11-09": [  # Sunday - Birthday!
+                {"time": "9:00 AM", "activity": "Room Service Breakfast (already booked)", "icon": "🛎️"},
+                {"time": "10:00 AM", "activity": "Heaven in a Hammock Spa (90 min)", "icon": "💆"},
+                {"time": "12:00 PM", "activity": "HydraFacial Spa Treatment (60 min)", "icon": "💧"},
+                {"time": "1:30 PM", "activity": "Mani-Pedi Spa Treatment (90 min)", "icon": "💅"},
+                {"time": "7:00 PM", "activity": "Birthday Dinner (already booked)", "icon": "🎂"},
+            ],
+            "2025-11-10": [  # Monday
+                {"time": "Flexible", "activity": "No activities scheduled - can sleep in!", "icon": "😴"},
+            ],
+            "2025-11-11": [  # Tuesday
+                {"time": "11:00 AM", "activity": "Check out from hotel", "icon": "🏨"},
+                {"time": "1:00 PM", "activity": "Flight departure", "icon": "✈️"},
+            ],
+        }
+        return schedules.get(date_str, [])
+
     # Define meal slots - ONLY for days when John is there (Nov 8-11)
     meal_slots = [
         # Friday removed - John not there yet
@@ -6035,6 +6073,13 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                 final_restaurant = proposal['restaurant_options'][final_idx]
                 rest_details = restaurant_details.get(final_restaurant['name'], {})
 
+                # Use custom meal time if set, otherwise use default
+                display_time = proposal.get('meal_time') or meal_slot['time']
+
+                # Check if booking is required
+                booking_required = rest_details.get('booking_required', False)
+                booking_reminder = "📅 <strong>Reservation required!</strong> " if booking_required else ""
+
                 st.success(f"✅ **CONFIRMED:** {final_restaurant['name']}")
                 st.markdown(f"""
                 <div class="ultimate-card" style="border-left: 4px solid #4caf50;">
@@ -6045,7 +6090,8 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                         <p><strong>📞 Phone:</strong> {final_restaurant.get('phone', 'N/A')}</p>
                         <p><strong>🔗 Booking:</strong> {final_restaurant.get('booking_url', 'N/A')}</p>
                         <p><strong>🍽️ Menu:</strong> {rest_details.get('menu_url', 'N/A')}</p>
-                        <p><strong>⏰ Time:</strong> {meal_slot['time']}</p>
+                        <p><strong>⏰ Time:</strong> {display_time}</p>
+                        <p style="margin-top: 0.5rem;">{booking_reminder}</p>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -6065,6 +6111,21 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             john_vote = proposal['john_vote']
 
             st.info(f"🗳️ **John has voted!** Choice: {john_vote}")
+
+            # Show daily schedule context
+            daily_schedule = get_daily_schedule(meal_slot['date'])
+            if daily_schedule and len(daily_schedule) > 0:
+                schedule_items_html = ""
+                for item in daily_schedule:
+                    schedule_items_html += f"<p style='margin: 0.3rem 0; font-size: 0.9rem;'>{item['icon']} <strong>{item['time']}</strong> - {item['activity']}</p>"
+
+                st.markdown(f"""
+                <div class="info-box" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin: 1rem 0;">
+                    <h4 style="margin: 0 0 0.5rem 0; color: white;">📅 {meal_slot['label'].split('(')[0]} Schedule</h4>
+                    {schedule_items_html}
+                    <p style="margin: 0.5rem 0 0 0; font-size: 0.85rem; opacity: 0.9;"><em>💡 Adjust meal time to fit your schedule below</em></p>
+                </div>
+                """, unsafe_allow_html=True)
 
             for idx, restaurant in enumerate(options):
                 rest_details = restaurant_details.get(restaurant['name'], {})
@@ -6093,9 +6154,36 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                     conn.close()
                     st.rerun()
             else:
+                # Time picker for meal
+                st.markdown("---")
+                st.markdown("**⏰ Set Meal Time:**")
+
+                # Parse default time for this meal
+                import datetime
+                default_time_str = meal_slot.get('time', '12:00 PM')
+                try:
+                    # Parse time string like "12:30 PM" to time object
+                    default_time_obj = datetime.datetime.strptime(default_time_str, '%I:%M %p').time()
+                except:
+                    default_time_obj = datetime.time(12, 0)
+
+                # Time picker
+                time_key = f"time_{meal_slot['id']}"
+                selected_time = st.time_input(
+                    f"Choose time for {meal_slot['label'].split('(')[0]}",
+                    value=default_time_obj,
+                    key=time_key,
+                    help="Adjust based on your daily schedule and spa appointments"
+                )
+
+                # Format selected time as string (e.g., "7:30 PM")
+                formatted_time = selected_time.strftime('%I:%M %p')
+
+                st.info(f"📍 Meal will be scheduled for **{formatted_time}**")
+
                 # Confirm button
                 if st.button(f"✅ Confirm & Add to Calendar", key=f"confirm_{meal_slot['id']}", type="primary"):
-                    finalize_meal_choice(meal_slot['id'], int(john_vote))
+                    finalize_meal_choice(meal_slot['id'], int(john_vote), formatted_time)
                     st.success("Meal confirmed and added to calendar!")
                     st.rerun()
 
