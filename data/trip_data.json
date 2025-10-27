@@ -474,6 +474,49 @@
       "submitted_by": "Michael",
       "created_at": "2025-10-27T23:08:10.812523",
       "updated_at": "2025-10-27T23:08:10.812535"
+    },
+    "mon_afternoon": {
+      "activity_slot_id": "mon_afternoon",
+      "activity_options": [
+        {
+          "name": "Fort Clinch State Park Trails",
+          "description": "6-mile loop trail of moderate difficulty along marshes with beach access, gateway to Great Florida Birding Trail",
+          "cost_range": "FREE with park entry ($6-8 per vehicle)",
+          "duration": "2-3 hours",
+          "phone": "904-277-7274",
+          "booking_url": "N/A",
+          "tips": "Six miles of off-road wooded trails, bring water and sunscreen",
+          "rating": "4.7/5"
+        },
+        {
+          "name": "Willow Pond Trails at Fort Clinch",
+          "description": "Less than 1 mile trails through wildlife haven amid forested dunes",
+          "cost_range": "FREE with park entry",
+          "duration": "30min-1 hour",
+          "phone": "904-277-7274",
+          "booking_url": "N/A",
+          "tips": "Shorter easy trail, great for families",
+          "rating": "4.5/5"
+        },
+        {
+          "name": "Blackrock Trail at Big Talbot",
+          "description": "Trail leading to famous driftwood beach with centuries-old trees creating breathtaking scene",
+          "cost_range": "FREE with park entry ($3-5 per vehicle)",
+          "duration": "45min-1.5 hours",
+          "phone": "904-251-2320",
+          "booking_url": "N/A",
+          "tips": "Incredible photography opportunity, especially at golden hour",
+          "rating": "4.8/5"
+        }
+      ],
+      "status": "proposed",
+      "john_vote": null,
+      "final_choice": null,
+      "activity_time": "2025-11-10",
+      "date": "Afternoon",
+      "submitted_by": "Michael",
+      "created_at": "2025-10-27T23:21:35.023538",
+      "updated_at": "2025-10-27T23:21:35.023554"
     }
   },
   "john_preferences": {
@@ -487,5 +530,5 @@
   "completed_activities": [],
   "notifications": [],
   "tsa_updates": [],
-  "last_updated": "2025-10-27T23:08:10.812547"
+  "last_updated": "2025-10-27T23:21:35.023570"
 }
