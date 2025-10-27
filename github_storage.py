@@ -14,7 +14,12 @@ from datetime import datetime
 GITHUB_OWNER = "WanderingWithPride"
 GITHUB_REPO = "40thBdayAppRebuild"
 GITHUB_DATA_PATH = "data/trip_data.json"
-GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')  # From Streamlit secrets
+
+# Get GitHub token from Streamlit secrets (cloud) or environment variable (local)
+try:
+    GITHUB_TOKEN = st.secrets.get("GITHUB_TOKEN", None)
+except:
+    GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
 
 # Local fallback
 LOCAL_DATA_FILE = "trip_data_local.json"

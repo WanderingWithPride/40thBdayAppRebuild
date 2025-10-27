@@ -805,6 +805,10 @@ if 'completed_activities' not in st.session_state:
     st.session_state.completed_activities = load_completed_activities()
 if 'john_preferences' not in st.session_state:
     st.session_state.john_preferences = load_john_preferences()
+if 'notifications' not in st.session_state:
+    st.session_state.notifications = []  # Initialize empty notifications
+if 'photos' not in st.session_state:
+    st.session_state.photos = []  # Initialize empty photos
 # Note: Other data (meals, activities, alcohol, packing, notes) now stored in trip_data JSON
 
 # ============================================================================
