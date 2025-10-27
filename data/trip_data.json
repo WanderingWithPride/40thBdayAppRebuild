@@ -430,6 +430,50 @@
       "submitted_by": "Michael",
       "created_at": "2025-10-27T22:59:46.016258",
       "updated_at": "2025-10-27T22:59:46.016270"
+    },
+    "mon_morning": {
+      "activity_slot_id": "mon_morning",
+      "activity_options": [
+        {
+          "name": "Plantation Artists' Guild & Gallery",
+          "description": "Local artists featuring paintings, pottery, jewelry, and crafts",
+          "cost_range": "FREE to browse",
+          "duration": "30min-1 hour",
+          "phone": "904-261-7020",
+          "booking_url": "N/A",
+          "tips": "Unique gifts and original art from local creators",
+          "rating": "4.5/5"
+        },
+        {
+          "name": "Big Talbot Island Boardwalk & Spoonbill Pond",
+          "description": "Boardwalk with bird watching platform at Spoonbill Pond for observing wading birds and migratory waterfowl",
+          "cost_range": "FREE with park entry",
+          "duration": "30min-1 hour",
+          "phone": "904-251-2320",
+          "booking_url": "N/A",
+          "tips": "Bring binoculars, wheelchair accessible",
+          "rating": "4.6/5"
+        },
+        {
+          "name": "Hot Tub Relaxation",
+          "description": "Unwind in resort hot tubs with ocean views",
+          "cost_range": "FREE (hotel guests)",
+          "duration": "30min-1 hour",
+          "phone": "N/A",
+          "booking_url": "N/A",
+          "tips": "Perfect after activities or before dinner. Very relaxing!",
+          "rating": "4.9/5",
+          "is_repeatable": true
+        }
+      ],
+      "status": "proposed",
+      "john_vote": null,
+      "final_choice": null,
+      "activity_time": "2025-11-10",
+      "date": "Morning",
+      "submitted_by": "Michael",
+      "created_at": "2025-10-27T23:08:10.812523",
+      "updated_at": "2025-10-27T23:08:10.812535"
     }
   },
   "john_preferences": {
@@ -443,5 +487,5 @@
   "completed_activities": [],
   "notifications": [],
   "tsa_updates": [],
-  "last_updated": "2025-10-27T22:59:46.016282"
+  "last_updated": "2025-10-27T23:08:10.812547"
 }
