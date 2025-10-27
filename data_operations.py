@@ -1,0 +1,354 @@
+"""
+Data Operations - Wrapper functions that replace database operations
+Uses GitHub JSON storage instead of SQLite
+"""
+
+import json
+from datetime import datetime
+from github_storage import get_trip_data, save_trip_data
+
+
+# ============================================================================
+# MEAL PROPOSALS
+# ============================================================================
+
+def save_meal_proposal(meal_id, restaurant_options):
+    """Save meal proposal"""
+    try:
+        data = get_trip_data()
+        data['meal_proposals'][meal_id] = {
+            'meal_id': meal_id,
+            'restaurant_options': restaurant_options,
+            'status': 'proposed',
+            'john_vote': None,
+            'final_choice': None,
+            'meal_time': None,
+            'created_at': datetime.now().isoformat(),
+            'updated_at': datetime.now().isoformat()
+        }
+        return save_trip_data(f"Add meal proposal: {meal_id}")
+    except Exception as e:
+        print(f"Error saving meal proposal: {e}")
+        return False
+
+
+def get_meal_proposal(meal_id):
+    """Get meal proposal"""
+    try:
+        data = get_trip_data()
+        return data['meal_proposals'].get(meal_id)
+    except Exception as e:
+        print(f"Error getting meal proposal: {e}")
+        return None
+
+
+def save_john_meal_vote(meal_id, restaurant_choice):
+    """Save John's vote on meal"""
+    try:
+        data = get_trip_data()
+        if meal_id in data['meal_proposals']:
+            data['meal_proposals'][meal_id]['john_vote'] = restaurant_choice
+            data['meal_proposals'][meal_id]['status'] = 'voted'
+            data['meal_proposals'][meal_id]['updated_at'] = datetime.now().isoformat()
+            return save_trip_data(f"John voted on meal: {meal_id}")
+        return False
+    except Exception as e:
+        print(f"Error saving vote: {e}")
+        return False
+
+
+def finalize_meal_choice(meal_id, final_choice_index, meal_time=None):
+    """Finalize meal choice"""
+    try:
+        data = get_trip_data()
+        if meal_id in data['meal_proposals']:
+            data['meal_proposals'][meal_id]['final_choice'] = final_choice_index
+            data['meal_proposals'][meal_id]['status'] = 'confirmed'
+            if meal_time:
+                data['meal_proposals'][meal_id]['meal_time'] = meal_time
+            data['meal_proposals'][meal_id]['updated_at'] = datetime.now().isoformat()
+            return save_trip_data(f"Confirmed meal: {meal_id}")
+        return False
+    except Exception as e:
+        print(f"Error finalizing meal: {e}")
+        return False
+
+
+# ============================================================================
+# ACTIVITY PROPOSALS
+# ============================================================================
+
+def save_activity_proposal(activity_slot_id, activity_options, activity_time=None, date=None):
+    """Save activity proposal"""
+    try:
+        data = get_trip_data()
+        data['activity_proposals'][activity_slot_id] = {
+            'activity_slot_id': activity_slot_id,
+            'activity_options': activity_options,
+            'status': 'proposed',
+            'john_vote': None,
+            'final_choice': None,
+            'activity_time': activity_time,
+            'date': date,
+            'created_at': datetime.now().isoformat(),
+            'updated_at': datetime.now().isoformat()
+        }
+        return save_trip_data(f"Add activity proposal: {activity_slot_id}")
+    except Exception as e:
+        print(f"Error saving activity proposal: {e}")
+        return False
+
+
+def get_activity_proposal(activity_slot_id):
+    """Get activity proposal"""
+    try:
+        data = get_trip_data()
+        return data['activity_proposals'].get(activity_slot_id)
+    except Exception as e:
+        print(f"Error getting activity proposal: {e}")
+        return None
+
+
+def save_john_activity_vote(activity_slot_id, activity_choice):
+    """Save John's vote on activity"""
+    try:
+        data = get_trip_data()
+        if activity_slot_id in data['activity_proposals']:
+            data['activity_proposals'][activity_slot_id]['john_vote'] = activity_choice
+            data['activity_proposals'][activity_slot_id]['status'] = 'voted'
+            data['activity_proposals'][activity_slot_id]['updated_at'] = datetime.now().isoformat()
+            return save_trip_data(f"John voted on activity: {activity_slot_id}")
+        return False
+    except Exception as e:
+        print(f"Error saving activity vote: {e}")
+        return False
+
+
+def finalize_activity_choice(activity_slot_id, final_choice_index, activity_time=None):
+    """Finalize activity choice"""
+    try:
+        data = get_trip_data()
+        if activity_slot_id in data['activity_proposals']:
+            data['activity_proposals'][activity_slot_id]['final_choice'] = final_choice_index
+            data['activity_proposals'][activity_slot_id]['status'] = 'confirmed'
+            if activity_time:
+                data['activity_proposals'][activity_slot_id]['activity_time'] = activity_time
+            data['activity_proposals'][activity_slot_id]['updated_at'] = datetime.now().isoformat()
+            return save_trip_data(f"Confirmed activity: {activity_slot_id}")
+        return False
+    except Exception as e:
+        print(f"Error finalizing activity: {e}")
+        return False
+
+
+# ============================================================================
+# JOHN'S PREFERENCES
+# ============================================================================
+
+def load_john_preferences():
+    """Load John's preferences"""
+    try:
+        data = get_trip_data()
+        return data.get('john_preferences', {})
+    except Exception as e:
+        print(f"Error loading preferences: {e}")
+        return {}
+
+
+def save_john_preference(key, value):
+    """Save John's preference"""
+    try:
+        data = get_trip_data()
+        data['john_preferences'][key] = value
+        return save_trip_data(f"Update preference: {key}")
+    except Exception as e:
+        print(f"Error saving preference: {e}")
+        return False
+
+
+# ============================================================================
+# ALCOHOL REQUESTS
+# ============================================================================
+
+def add_alcohol_request(item_name, quantity='', notes=''):
+    """Add alcohol request"""
+    try:
+        data = get_trip_data()
+        request = {
+            'id': len(data['alcohol_requests']) + 1,
+            'item_name': item_name,
+            'quantity': quantity,
+            'notes': notes,
+            'purchased': False,
+            'cost': 0.0,
+            'created_at': datetime.now().isoformat()
+        }
+        data['alcohol_requests'].append(request)
+        return save_trip_data(f"Add alcohol request: {item_name}")
+    except Exception as e:
+        print(f"Error adding alcohol request: {e}")
+        return False
+
+
+def get_alcohol_requests():
+    """Get all alcohol requests"""
+    try:
+        data = get_trip_data()
+        return data.get('alcohol_requests', [])
+    except Exception as e:
+        print(f"Error getting alcohol requests: {e}")
+        return []
+
+
+def delete_alcohol_request(request_id):
+    """Delete alcohol request"""
+    try:
+        data = get_trip_data()
+        data['alcohol_requests'] = [r for r in data['alcohol_requests'] if r['id'] != request_id]
+        return save_trip_data(f"Delete alcohol request: {request_id}")
+    except Exception as e:
+        print(f"Error deleting alcohol request: {e}")
+        return False
+
+
+def mark_alcohol_purchased(request_id, cost=0.0):
+    """Mark alcohol as purchased"""
+    try:
+        data = get_trip_data()
+        for request in data['alcohol_requests']:
+            if request['id'] == request_id:
+                request['purchased'] = True
+                request['cost'] = cost
+                return save_trip_data(f"Mark purchased: {request['item_name']}")
+        return False
+    except Exception as e:
+        print(f"Error marking purchased: {e}")
+        return False
+
+
+# ============================================================================
+# CUSTOM ACTIVITIES
+# ============================================================================
+
+def save_custom_activity(activity_dict):
+    """Save custom activity"""
+    try:
+        data = get_trip_data()
+        activity_id = activity_dict.get('id', f"custom_{datetime.now().timestamp()}")
+        activity_dict['id'] = activity_id
+        # Remove existing if updating
+        data['custom_activities'] = [a for a in data['custom_activities'] if a['id'] != activity_id]
+        data['custom_activities'].append(activity_dict)
+        save_trip_data(f"Add custom activity: {activity_dict.get('activity', 'Unknown')}")
+        return activity_id
+    except Exception as e:
+        print(f"Error saving custom activity: {e}")
+        return None
+
+
+def load_custom_activities():
+    """Load custom activities"""
+    try:
+        data = get_trip_data()
+        return data.get('custom_activities', [])
+    except Exception as e:
+        print(f"Error loading custom activities: {e}")
+        return []
+
+
+def delete_custom_activity(activity_id):
+    """Delete custom activity"""
+    try:
+        data = get_trip_data()
+        data['custom_activities'] = [a for a in data['custom_activities'] if a['id'] != activity_id]
+        return save_trip_data(f"Delete custom activity: {activity_id}")
+    except Exception as e:
+        print(f"Error deleting custom activity: {e}")
+        return False
+
+
+# ============================================================================
+# COMPLETED ACTIVITIES
+# ============================================================================
+
+def mark_activity_completed(activity_id):
+    """Mark activity as completed"""
+    try:
+        data = get_trip_data()
+        if activity_id not in data['completed_activities']:
+            data['completed_activities'].append(activity_id)
+            return save_trip_data(f"Complete activity: {activity_id}")
+        return True
+    except Exception as e:
+        print(f"Error marking completed: {e}")
+        return False
+
+
+def load_completed_activities():
+    """Load completed activities"""
+    try:
+        data = get_trip_data()
+        return data.get('completed_activities', [])
+    except Exception as e:
+        print(f"Error loading completed activities: {e}")
+        return []
+
+
+# ============================================================================
+# PACKING PROGRESS
+# ============================================================================
+
+def update_packing_item(item_id, packed):
+    """Update packing item status"""
+    try:
+        data = get_trip_data()
+        data['packing_progress'][item_id] = {
+            'packed': packed,
+            'updated_at': datetime.now().isoformat()
+        }
+        return save_trip_data("Update packing list")
+    except Exception as e:
+        print(f"Error updating packing: {e}")
+        return False
+
+
+def get_packing_progress():
+    """Get packing progress"""
+    try:
+        data = get_trip_data()
+        return data.get('packing_progress', {})
+    except Exception as e:
+        print(f"Error getting packing progress: {e}")
+        return {}
+
+
+# ============================================================================
+# NOTES
+# ============================================================================
+
+def add_note(date, content, note_type='note'):
+    """Add note"""
+    try:
+        data = get_trip_data()
+        note = {
+            'id': len(data['notes']) + 1,
+            'date': date,
+            'content': content,
+            'type': note_type,
+            'created_at': datetime.now().isoformat()
+        }
+        data['notes'].append(note)
+        return save_trip_data("Add note")
+    except Exception as e:
+        print(f"Error adding note: {e}")
+        return False
+
+
+def get_notes():
+    """Get all notes"""
+    try:
+        data = get_trip_data()
+        return data.get('notes', [])
+    except Exception as e:
+        print(f"Error getting notes: {e}")
+        return []

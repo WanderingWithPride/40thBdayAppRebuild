@@ -42,8 +42,20 @@ from geopy.distance import geodesic
 import qrcode
 from PIL import Image
 import pytz
-import sqlite3
 import pickle
+
+# GitHub storage system (replaces SQLite database)
+from github_storage import get_trip_data, save_trip_data, load_data_from_github
+from data_operations import (
+    save_meal_proposal, get_meal_proposal, save_john_meal_vote, finalize_meal_choice,
+    save_activity_proposal, get_activity_proposal, save_john_activity_vote, finalize_activity_choice,
+    load_john_preferences, save_john_preference,
+    add_alcohol_request, get_alcohol_requests, delete_alcohol_request, mark_alcohol_purchased,
+    save_custom_activity, load_custom_activities, delete_custom_activity,
+    mark_activity_completed, load_completed_activities,
+    update_packing_item, get_packing_progress,
+    add_note, get_notes
+)
 
 # ============================================================================
 # CONFIGURATION & SETUP
@@ -750,26 +762,22 @@ def dismiss_notification(notif_id):
     conn.commit()
     conn.close()
 
-# Initialize database on app start
-init_database()
+# ============================================================================
+# GITHUB STORAGE INITIALIZATION
+# ============================================================================
+# Load trip data from GitHub on first run
+_ = get_trip_data()  # This loads data into st.session_state.trip_data
 
-# Initialize session state with database data
+# Initialize session state with backward compatibility
 if 'password_verified' not in st.session_state:
     st.session_state.password_verified = False
-if 'packing_list' not in st.session_state:
-    st.session_state.packing_list = load_packing_progress()
-if 'completed_activities' not in st.session_state:
-    st.session_state.completed_activities = load_completed_activities()
-if 'notes' not in st.session_state:
-    st.session_state.notes = load_notes()
 if 'custom_activities' not in st.session_state:
     st.session_state.custom_activities = load_custom_activities()
+if 'completed_activities' not in st.session_state:
+    st.session_state.completed_activities = load_completed_activities()
 if 'john_preferences' not in st.session_state:
     st.session_state.john_preferences = load_john_preferences()
-if 'notifications' not in st.session_state:
-    st.session_state.notifications = load_notifications()
-if 'photos' not in st.session_state:
-    st.session_state.photos = load_photos()
+# Note: Other data (meals, activities, alcohol, packing, notes) now stored in trip_data JSON
 
 # ============================================================================
 # TRIP CONFIGURATION
