@@ -2927,35 +2927,39 @@ def get_confirmed_meals_budget():
     Returns:
         List of dicts with meal info and costs
     """
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("SELECT meal_id, restaurant_options, final_choice, meal_time FROM meal_proposals WHERE status = 'confirmed'")
-    rows = cursor.fetchall()
-    conn.close()
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute("SELECT meal_id, restaurant_options, final_choice, meal_time FROM meal_proposals WHERE status = 'confirmed'")
+        rows = cursor.fetchall()
+        conn.close()
 
-    meals = []
-    for row in rows:
-        meal_id, restaurant_options_json, final_choice, meal_time = row
-        try:
-            options = json.loads(restaurant_options_json)
-            if final_choice is not None and final_choice < len(options):
-                restaurant = options[final_choice]
-                cost_per_person = parse_cost_range(restaurant.get('cost_range', '0'))
-                # Assume 2 people (Michael + John)
-                total_cost = cost_per_person * 2
+        meals = []
+        for row in rows:
+            meal_id, restaurant_options_json, final_choice, meal_time = row
+            try:
+                options = json.loads(restaurant_options_json)
+                if final_choice is not None and final_choice < len(options):
+                    restaurant = options[final_choice]
+                    cost_per_person = parse_cost_range(restaurant.get('cost_range', '0'))
+                    # Assume 2 people (Michael + John)
+                    total_cost = cost_per_person * 2
 
-                meals.append({
-                    'meal_id': meal_id,
-                    'name': restaurant['name'],
-                    'cost_per_person': cost_per_person,
-                    'total_cost': total_cost,
-                    'time': meal_time,
-                    'category': 'Dining'
-                })
-        except:
-            pass
+                    meals.append({
+                        'meal_id': meal_id,
+                        'name': restaurant['name'],
+                        'cost_per_person': cost_per_person,
+                        'total_cost': total_cost,
+                        'time': meal_time,
+                        'category': 'Dining'
+                    })
+            except:
+                pass
 
-    return meals
+        return meals
+    except Exception as e:
+        print(f"Error loading confirmed meals budget: {e}")
+        return []
 
 def get_confirmed_activities_budget():
     """Get budget totals from all confirmed optional activities
@@ -2963,36 +2967,40 @@ def get_confirmed_activities_budget():
     Returns:
         List of dicts with activity info and costs
     """
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("SELECT activity_slot_id, activity_options, final_choice, activity_time, date FROM activity_proposals WHERE status = 'confirmed'")
-    rows = cursor.fetchall()
-    conn.close()
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute("SELECT activity_slot_id, activity_options, final_choice, activity_time, date FROM activity_proposals WHERE status = 'confirmed'")
+        rows = cursor.fetchall()
+        conn.close()
 
-    activities = []
-    for row in rows:
-        activity_slot_id, activity_options_json, final_choice, activity_time, date = row
-        try:
-            options = json.loads(activity_options_json)
-            if final_choice is not None and final_choice < len(options):
-                activity = options[final_choice]
-                cost_per_person = parse_cost_range(activity.get('cost_range', '0'))
-                # Assume 2 people (Michael + John), Michael pays for activities
-                total_cost = cost_per_person * 2
+        activities = []
+        for row in rows:
+            activity_slot_id, activity_options_json, final_choice, activity_time, date = row
+            try:
+                options = json.loads(activity_options_json)
+                if final_choice is not None and final_choice < len(options):
+                    activity = options[final_choice]
+                    cost_per_person = parse_cost_range(activity.get('cost_range', '0'))
+                    # Assume 2 people (Michael + John), Michael pays for activities
+                    total_cost = cost_per_person * 2
 
-                activities.append({
-                    'activity_slot_id': activity_slot_id,
-                    'name': activity['name'],
-                    'cost_per_person': cost_per_person,
-                    'total_cost': total_cost,
-                    'time': activity_time,
-                    'date': date,
-                    'category': 'Activities'
-                })
-        except:
-            pass
+                    activities.append({
+                        'activity_slot_id': activity_slot_id,
+                        'name': activity['name'],
+                        'cost_per_person': cost_per_person,
+                        'total_cost': total_cost,
+                        'time': activity_time,
+                        'date': date,
+                        'category': 'Activities'
+                    })
+            except:
+                pass
 
-    return activities
+        return activities
+    except Exception as e:
+        print(f"Error loading confirmed activities budget: {e}")
+        return []
 
 def get_confirmed_alcohol_budget():
     """Get budget totals from all purchased alcohol
