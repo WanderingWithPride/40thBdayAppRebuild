@@ -6971,7 +6971,8 @@ def render_johns_page(df, activities_data, show_sensitive):
             proposal = get_meal_proposal(meal_slot['id'])
 
             # Only show proposals submitted by Michael (not John's counter-proposals)
-            if proposal and proposal['status'] == 'proposed' and proposal.get('submitted_by') == 'Michael':
+            # Default to Michael if submitted_by is missing (backwards compatibility)
+            if proposal and proposal['status'] == 'proposed' and proposal.get('submitted_by', 'Michael') == 'Michael':
                 has_proposals = True
                 st.markdown(f"#### {meal_slot['label']}")
                 st.markdown("**Michael proposed these 3 options. Which works for you?**")
@@ -7167,7 +7168,8 @@ def render_johns_page(df, activities_data, show_sensitive):
             proposal = get_activity_proposal(activity_slot['id'])
 
             # Only show proposals submitted by Michael (not John's counter-proposals)
-            if proposal and proposal['status'] == 'proposed' and proposal.get('submitted_by') == 'Michael':
+            # Default to Michael if submitted_by is missing (backwards compatibility)
+            if proposal and proposal['status'] == 'proposed' and proposal.get('submitted_by', 'Michael') == 'Michael':
                 has_activity_proposals = True
                 st.markdown(f"#### {activity_slot['label']}")
                 st.markdown("**Michael proposed these 3 options. Which works for you?**")
