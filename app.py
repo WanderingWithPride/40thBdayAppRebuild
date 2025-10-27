@@ -6947,6 +6947,9 @@ def render_johns_page(df, activities_data, show_sensitive):
 
         # Refresh button to reload proposals
         if st.button("🔄 Refresh to Check for New Proposals", use_container_width=True):
+            # Clear cached data to force reload from GitHub
+            if 'trip_data' in st.session_state:
+                del st.session_state['trip_data']
             st.rerun()
 
         # Get all meal proposals
@@ -6966,6 +6969,14 @@ def render_johns_page(df, activities_data, show_sensitive):
 
         restaurant_details = get_restaurant_details()
         has_proposals = False
+
+        # Debug: Show all proposals in the data
+        data = get_trip_data()
+        all_proposals = data.get('meal_proposals', {})
+        if all_proposals:
+            with st.expander("🔍 Debug: View All Meal Proposals"):
+                for meal_id, prop in all_proposals.items():
+                    st.write(f"**{meal_id}**: status={prop.get('status')}, submitted_by={prop.get('submitted_by', 'NOT SET')}, options={len(prop.get('restaurant_options', []))}")
 
         for meal_slot in meal_slots:
             proposal = get_meal_proposal(meal_slot['id'])
@@ -7149,6 +7160,9 @@ def render_johns_page(df, activities_data, show_sensitive):
 
         # Refresh button to reload proposals
         if st.button("🔄 Refresh to Check for New Proposals", key="refresh_activities", use_container_width=True):
+            # Clear cached data to force reload from GitHub
+            if 'trip_data' in st.session_state:
+                del st.session_state['trip_data']
             st.rerun()
 
         # Get all activity proposals
