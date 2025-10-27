@@ -1216,7 +1216,7 @@ def get_restaurant_details():
     }
 
 def get_optional_activities():
-    """ULTIMATE Amelia Island Guide - 118 comprehensive options covering EVERYTHING you need!
+    """ULTIMATE Amelia Island Guide - 100+ comprehensive options covering EVERYTHING you need!
 
     🍽️ DINING & DRINKS (44 options):
     - Fine Dining (4): Le Clos, Burlingame, Lagniappe, Cucina South
@@ -1239,14 +1239,17 @@ def get_optional_activities():
     🛍️ CULTURE & SHOPPING (10 options):
     - Museums, galleries, farmers market, ArtWalk, tours
 
-    💆 SPA & WELLNESS (15 options):
-    - Ritz-Carlton Spa (10): Heaven in Hammock, HydraFacial, massages, facials, body treatments
-    - Other Spas & Wellness (5): Omni Spa, Drift Day Spa, Coastal Massage, Yoga, Sprouting Project
+    💆 YOUR BIRTHDAY SPA DAY (1 consolidated entry):
+    - All your booked treatments + FREE amenities (saltwater pool, steam rooms, relaxation lounges)
+
+    🧘 WELLNESS & OTHER SPAS (4 options):
+    - Omni Spa, Drift Day Spa, Coastal Massage, Yoga, Sprouting Project
 
     🏊 RESORT & FREE (7 options):
     - Pool, beach sunsets, yoga, bonfires, fitness, volleyball, shelling
 
-    TOTAL: 122+ verified options with complete details, phone numbers, pricing, tips, and ratings!
+    ℹ️ HOTEL INFO (3 entries - informational only):
+    - Birthday package, late checkout, club lounge info
 
     🌟 SARAH'S RECOMMENDATIONS INCLUDED:
     - Ritz Spa (beautiful!)
@@ -1384,53 +1387,8 @@ def get_optional_activities():
             {"name": "Scenic Drive to Georgia Border", "description": "SARAH'S RECOMMENDATION! Drive north on A1A to Georgia border - beautiful coastal scenery", "cost_range": "FREE (just gas)", "duration": "1-2 hours round trip", "phone": "N/A", "booking_url": "N/A", "tips": "If you have a car, this scenic drive offers stunning views. Sarah says: 'Try to drive north to the GA border!'", "rating": "4.7/5"},
             {"name": "Wine & Tasting Tour", "description": "Local guide takes you to best restaurants, bars and hot spots", "cost_range": "$60-90 per person", "duration": "2-3 hours", "phone": "904-556-7594", "booking_url": "N/A", "tips": "Fun way to discover local flavors and meet people", "rating": "4.5/5"},
         ],
-        "💆 Ritz-Carlton Spa Services - COMPLETE MENU": [
-            {"name": "🌟 IMPORTANT SPA POLICIES", "description": "BOOKING: Call 904-277-1087 or 904-277-1100 • HOURS: After 9:30am-5:00pm • GRATUITY: 20% automatically added to all services • ARRIVAL: Arrive 30 min early to enjoy healing saltwater pool • CANCELLATION: Call spa directly for policy • LOCAL DISCOUNT: Mon-Thu for locals", "cost_range": "See individual services", "duration": "N/A", "phone": "904-277-1087", "booking_url": "N/A", "tips": "25,000 sq ft sanctuary - recently renovated! Saltwater pool, steam rooms, relaxation lounges included with any treatment", "rating": "5.0/5"},
-
-            {"name": "Heaven in a Hammock Massage (Couples)", "description": "⭐ ALREADY BOOKED - Beachside couples massage in swaying hammocks. Signature experience!", "cost_range": "$245 each (60 min: $190 each)", "duration": "80 minutes", "phone": "904-277-1087", "booking_url": "N/A", "tips": "SIGNATURE TREATMENT - Perfect for birthday! Includes beach setup with ocean sounds", "rating": "5.0/5"},
-            {"name": "HydraFacial Treatment", "description": "⭐ ALREADY BOOKED - Advanced facial for glowing skin with extraction and hydration", "cost_range": "$195", "duration": "50 minutes", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Perfect before birthday dinner - immediate results!", "rating": "4.9/5"},
-
-            {"name": "Hadashi Massage", "description": "Traditional Japanese foot pressure massage for deep relaxation", "cost_range": "60 min: $180 | 75 min: $225 | 90 min: $270", "duration": "60-90 minutes", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Unique technique using feet - incredibly effective for deep tissue work", "rating": "4.9/5"},
-            {"name": "Awakening Bamboo Massage", "description": "NEW! Warm bamboo tools for deep tissue massage", "cost_range": "60 min: $180 | 75 min: $225 | 90 min: $270", "duration": "60-90 minutes", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Newest treatment - combines heat therapy with deep pressure", "rating": "4.9/5"},
-            {"name": "Aromatherapy Massage", "description": "Full body massage with customized essential oil blends", "cost_range": "60 min: $180 | 75 min: $225 | 90 min: $270", "duration": "60-90 minutes", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Choose lavender, eucalyptus, or citrus blends", "rating": "4.9/5"},
-            {"name": "Hot Stone Massage", "description": "Deep relaxation with heated volcanic stones", "cost_range": "60 min: $180 | 90 min: $270", "duration": "60-90 minutes", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Perfect for sore muscles after activities", "rating": "4.9/5"},
-            {"name": "Prenatal Massage", "description": "Safe and nurturing massage for expectant mothers", "cost_range": "60 min: $180 | 75 min: $225", "duration": "60-75 minutes", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Specially trained therapists, positioning pillows provided", "rating": "4.8/5"},
-
-            {"name": "Natural Resilience Facial", "description": "NEW! Japanese Kobido-inspired facial with lifting techniques", "cost_range": "60 min: $175 | 75 min: $215 | 90 min: $260", "duration": "60-90 minutes", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Ancient Japanese technique for natural facelift effect - newest addition!", "rating": "5.0/5"},
-            {"name": "Signature Facial", "description": "Customized facial tailored to your skin type and concerns", "cost_range": "60 min: $175 | 75 min: $215 | 90 min: $260", "duration": "60-90 minutes", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Deep cleansing, exfoliation, extractions, mask, and massage", "rating": "4.8/5"},
-            {"name": "Gentleman's Facial", "description": "Facial designed specifically for men's skin", "cost_range": "60 min: $175", "duration": "60 minutes", "phone": "904-277-1087", "booking_url": "N/A", "tips": "John might enjoy this! Addresses shaving irritation and thick skin", "rating": "4.7/5"},
-            {"name": "Anti-Aging Facial", "description": "Advanced facial targeting fine lines and wrinkles", "cost_range": "75 min: $215 | 90 min: $260", "duration": "75-90 minutes", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Includes peptides, antioxidants, and lifting massage", "rating": "4.9/5"},
-
-            {"name": "Body Scrub & Wrap", "description": "Exfoliating scrub followed by hydrating wrap", "cost_range": "60 min: $175 | 90 min: $260", "duration": "60-90 minutes", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Ocean salt scrub is signature - perfect after travel!", "rating": "4.8/5"},
-            {"name": "Reflexology Treatment", "description": "Therapeutic foot and lower leg massage based on pressure points", "cost_range": "$115", "duration": "50 minutes", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Great after beach walking - addresses full body through feet", "rating": "4.6/5"},
-            {"name": "Chakra Balancing", "description": "Energy healing and chakra alignment with aromatherapy", "cost_range": "60 min: $145 | 80 min: $185", "duration": "60-80 minutes", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Combines meditation, energy work, and crystal healing", "rating": "4.7/5"},
-
-            {"name": "Manicure", "description": "Professional manicure with polish", "cost_range": "$65-85", "duration": "45-60 minutes", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Add gel polish for longer-lasting results", "rating": "4.7/5"},
-            {"name": "Pedicure", "description": "Luxurious pedicure with exfoliation and massage", "cost_range": "$85-105", "duration": "60-75 minutes", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Includes sugar scrub and paraffin treatment", "rating": "4.8/5"},
-            {"name": "Mani-Pedi Combo", "description": "Complete manicure and pedicure combo", "cost_range": "$150", "duration": "105-135 minutes", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Great add-on for spa day - book together for best value", "rating": "4.8/5"},
-
-            {"name": "Scalp Treatment with Style", "description": "Revitalizing scalp massage and hair styling", "cost_range": "$100", "duration": "45-60 minutes", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Perfect before special event - includes blow-dry and style", "rating": "4.6/5"},
-            {"name": "Make-up Application", "description": "Professional makeup application for special occasions", "cost_range": "$105 (includes lashes)", "duration": "45-60 minutes", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Perfect for birthday dinner! Book early", "rating": "4.7/5"},
-            {"name": "Eyebrow Tinting", "description": "Semi-permanent eyebrow tinting", "cost_range": "$45", "duration": "20-30 minutes", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Lasts 3-4 weeks, perfect for beach vacation", "rating": "4.5/5"},
-            {"name": "Eyelash Tinting", "description": "Semi-permanent eyelash tinting", "cost_range": "$45", "duration": "20-30 minutes", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Wake up with defined lashes - no mascara needed!", "rating": "4.5/5"},
-            {"name": "Waxing Services", "description": "Various waxing services available", "cost_range": "$25-85 (varies by area)", "duration": "15-45 minutes", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Brow, lip, leg, bikini, and more - call for specific pricing", "rating": "4.6/5"},
-        ],
-        "💎 Spa Enhancements & Add-Ons": [
-            {"name": "Alpha Beta Glow Pad", "description": "Add to any facial for gentle exfoliation and glow", "cost_range": "$15", "duration": "Added to service", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Worth it! Immediate glow effect", "rating": "4.8/5"},
-            {"name": "Neck and Décolleté Lifting Treatment", "description": "Add to any facial for neck and chest firming", "cost_range": "$45", "duration": "Added to service", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Often-neglected area that shows age - highly recommended!", "rating": "4.7/5"},
-            {"name": "CBD Enhancement", "description": "Add CBD oil to any massage for deeper relaxation", "cost_range": "$30-50", "duration": "Added to service", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Great for inflammation and muscle tension", "rating": "4.8/5"},
-            {"name": "Aromatherapy Upgrade", "description": "Premium essential oil blend for massage", "cost_range": "$25", "duration": "Added to service", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Customize your experience with therapeutic scents", "rating": "4.6/5"},
-        ],
-        "🎁 Spa Packages": [
-            {"name": "Couples Spa Day", "description": "2.5 hour couples package with massage, facial, and champagne", "cost_range": "$390 per person", "duration": "2.5 hours", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Perfect for birthday celebration! Includes side-by-side treatments", "rating": "5.0/5"},
-            {"name": "Ultimate Spa Day", "description": "Full day of pampering with multiple treatments", "cost_range": "$500-700 per person", "duration": "4-5 hours", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Massage, facial, body treatment, mani/pedi - the works!", "rating": "5.0/5"},
-            {"name": "Birthday Spa Special", "description": "Celebrate with spa services - ask about birthday perks!", "cost_range": "Varies", "duration": "Varies", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Mention it's your 40th birthday - they may have special touches!", "rating": "5.0/5"},
-        ],
-        "🏊 Spa Facilities (Included with Treatments)": [
-            {"name": "Healing Saltwater Pool", "description": "Therapeutic saltwater pool in spa - use before or after treatment", "cost_range": "FREE (included with any spa service)", "duration": "Flexible", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Arrive 30 min early to enjoy! Incredibly relaxing", "rating": "5.0/5"},
-            {"name": "Steam Rooms & Saunas", "description": "Multiple steam rooms and saunas throughout 25,000 sq ft spa", "cost_range": "FREE (included with any spa service)", "duration": "Flexible", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Use before treatment to warm muscles", "rating": "4.9/5"},
-            {"name": "Relaxation Lounges", "description": "Quiet lounges with healthy snacks and tea", "cost_range": "FREE (included with any spa service)", "duration": "Flexible", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Stay and relax after your treatment - no rush!", "rating": "4.8/5"},
-            {"name": "Spa Lockers & Amenities", "description": "Full locker room with robes, slippers, shower products", "cost_range": "FREE (included)", "duration": "N/A", "phone": "904-277-1087", "booking_url": "N/A", "tips": "Everything provided - just bring yourself!", "rating": "4.9/5"},
+        "💆 Your Birthday Spa Day": [
+            {"name": "Birthday Spa Day at Ritz-Carlton", "description": "🎂 YOUR BOOKED TREATMENTS: • 10:00 AM: Heaven in a Hammock Couples Massage (80 min beachside) - $490 total • 12:00 PM: HydraFacial Treatment (50 min glowing skin) - $195 • 1:30 PM: Mani-Pedi Combo (2 hours pampering) - $150 | ✨ FREE AMENITIES INCLUDED: Arrive 30 min early (9:30 AM) to enjoy: • Healing Saltwater Pool • Steam Rooms & Saunas • Relaxation Lounges with healthy snacks & tea • Spa robes, slippers, and all amenities | 📞 Call 904-277-1087 with any questions | Make the MOST of your spa day by using all the free facilities!", "cost_range": "$835 total (already calculated in budget)", "duration": "9:30 AM - 3:30 PM (full spa day)", "phone": "904-277-1087", "booking_url": "https://www.ritzcarlton.com/en/hotels/jaxam-the-ritz-carlton-amelia-island/spa/", "tips": "ARRIVE AT 9:30 AM to enjoy free saltwater pool before your 10:00 AM massage! Everything is already booked and scheduled perfectly - just show up and enjoy. Gratuity (20%) is automatically added. Stay in the relaxation lounges between treatments!", "rating": "5.0/5"},
         ],
         "🧘 Wellness & Other Spas": [
             {"name": "Omni Spa Clean & Green Therapies", "description": "Massage, peels, wraps, and signature scrubs at Omni Resort", "cost_range": "$150-250", "duration": "50-90 minutes", "phone": "904-261-6161", "booking_url": "N/A", "tips": "Eco-friendly products and treatments", "rating": "4.7/5"},
@@ -1439,19 +1397,10 @@ def get_optional_activities():
             {"name": "Centred On Yoga", "description": "Beginner and intermediate yoga classes in historic downtown with certified instructors (28+ years experience)", "cost_range": "$18-25 per class", "duration": "60-75 minutes", "phone": "904-310-9642", "booking_url": "N/A", "tips": "Drop-in classes available, bring your own mat", "rating": "4.8/5"},
             {"name": "The Sprouting Project", "description": "Monthly farm-to-table dining experience at Omni with garden tour, aquaponic greenhouse, barrel room, apiary", "cost_range": "$75-95 per person", "duration": "2-3 hours", "phone": "904-261-6161", "booking_url": "N/A", "tips": "Unique wellness and culinary experience, book ahead", "rating": "4.9/5"},
         ],
-        "🏨 Ritz-Carlton Hotel Services": [
-            {"name": "Club Lounge (Club Level Guests)", "description": "Exclusive lounge with endless beverage and culinary offerings all day - breakfast, lunch, snacks, hors d'oeuvres, desserts, cordials", "cost_range": "Included with Club Level booking", "duration": "All day access", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Club Level upgrade required - Bonvoy Elite Status does NOT include free access", "rating": "4.9/5"},
-            {"name": "Room Service", "description": "In-room dining available", "cost_range": "Menu pricing + service charge", "duration": "Varies", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Full menu available, perfect for breakfast in bed or late night snacks", "rating": "4.7/5"},
-            {"name": "Valet Parking", "description": "Only parking option at resort (no self-parking)", "cost_range": "$40 per day", "duration": "N/A", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Factor this into budget - valet is mandatory", "rating": "4.5/5"},
-            {"name": "Daily Housekeeping & Turndown Service", "description": "Daily cleaning and evening turndown with chocolates", "cost_range": "FREE (included)", "duration": "N/A", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Leave tip for housekeeping - they're wonderful!", "rating": "4.9/5"},
-            {"name": "Same Day Dry Cleaning", "description": "On-site laundry and dry cleaning services", "cost_range": "Per item pricing", "duration": "Same day", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Great for business travelers or special occasions", "rating": "4.6/5"},
-            {"name": "Hair Salon", "description": "Full-service salon on property", "cost_range": "Varies by service", "duration": "Varies", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Perfect for birthday styling or special event prep", "rating": "4.5/5"},
-            {"name": "Gift Shop & Convenience Store", "description": "On-site shopping for essentials, gifts, and resort wear", "cost_range": "Varies", "duration": "Varies", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Forgot something? They've got you covered", "rating": "4.4/5"},
+        "ℹ️ Hotel Amenities & Services (Info Only - Not Schedulable)": [
             {"name": "In-Room Celebration Package (Birthday)", "description": "PERFECT FOR JOHN'S BIRTHDAY! Includes: Balloon bouquet, banner, personalized card, choice of charcuterie/cake, choice of champagne/bubbles", "cost_range": "$199 (base) + $70-75 for premium champagne", "duration": "N/A", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "Must order 2 days in advance! Upgrade to Veuve Clicquot $75 or Moet $70. Choose balloon colors (up to 3): gold, silver, black, pink, etc.", "rating": "5.0/5"},
-            {"name": "In-Room Celebration Package (Romantic)", "description": "Perfect for Anniversary/Engagement! Includes: Rose petals, flameless candles, personalized card, charcuterie or chocolate strawberries, champagne/bubbles", "cost_range": "$199 (base) + $70-75 for premium champagne", "duration": "N/A", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "Must order 2 days in advance! Great for special romantic moments", "rating": "5.0/5"},
             {"name": "Guaranteed Late Checkout", "description": "Guarantee late checkout on standard room types (not available for upgraded rooms)", "cost_range": "$75", "duration": "N/A", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "Only available on select dates for original room type. If Elite upgraded, may not be available and fee will be refunded", "rating": "4.5/5"},
-            {"name": "Complimentary WiFi", "description": "Free high-speed internet in room and throughout resort", "cost_range": "FREE (Bonvoy members booking direct)", "duration": "Entire stay", "phone": "904-277-1100", "booking_url": "N/A", "tips": "May be $19.95/day for non-members", "rating": "4.6/5"},
-            {"name": "Free Coffee & Tea in Lobby", "description": "Complimentary coffee and tea service in main lobby", "cost_range": "FREE", "duration": "All day", "phone": "N/A", "booking_url": "N/A", "tips": "Perfect morning pick-me-up before beach", "rating": "4.7/5"},
+            {"name": "Club Lounge (Club Level Guests)", "description": "Exclusive lounge with endless beverage and culinary offerings all day - breakfast, lunch, snacks, hors d'oeuvres, desserts, cordials", "cost_range": "Included with Club Level booking", "duration": "All day access", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Club Level upgrade required - Bonvoy Elite Status does NOT include free access", "rating": "4.9/5"},
         ],
         "👨‍👩‍👧‍👦 Ritz Kids & Family Programs": [
             {"name": "Ritz Kids Program (Ages 5-12)", "description": "Supervised morning, afternoon, or full-day programs with arts & crafts, swimming, beach visits and more", "cost_range": "Varies by session", "duration": "Half day or full day", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Daily during high season, Fri-Sat in winter (Nov 1-Feb 28). Pre-registration required!", "rating": "4.9/5"},
@@ -5821,14 +5770,59 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                         <p><strong>🛎️ In-Room Dining:</strong> The Ritz-Carlton Amelia Island</p>
                         <p><strong>⏰ Order Time:</strong> Call by 8:30 AM for 9:00 AM delivery</p>
                         <p><strong>📞 Phone:</strong> Dial extension from room or 904-277-1100</p>
-                        <p><strong>🍳 Get Menu:</strong> Menu available in your room or call 904-277-1100 to hear options</p>
                         <p><strong>💡 Tip:</strong> Perfect way to relax on your birthday morning before spa at 10 AM!</p>
-                        <p><strong>🥐 Popular Items:</strong> Pancakes, eggs benedict, fresh fruit, pastries, coffee service, omelets</p>
                         <p><strong>💰 Est. Cost:</strong> $25-45 per person (plus 18% service charge + delivery fee)</p>
-                        <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;"><em>💡 Pro tip: Menu booklet is in your room, or call ahead to ask about breakfast options and pricing</em></p>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
+
+                # Detailed breakfast menu
+                with st.expander("📋 **View Full Room Service Breakfast Menu**"):
+                    st.markdown("""
+                    <div style="background: #f9f9f9; padding: 1rem; border-radius: 8px;">
+                        <h4 style="margin-top: 0; color: #2c3e50;">🍳 Breakfast Classics</h4>
+                        <ul style="margin: 0.5rem 0;">
+                            <li><strong>Eggs Your Way</strong> - Scrambled, fried, poached, or soft-boiled with bacon or sausage, hash browns, toast</li>
+                            <li><strong>Eggs Benedict</strong> - Poached eggs, Canadian bacon, hollandaise on English muffin</li>
+                            <li><strong>Florentine Benedict</strong> - Poached eggs, spinach, hollandaise on English muffin</li>
+                            <li><strong>Omelets</strong> - Made to order with your choice of fillings: cheese, vegetables, ham, bacon</li>
+                            <li><strong>Steak & Eggs</strong> - Grilled filet with eggs any style</li>
+                        </ul>
+
+                        <h4 style="margin-top: 1rem; color: #2c3e50;">🥞 Sweet Start</h4>
+                        <ul style="margin: 0.5rem 0;">
+                            <li><strong>Buttermilk Pancakes</strong> - Stack of 3 with butter and maple syrup</li>
+                            <li><strong>Blueberry Pancakes</strong> - Fresh blueberries in fluffy pancakes</li>
+                            <li><strong>French Toast</strong> - Thick-cut brioche with berries and whipped cream</li>
+                            <li><strong>Belgian Waffles</strong> - Crispy waffle with toppings</li>
+                        </ul>
+
+                        <h4 style="margin-top: 1rem; color: #2c3e50;">🥗 Healthy Options</h4>
+                        <ul style="margin: 0.5rem 0;">
+                            <li><strong>Fresh Fruit Plate</strong> - Seasonal fruits and berries</li>
+                            <li><strong>Greek Yogurt Parfait</strong> - Layered with granola, honey, berries</li>
+                            <li><strong>Oatmeal</strong> - Steel-cut with brown sugar, raisins, milk</li>
+                            <li><strong>Avocado Toast</strong> - Smashed avocado on multigrain with tomatoes</li>
+                        </ul>
+
+                        <h4 style="margin-top: 1rem; color: #2c3e50;">🥐 Continental</h4>
+                        <ul style="margin: 0.5rem 0;">
+                            <li><strong>Pastry Basket</strong> - Assorted croissants, muffins, Danish</li>
+                            <li><strong>Bagels & Cream Cheese</strong> - Variety of bagels with spreads</li>
+                            <li><strong>Toast & Preserves</strong> - White, wheat, or rye with butter and jam</li>
+                        </ul>
+
+                        <h4 style="margin-top: 1rem; color: #2c3e50;">☕ Beverages</h4>
+                        <ul style="margin: 0.5rem 0;">
+                            <li><strong>Coffee Service</strong> - Freshly brewed coffee with cream and sugar</li>
+                            <li><strong>Tea Selection</strong> - Hot tea varieties</li>
+                            <li><strong>Fresh Juices</strong> - Orange, grapefruit, cranberry, apple, tomato</li>
+                            <li><strong>Milk</strong> - Whole, skim, 2%, almond, or oat</li>
+                        </ul>
+
+                        <p style="margin-top: 1rem; font-size: 0.9rem; color: #666;"><em>📞 Call 904-277-1100 to place your order. Menu items and pricing subject to change. 18% service charge and delivery fee will be added.</em></p>
+                    </div>
+                    """, unsafe_allow_html=True)
 
                 # Budget-friendly panic button
                 with st.expander("💡 **Budget-Friendly Alternative?** Click for walking-distance breakfast spots"):
