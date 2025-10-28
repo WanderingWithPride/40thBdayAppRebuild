@@ -6,9 +6,16 @@ Provides street-level preview images of locations
 from typing import Optional
 import streamlit as st
 import requests
+import os
 
 def get_api_key():
-    """Get Google Maps API key from Streamlit secrets"""
+    """Get Google Maps API key from environment variables or Streamlit secrets"""
+    # First try environment variable
+    api_key = os.getenv('GOOGLE_MAPS_API_KEY', '')
+    if api_key:
+        return api_key
+
+    # Fall back to Streamlit secrets
     try:
         return st.secrets.get("GOOGLE_MAPS_API_KEY", "")
     except:
