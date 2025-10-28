@@ -2916,8 +2916,15 @@ def get_confirmed_meals_budget():
                 final_choice = proposal.get('final_choice')
                 meal_time = proposal.get('meal_time')
 
-                if final_choice is not None and final_choice < len(options):
-                    restaurant = options[final_choice]
+                if final_choice is not None:
+                    # Handle both int (index) and string (restaurant name)
+                    if isinstance(final_choice, int) and final_choice < len(options):
+                        restaurant = options[final_choice]
+                    elif isinstance(final_choice, str):
+                        # Find restaurant by name
+                        restaurant = next((r for r in options if r.get('name') == final_choice), None)
+                        if restaurant is None:
+                            continue
                     cost_per_person = parse_cost_range(restaurant.get('cost_range', '0'))
                     # Assume 2 people (Michael + John)
                     total_cost = cost_per_person * 2
@@ -9219,10 +9226,16 @@ def render_johns_page(df, activities_data, show_sensitive):
 
             elif proposal and proposal['status'] == 'confirmed':
                 # Confirmed
-                final_idx = proposal.get('final_choice')
-                if final_idx is not None:
-                    final_restaurant = proposal['restaurant_options'][final_idx]
-                    st.success(f"✅ **{meal_slot['label']}** - Confirmed: {final_restaurant['name']}")
+                final_choice = proposal.get('final_choice')
+                if final_choice is not None:
+                    # Handle both index (int) and restaurant name (string)
+                    if isinstance(final_choice, int):
+                        final_restaurant = proposal['restaurant_options'][final_choice]
+                        restaurant_name = final_restaurant['name']
+                    else:
+                        # final_choice is restaurant name (string)
+                        restaurant_name = final_choice
+                    st.success(f"✅ **{meal_slot['label']}** - Confirmed: {restaurant_name}")
 
         if not has_proposals:
             st.info("👀 No meal proposals yet. Michael will add options soon!")
