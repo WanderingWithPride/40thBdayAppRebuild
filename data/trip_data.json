@@ -668,12 +668,22 @@
     "avoid_seafood_focused": "false",
     "avoid_mexican": "false"
   },
-  "alcohol_requests": [],
+  "alcohol_requests": [
+    {
+      "id": 1,
+      "item_name": "Variety pack of hard seltzers ",
+      "quantity": "24",
+      "notes": "",
+      "purchased": false,
+      "cost": 0.0,
+      "created_at": "2025-10-28T16:18:23.964268"
+    }
+  ],
   "packing_progress": {},
   "notes": [],
   "custom_activities": [],
   "completed_activities": [],
   "notifications": [],
   "tsa_updates": [],
-  "last_updated": "2025-10-28T16:07:19.974196"
+  "last_updated": "2025-10-28T16:18:23.964283"
 }
