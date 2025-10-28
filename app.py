@@ -5432,6 +5432,80 @@ def render_full_schedule(df, activities_data, show_sensitive):
                     }
                     day_activities.append(voting_activity)
 
+        # Add activity proposals (for Michael's solo time or John's optional activities)
+        activity_slots = [
+            {"id": "fri_evening", "date": "2025-11-07", "time": "7:00 PM"},
+            {"id": "sat_evening", "date": "2025-11-08", "time": "7:00 PM"},
+            {"id": "sun_afternoon", "date": "2025-11-09", "time": "3:00 PM"},
+            {"id": "sun_evening", "date": "2025-11-09", "time": "8:00 PM"},
+            {"id": "mon_morning", "date": "2025-11-10", "time": "9:00 AM"},
+            {"id": "mon_afternoon", "date": "2025-11-10", "time": "2:00 PM"},
+            {"id": "mon_evening", "date": "2025-11-10", "time": "7:00 PM"},
+        ]
+
+        for activity_slot in activity_slots:
+            if activity_slot['date'] == date_str:
+                proposal = get_activity_proposal(activity_slot['id'])
+
+                # Show confirmed activities
+                if proposal and proposal['status'] == 'confirmed':
+                    final_idx = proposal.get('final_choice')
+                    if final_idx is not None and final_idx < len(proposal['activity_options']):
+                        final_activity = proposal['activity_options'][final_idx]
+
+                        # Create an activity
+                        activity_item = {
+                            'id': f"activity_{activity_slot['id']}",
+                            'date': date_str,
+                            'time': activity_slot['time'],
+                            'activity': final_activity['name'],
+                            'description': final_activity.get('description', ''),
+                            'type': 'activity',
+                            'category': 'Activity',
+                            'duration': final_activity.get('duration', '1 hour'),
+                            'cost': final_activity.get('cost_range', 'FREE'),
+                            'status': 'confirmed',
+                            'notes': f"Phone: {final_activity.get('phone', 'N/A')}\nBooking: {final_activity.get('booking_url', 'N/A')}\nTips: {final_activity.get('tips', 'N/A')}",
+                            'location': {'name': final_activity['name'], 'address': ''},
+                            'is_activity_proposal': True,
+                            'activity_slot_id': activity_slot['id']
+                        }
+                        day_activities.append(activity_item)
+
+                # Show proposed activities with voting options
+                elif proposal and proposal['status'] in ['proposed', 'voted']:
+                    activity_label = activity_slot['id'].replace('_', ' ').title()
+                    john_vote = proposal.get('john_vote')
+
+                    # Determine if this is Michael's solo time or John's optional activity
+                    is_michael_solo = activity_slot['id'] in ['fri_evening', 'mon_morning', 'mon_afternoon', 'mon_evening']
+
+                    # Build notes string to avoid f-string backslash issues
+                    if is_michael_solo:
+                        notes_text = "3 activity options proposed. Michael's solo time"
+                    else:
+                        vote_text = 'Option ' + str(int(john_vote) + 1) if john_vote is not None else 'Not voted yet'
+                        notes_text = f"3 activity options proposed. John's vote: {vote_text}"
+
+                    voting_activity = {
+                        'id': f"activity_vote_{activity_slot['id']}",
+                        'date': date_str,
+                        'time': activity_slot['time'],
+                        'activity': f"🗳️ {activity_label} - {'Michael to choose' if is_michael_solo else 'Voting in Progress'}",
+                        'description': f"{'Michael will pick from 3 options' if is_michael_solo else 'John is voting on activity options'}",
+                        'type': 'activity',
+                        'category': 'Activity',
+                        'duration': '1-3 hours',
+                        'cost': 'TBD',
+                        'status': 'pending',
+                        'notes': notes_text,
+                        'location': {'name': 'TBD - Awaiting choice', 'address': ''},
+                        'is_activity_voting': True,
+                        'activity_slot_id': activity_slot['id'],
+                        'activity_options': proposal['activity_options']
+                    }
+                    day_activities.append(voting_activity)
+
         day_activities.sort(key=lambda x: x['time'])
 
         # NEW: Apply status filter
@@ -5616,8 +5690,51 @@ def render_full_schedule(df, activities_data, show_sensitive):
                     else:
                         john_status_badge = '<p style="margin: 0.5rem 0;"><span style="background: #ff9800; color: white; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem;">❓ John: Needs to Decide</span></p>'
 
+                # Special handling for activity voting
+                if activity.get('is_activity_voting'):
+                    # Display activity voting with all 3 options
+                    import html
+                    safe_activity_name = html.escape(activity['activity'])
+                    safe_time_display = html.escape(time_display)
+                    is_michael_solo = activity.get('activity_slot_id') in ['fri_evening', 'mon_morning', 'mon_afternoon', 'mon_evening']
+
+                    st.markdown(f"""
+                    <div class="timeline-item pending" style="margin: 1rem 0;">
+                        <div class="ultimate-card" style="border-left: 4px solid {'#2196f3' if is_michael_solo else '#ff9800'};">
+                            <div class="card-body">
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                                    <h4 style="margin: 0;">{safe_activity_name}</h4>
+                                    <span class="status-pending">{'MICHAEL TO PICK' if is_michael_solo else 'PENDING VOTE'}</span>
+                                </div>
+                                <p style="margin: 0.5rem 0;"><b>🕐 {safe_time_display}</b></p>
+                                <p style="margin: 0.5rem 0; color: #666;">{'Michael will choose from 3 activity options below:' if is_michael_solo else 'John is voting on 3 activity options below:'}</p>
+                            </div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    # Display all 3 activity options
+                    for idx, act_option in enumerate(activity.get('activity_options', [])):
+                        phone = act_option.get('phone', 'N/A')
+                        booking = act_option.get('booking_url', 'N/A')
+
+                        st.markdown(f"""
+                        <div class="ultimate-card" style="margin: 0.5rem 0 0.5rem 2rem; border-left: 3px solid {'#2196f3' if is_michael_solo else '#4caf50'};">
+                            <div class="card-body" style="padding: 1rem;">
+                                <h5 style="margin: 0 0 0.5rem 0;">Option {idx + 1}: {act_option['name']}</h5>
+                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>📝</strong> {act_option.get('description', 'N/A')}</p>
+                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>💰</strong> {act_option.get('cost_range', 'FREE')}</p>
+                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>⏱️</strong> Duration: {act_option.get('duration', '1 hour')}</p>
+                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>⭐</strong> Rating: {act_option.get('rating', 'N/A')}</p>
+                                {f'<p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>📞</strong> {phone}</p>' if phone != 'N/A' else ''}
+                                {f'<p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>🔗</strong> <a href="{booking}" target="_blank">Booking Info</a></p>' if booking != 'N/A' and booking.startswith('http') else ''}
+                                <p style="margin: 0.25rem 0; font-size: 0.9rem; font-style: italic;"><strong>💡</strong> {act_option.get('tips', 'N/A')}</p>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+
                 # Special handling for meal voting activities
-                if activity.get('is_meal_voting'):
+                elif activity.get('is_meal_voting'):
                     # Display meal voting with all 3 options
                     import html
                     safe_activity_name = html.escape(activity['activity'])
