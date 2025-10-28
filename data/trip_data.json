@@ -431,14 +431,14 @@
           "special_notes": "40th birthday - 2 friends/besties - MOSTLY individual shots for dating profiles + some together shots - golden hour + sunset"
         }
       ],
-      "status": "proposed",
-      "john_vote": null,
+      "status": "voted",
+      "john_vote": "2",
       "final_choice": null,
       "activity_time": "2025-11-09",
       "date": "After spa",
       "submitted_by": "Michael",
       "created_at": "2025-10-27T22:57:57.109990",
-      "updated_at": "2025-10-27T22:57:57.110025"
+      "updated_at": "2025-10-28T18:13:52.949343"
     },
     "sun_evening": {
       "activity_slot_id": "sun_evening",
@@ -685,5 +685,5 @@
   "completed_activities": [],
   "notifications": [],
   "tsa_updates": [],
-  "last_updated": "2025-10-28T18:12:34.111553"
+  "last_updated": "2025-10-28T18:13:52.949360"
 }
