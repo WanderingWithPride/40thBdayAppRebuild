@@ -1043,28 +1043,6 @@ def get_ultimate_trip_data():
             "priority": 3
         },
         {
-            "id": "arr002b",
-            "date": "2025-11-08",
-            "time": "12:00 PM",
-            "activity": "Back at Hotel + Lunch",
-            "type": "dining",
-            "duration": "1 hour",
-            "location": {
-                "name": "The Ritz-Carlton, Amelia Island",
-                "address": "4750 Amelia Island Parkway",
-                "lat": 30.6074,
-                "lon": -81.4493,
-                "phone": "904-277-1100"
-            },
-            "status": "Confirmed",
-            "cost": 25,
-            "category": "Dining",
-            "notes": "Quick lunch after arriving at hotel - either at hotel restaurant or nearby casual spot. Going Dutch (each pays own meal).",
-            "what_to_bring": [],
-            "tips": ["Coast restaurant at hotel is convenient for breakfast/lunch", "Salt Life Food Shack nearby for casual beachfront", "Keep it light before boat tour"],
-            "priority": 2
-        },
-        {
             "id": "act001",
             "date": "2025-11-08",
             "time": "2:30 PM",
@@ -1158,30 +1136,6 @@ def get_ultimate_trip_data():
             "priority": 1
         },
         {
-            "id": "din001",
-            "date": "2025-11-09",
-            "time": "7:00 PM",
-            "activity": "40th Birthday Dinner",
-            "type": "dining",
-            "duration": "2.5 hours",
-            "location": {
-                "name": "David's Restaurant & Lounge",
-                "address": "802 Ash St, Fernandina Beach, FL 32034",
-                "lat": 30.6692,
-                "lon": -81.4651,
-                "phone": "904-310-6049"
-            },
-            "status": "URGENT",
-            "cost": 210,
-            "category": "Dining",
-            "notes": "THE BIG 40! Upscale dining for 2 - MUST RESERVE - mention birthday! Michael is treating for birthday celebration.",
-            "what_to_bring": ["Nice outfit", "ID", "Camera for birthday photos"],
-            "tips": ["Request window table", "Ask about chef's specials", "Save room for dessert!"],
-            "dress_code": "Business casual to dressy",
-            "booking_url": "https://www.opentable.com/r/davids-restaurant-and-lounge-fernandina-beach",
-            "priority": 1
-        },
-        {
             "id": "bch001",
             "date": "2025-11-10",
             "time": "10:00 AM",
@@ -1202,30 +1156,6 @@ def get_ultimate_trip_data():
             "what_to_bring": ["Beach towels", "Sunscreen (reapply!)", "Beach umbrella", "Cooler", "Snacks", "Books", "Beach chairs", "Frisbee/ball"],
             "tips": ["Go early for parking", "High tide is best for swimming", "Lots of shells at low tide"],
             "priority": 3
-        },
-        {
-            "id": "din002",
-            "date": "2025-11-10",
-            "time": "6:00 PM",
-            "activity": "Casual Dinner",
-            "type": "dining",
-            "duration": "1.5 hours",
-            "location": {
-                "name": "Timoti's Seafood Shak",
-                "address": "4998 1st Coast Hwy, Amelia Island, FL",
-                "lat": 30.5811,
-                "lon": -81.4432,
-                "phone": "904-321-1430"
-            },
-            "status": "Pending",
-            "cost": 30,
-            "category": "Dining",
-            "notes": "Beachside casual - famous for tacos and fresh catch. Going Dutch (each pays own meal).",
-            "what_to_bring": ["Casual clothes", "Cash (faster)"],
-            "tips": ["Try the blackened mahi tacos", "BYOB friendly", "Often a wait but moves fast"],
-            "dress_code": "Beach casual",
-            "booking_url": "https://timotis.com",
-            "priority": 2
         },
         {
             "id": "dep001",
