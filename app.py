@@ -4666,6 +4666,43 @@ def render_dashboard_ultimate(df, activities_data, weather_data, show_sensitive)
             st.session_state['dashboard_nav_override'] = "🗓️ Full Schedule"
             st.info("Navigate to Full Schedule to export .ics file")
 
+    # WEATHER ALERTS SECTION
+    st.markdown("---")
+    st.markdown("### ⚠️ Weather Alerts")
+
+    from utils.weather_alerts import check_weather_alerts
+
+    weather_alerts = check_weather_alerts(activities_data, weather_data)
+
+    if weather_alerts:
+        # Show critical alerts
+        critical_alerts = [a for a in weather_alerts if a['severity'] == 'warning']
+        info_alerts = [a for a in weather_alerts if a['severity'] == 'info']
+
+        if critical_alerts:
+            st.warning(f"🚨 {len(critical_alerts)} weather warning(s) for outdoor activities")
+
+            for alert in critical_alerts[:3]:  # Show top 3 critical
+                with st.expander(f"{alert['message']}", expanded=True):
+                    st.write(f"**📅 Date:** {alert['date']} at {alert['time']}")
+                    st.write(f"**💡 Suggestion:** {alert['suggestion']}")
+
+                    if alert['type'] == 'rain':
+                        st.progress(alert['rain_chance'] / 100, text=f"{alert['rain_chance']}% chance of rain")
+                    elif alert['type'] == 'uv':
+                        st.progress(alert['uv_index'] / 11, text=f"UV Index: {alert['uv_index']}")
+
+        if info_alerts and not critical_alerts:
+            st.info(f"ℹ️ {len(info_alerts)} weather notice(s)")
+
+            for alert in info_alerts[:3]:  # Show top 3 info
+                with st.expander(f"{alert['message']}"):
+                    st.write(f"**📅 Date:** {alert['date']} at {alert['time']}")
+                    st.write(f"**💡 Tip:** {alert['suggestion']}")
+
+    else:
+        st.success("✅ No weather concerns for scheduled outdoor activities!")
+
     # Weather widget
     st.markdown("### 🌤️ Current Weather")
     col1, col2 = st.columns([1, 2])
@@ -4886,6 +4923,24 @@ def render_today_view(df, activities_data, weather_data, show_sensitive):
                         elif 'arrival' in travel_act.get('activity', '').lower() and 'DCA' in travel_act.get('notes', ''):
                             st.markdown("#### 🚗 Traffic from DCA")
                             st.info("Check traffic conditions before heading to airport")
+
+                st.markdown("---")
+
+            # WEATHER ALERTS FOR TODAY
+            from utils.weather_alerts import generate_weather_briefing
+
+            briefing = generate_weather_briefing(activities_data, weather_data, today_str)
+
+            if briefing['alerts']:
+                st.markdown("### ⚠️ Weather Alerts for Today")
+
+                for alert in briefing['alerts']:
+                    if alert['severity'] == 'warning':
+                        st.warning(alert['message'])
+                    else:
+                        st.info(alert['message'])
+
+                    st.caption(f"💡 {alert['suggestion']}")
 
                 st.markdown("---")
 
