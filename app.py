@@ -7482,15 +7482,13 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                 menu = rest_details.get('menu_url', 'N/A')
                 menu_html = f'<a href="{menu}" target="_blank" style="color: #2196f3; text-decoration: none;">View Menu →</a>' if menu != 'N/A' and menu.startswith('http') else menu
 
-                # Add a clear badge for John's choice
-                johns_choice_badge = ""
+                # Show clear indicator for John's choice
                 if is_johns_choice:
-                    johns_choice_badge = '<div style="background: #4caf50; color: white; padding: 0.5rem 1rem; border-radius: 8px; margin-bottom: 1rem; text-align: center; font-weight: bold;">👍 JOHN\'S CHOICE</div>'
+                    st.success(f"👍 **JOHN'S CHOICE** - Option {idx + 1}")
 
                 st.markdown(f"""
                 <div class="ultimate-card" style="border-left: 4px solid {border_color}; background: {'#f1f8f4' if is_johns_choice else 'white'};">
                     <div class="card-body">
-                        {johns_choice_badge}
                         <h4 style="margin: 0;">{'✅ ' if is_johns_choice else ''}Option {idx + 1}: {restaurant['name']}</h4>
                         <p style="margin: 0.5rem 0;"><strong>💰</strong> {restaurant.get('cost_range', 'N/A')} | <strong>👔</strong> {rest_details.get('dress_code', 'Casual')}</p>
                         <p style="margin: 0.5rem 0;"><strong>📞</strong> {phone_html}</p>
