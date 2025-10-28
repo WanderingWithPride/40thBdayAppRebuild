@@ -1019,6 +1019,50 @@ def get_ultimate_trip_data():
             "priority": 3
         },
         {
+            "id": "din_fri",
+            "date": "2025-11-07",
+            "time": "8:00 PM",
+            "activity": "Friday Dinner (Solo)",
+            "type": "dining",
+            "duration": "1.5 hours",
+            "location": {
+                "name": "TBD - Your Choice",
+                "address": "Amelia Island, FL",
+                "lat": 30.6074,
+                "lon": -81.4493,
+                "phone": "N/A"
+            },
+            "status": "Pending",
+            "cost": 75,
+            "category": "Dining",
+            "notes": "Relaxing first-night dinner after arrival. John isn't here yet - your choice of restaurant! Options: Salt (fine dining at hotel), Coast (casual at hotel), or explore Fernandina Beach restaurants.",
+            "what_to_bring": [],
+            "tips": ["Arrive at hotel around 8pm", "Salt requires reservations (904-277-1100)", "Coast is walk-in friendly", "Centre Street in Fernandina has many options"],
+            "priority": 2
+        },
+        {
+            "id": "din_sat_breakfast",
+            "date": "2025-11-08",
+            "time": "9:00 AM",
+            "activity": "Saturday Breakfast (Solo)",
+            "type": "dining",
+            "duration": "1 hour",
+            "location": {
+                "name": "Coast at The Ritz-Carlton",
+                "address": "4750 Amelia Island Parkway",
+                "lat": 30.6074,
+                "lon": -81.4493,
+                "phone": "904-277-1100"
+            },
+            "status": "Confirmed",
+            "cost": 40,
+            "category": "Dining",
+            "notes": "Breakfast at hotel before John arrives. Coast offers breakfast with ocean views. John doesn't arrive until noon, so enjoy a relaxing morning!",
+            "what_to_bring": [],
+            "tips": ["Coast opens at 6:30 AM", "Try the breakfast buffet", "Outdoor seating available", "Good time to plan the day"],
+            "priority": 2
+        },
+        {
             "id": "arr002",
             "date": "2025-11-08",
             "time": "12:00 PM",
