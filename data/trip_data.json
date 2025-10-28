@@ -521,14 +521,14 @@
           "is_repeatable": true
         }
       ],
-      "status": "proposed",
-      "john_vote": null,
+      "status": "voted",
+      "john_vote": "0",
       "final_choice": null,
       "activity_time": "2025-11-10",
       "date": "Morning",
       "submitted_by": "Michael",
       "created_at": "2025-10-27T23:08:10.812523",
-      "updated_at": "2025-10-27T23:08:10.812535"
+      "updated_at": "2025-10-28T18:14:16.975950"
     },
     "mon_afternoon": {
       "activity_slot_id": "mon_afternoon",
@@ -685,5 +685,5 @@
   "completed_activities": [],
   "notifications": [],
   "tsa_updates": [],
-  "last_updated": "2025-10-28T18:13:52.949360"
+  "last_updated": "2025-10-28T18:14:16.975972"
 }
