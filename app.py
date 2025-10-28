@@ -2960,8 +2960,19 @@ def get_confirmed_activities_budget():
                 activity_time = proposal.get('activity_time')
                 date = proposal.get('date')
 
-                if final_choice is not None and final_choice < len(options):
-                    activity = options[final_choice]
+                if final_choice is not None:
+                    # Handle both index (int) and activity name (string)
+                    if isinstance(final_choice, int):
+                        if final_choice < len(options):
+                            activity = options[final_choice]
+                        else:
+                            continue
+                    else:
+                        # final_choice is activity name (string)
+                        activity = next((a for a in options if a.get('name') == final_choice), None)
+                        if activity is None:
+                            continue
+
                     cost_per_person = parse_cost_range(activity.get('cost_range', '0'))
                     # Assume 2 people (Michael + John), Michael pays for activities
                     total_cost = cost_per_person * 2
@@ -5585,9 +5596,20 @@ def render_full_schedule(df, activities_data, show_sensitive):
 
                 # Show confirmed meals as activities
                 if proposal and proposal['status'] == 'confirmed':
-                    final_idx = proposal.get('final_choice')
-                    if final_idx is not None and final_idx < len(proposal['restaurant_options']):
-                        final_restaurant = proposal['restaurant_options'][final_idx]
+                    final_choice = proposal.get('final_choice')
+                    if final_choice is not None:
+                        # Handle both index (int) and restaurant name (string)
+                        if isinstance(final_choice, int):
+                            if final_choice < len(proposal['restaurant_options']):
+                                final_restaurant = proposal['restaurant_options'][final_choice]
+                            else:
+                                continue
+                        else:
+                            # final_choice is restaurant name (string)
+                            final_restaurant = next((r for r in proposal['restaurant_options'] if r.get('name') == final_choice), None)
+                            if final_restaurant is None:
+                                continue
+
                         rest_details = get_restaurant_details().get(final_restaurant['name'], {})
 
                         # Use custom meal time if set, otherwise use default
@@ -5656,9 +5678,19 @@ def render_full_schedule(df, activities_data, show_sensitive):
 
                 # Show confirmed activities
                 if proposal and proposal['status'] == 'confirmed':
-                    final_idx = proposal.get('final_choice')
-                    if final_idx is not None and final_idx < len(proposal['activity_options']):
-                        final_activity = proposal['activity_options'][final_idx]
+                    final_choice = proposal.get('final_choice')
+                    if final_choice is not None:
+                        # Handle both index (int) and activity name (string)
+                        if isinstance(final_choice, int):
+                            if final_choice < len(proposal['activity_options']):
+                                final_activity = proposal['activity_options'][final_choice]
+                            else:
+                                continue
+                        else:
+                            # final_choice is activity name (string)
+                            final_activity = next((a for a in proposal['activity_options'] if a.get('name') == final_choice), None)
+                            if final_activity is None:
+                                continue
 
                         # Create an activity
                         activity_item = {
@@ -7389,9 +7421,22 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
 
         if proposal and proposal['status'] == 'confirmed':
             # Meal is confirmed - show final choice
-            final_idx = proposal.get('final_choice')
-            if final_idx is not None and final_idx < len(proposal['restaurant_options']):
-                final_restaurant = proposal['restaurant_options'][final_idx]
+            final_choice = proposal.get('final_choice')
+            if final_choice is not None:
+                # Handle both index (int) and restaurant name (string)
+                if isinstance(final_choice, int):
+                    if final_choice < len(proposal['restaurant_options']):
+                        final_restaurant = proposal['restaurant_options'][final_choice]
+                    else:
+                        st.error(f"Invalid final_choice index for {meal_slot['label']}")
+                        continue
+                else:
+                    # final_choice is restaurant name (string)
+                    final_restaurant = next((r for r in proposal['restaurant_options'] if r.get('name') == final_choice), None)
+                    if final_restaurant is None:
+                        st.error(f"Could not find restaurant '{final_choice}' for {meal_slot['label']}")
+                        continue
+
                 rest_details = restaurant_details.get(final_restaurant['name'], {})
 
                 # Use custom meal time if set, otherwise use default
@@ -7943,14 +7988,25 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
     confirmed_non_repeatable_names = set()
     for activity_proposal in trip_data.get('activity_proposals', {}).values():
         if activity_proposal.get('status') == 'confirmed':
-            final_idx = activity_proposal.get('final_choice')
-            if final_idx is not None:
+            final_choice = activity_proposal.get('final_choice')
+            if final_choice is not None:
                 options = activity_proposal.get('activity_options', [])
-                if final_idx < len(options):
-                    activity = options[final_idx]
-                    # Only exclude if not repeatable
-                    if not activity.get('is_repeatable', False):
-                        confirmed_non_repeatable_names.add(activity['name'])
+
+                # Handle both index (int) and activity name (string)
+                if isinstance(final_choice, int):
+                    if final_choice < len(options):
+                        activity = options[final_choice]
+                    else:
+                        continue
+                else:
+                    # final_choice is activity name (string)
+                    activity = next((a for a in options if a.get('name') == final_choice), None)
+                    if activity is None:
+                        continue
+
+                # Only exclude if not repeatable
+                if not activity.get('is_repeatable', False):
+                    confirmed_non_repeatable_names.add(activity['name'])
 
     # Build master list of all non-dining activities
     all_non_dining_activities = []
@@ -8243,9 +8299,21 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
 
         if proposal and proposal['status'] == 'confirmed':
             # Activity is confirmed
-            final_idx = proposal.get('final_choice')
-            if final_idx is not None and final_idx < len(proposal['activity_options']):
-                final_activity = proposal['activity_options'][final_idx]
+            final_choice = proposal.get('final_choice')
+            if final_choice is not None:
+                # Handle both index (int) and activity name (string)
+                if isinstance(final_choice, int):
+                    if final_choice < len(proposal['activity_options']):
+                        final_activity = proposal['activity_options'][final_choice]
+                    else:
+                        st.error(f"Invalid final_choice index for activity slot")
+                        continue
+                else:
+                    # final_choice is activity name (string)
+                    final_activity = next((a for a in proposal['activity_options'] if a.get('name') == final_choice), None)
+                    if final_activity is None:
+                        st.error(f"Could not find activity '{final_choice}'")
+                        continue
                 st.success(f"✅ **CONFIRMED:** {final_activity['name']}")
                 st.markdown(f"""
                 <div class="ultimate-card" style="border-left: 4px solid #4caf50;">
