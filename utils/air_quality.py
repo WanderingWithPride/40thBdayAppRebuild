@@ -4,12 +4,16 @@ Provides air quality monitoring and pollen forecasts for outdoor activity planni
 """
 
 import requests
-import os
 from typing import Dict, Optional, List
 from datetime import datetime
 import streamlit as st
 
-GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', '')
+def get_api_key():
+    """Get Google Maps API key from Streamlit secrets"""
+    try:
+        return st.secrets.get("GOOGLE_MAPS_API_KEY", "")
+    except:
+        return ""
 
 @st.cache_data(ttl=3600)  # Cache for 1 hour
 def get_air_quality(lat: float, lon: float) -> Optional[Dict]:
@@ -23,7 +27,8 @@ def get_air_quality(lat: float, lon: float) -> Optional[Dict]:
     Returns:
         Air quality data dictionary or None
     """
-    if not GOOGLE_MAPS_API_KEY:
+    api_key = get_api_key()
+    if not api_key:
         return None
 
     url = "https://airquality.googleapis.com/v1/currentConditions:lookup"
@@ -33,7 +38,7 @@ def get_air_quality(lat: float, lon: float) -> Optional[Dict]:
     }
 
     params = {
-        'key': GOOGLE_MAPS_API_KEY
+        'key': api_key
     }
 
     data = {
@@ -69,7 +74,8 @@ def get_pollen_forecast(lat: float, lon: float, days: int = 5) -> Optional[Dict]
     Returns:
         Pollen forecast dictionary or None
     """
-    if not GOOGLE_MAPS_API_KEY:
+    api_key = get_api_key()
+    if not api_key:
         return None
 
     url = "https://pollen.googleapis.com/v1/forecast:lookup"
@@ -79,7 +85,7 @@ def get_pollen_forecast(lat: float, lon: float, days: int = 5) -> Optional[Dict]
     }
 
     params = {
-        'key': GOOGLE_MAPS_API_KEY,
+        'key': api_key,
         'days': min(days, 5)  # API max is 5 days
     }
 

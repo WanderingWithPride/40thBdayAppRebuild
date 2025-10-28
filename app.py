@@ -5884,11 +5884,11 @@ def render_full_schedule(df, activities_data, show_sensitive):
                 activity['activity_type'] = 'shared'
                 activity['activity_type_label'] = '👥 SHARED - Both Together'
             elif activity_id == 'spa002' or (activity_id == 'spa002' and 'hydrafacial' in activity_name):
-                activity['activity_type'] = 'john_solo'
-                activity['activity_type_label'] = '🎂 JOHN\'S TREATMENT - Michael has free time'
+                activity['activity_type'] = 'michael_solo'
+                activity['activity_type_label'] = '🎂 MICHAEL\'S TREATMENT - Birthday spa time!'
             elif activity_id == 'spa003' or (activity_id == 'spa003' and 'mani-pedi' in activity_name):
-                activity['activity_type'] = 'john_solo'
-                activity['activity_type_label'] = '🎂 JOHN\'S TREATMENT - Michael has free time'
+                activity['activity_type'] = 'michael_solo'
+                activity['activity_type_label'] = '🎂 MICHAEL\'S TREATMENT - Birthday pampering!'
             # Photography and special events
             elif 'photography' in activity_name:
                 activity['activity_type'] = 'shared'

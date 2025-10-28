@@ -3,11 +3,16 @@ Google Street View Static API Integration
 Provides street-level preview images of locations
 """
 
-import os
 from typing import Optional
 import streamlit as st
+import requests
 
-GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', '')
+def get_api_key():
+    """Get Google Maps API key from Streamlit secrets"""
+    try:
+        return st.secrets.get("GOOGLE_MAPS_API_KEY", "")
+    except:
+        return ""
 
 def get_street_view_url(location: str, size: str = "600x400", heading: int = None,
                         pitch: int = 0, fov: int = 90) -> str:
@@ -24,11 +29,12 @@ def get_street_view_url(location: str, size: str = "600x400", heading: int = Non
     Returns:
         Street View image URL
     """
-    if not GOOGLE_MAPS_API_KEY:
+    api_key = get_api_key()
+    if not api_key:
         return ""
 
     url = "https://maps.googleapis.com/maps/api/streetview"
-    params = f"?size={size}&location={location}&fov={fov}&pitch={pitch}&key={GOOGLE_MAPS_API_KEY}"
+    params = f"?size={size}&location={location}&fov={fov}&pitch={pitch}&key={api_key}"
 
     if heading is not None:
         params += f"&heading={heading}"
@@ -46,15 +52,14 @@ def get_street_view_metadata(location: str) -> dict:
     Returns:
         Metadata dictionary with availability info
     """
-    if not GOOGLE_MAPS_API_KEY:
+    api_key = get_api_key()
+    if not api_key:
         return {"status": "NO_KEY"}
-
-    import requests
 
     url = "https://maps.googleapis.com/maps/api/streetview/metadata"
     params = {
         'location': location,
-        'key': GOOGLE_MAPS_API_KEY
+        'key': api_key
     }
 
     try:
