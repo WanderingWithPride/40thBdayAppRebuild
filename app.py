@@ -98,6 +98,13 @@ def init_session_state():
         st.session_state.notifications = []  # Initialize empty notifications
     if 'photos' not in st.session_state:
         st.session_state.photos = []  # Initialize empty photos
+    if 'packing_list' not in st.session_state:
+        # Load packing progress from database and convert to simple format
+        packing_progress = get_packing_progress()
+        st.session_state.packing_list = {
+            item_id: item_data.get('packed', False)
+            for item_id, item_data in packing_progress.items()
+        }
     if 'init_complete' not in st.session_state:
         st.session_state.init_complete = True
 
