@@ -76,13 +76,13 @@
           "rating": "4.5/5"
         }
       ],
-      "status": "proposed",
-      "john_vote": null,
+      "status": "voted",
+      "john_vote": "1",
       "final_choice": null,
       "meal_time": null,
       "submitted_by": "Michael",
       "created_at": "2025-10-27T19:12:52.844903",
-      "updated_at": "2025-10-27T19:12:52.844915"
+      "updated_at": "2025-10-28T16:03:38.010958"
     },
     "sun_lunch": {
       "meal_id": "sun_lunch",
@@ -131,7 +131,7 @@
       "restaurant_options": [
         {
           "name": "David's Restaurant & Lounge",
-          "description": "🎂 BIRTHDAY DINNER! Upscale American cuisine with cocktails in downtown historic district. Perfect for special celebrations!",
+          "description": "\ud83c\udf82 BIRTHDAY DINNER! Upscale American cuisine with cocktails in downtown historic district. Perfect for special celebrations!",
           "cost_range": "$35-70 per person",
           "duration": "2-2.5 hours",
           "phone": "904-310-6049",
@@ -151,7 +151,7 @@
         },
         {
           "name": "Burlingame",
-          "description": "Charming 1947 cottage with modern twist, seasonal menu with Seafood Gumbo, Blue Crab Cakes, Lamb Bolognese. ✅ NON-SEAFOOD: Lamb, chicken, steaks, pasta",
+          "description": "Charming 1947 cottage with modern twist, seasonal menu with Seafood Gumbo, Blue Crab Cakes, Lamb Bolognese. \u2705 NON-SEAFOOD: Lamb, chicken, steaks, pasta",
           "cost_range": "$35-65 per person",
           "duration": "2-2.5 hours",
           "phone": "904-277-3700",
@@ -419,12 +419,12 @@
         },
         {
           "name": "Photography Concierge - Golden Hour Session",
-          "description": "🎂 BOOKED FOR 5:00-6:00 PM! FREE professional photography service for BOTH Michael & John during golden hour. 60-minute session with MOSTLY individual shots for dating profiles + some friend photos together for birthday memories. Photographer will capture sunset at 5:33 PM with beach + resort backdrop. You'll both be glowing from spa treatments and dressed for birthday dinner!",
+          "description": "\ud83c\udf82 BOOKED FOR 5:00-6:00 PM! FREE professional photography service for BOTH Michael & John during golden hour. 60-minute session with MOSTLY individual shots for dating profiles + some friend photos together for birthday memories. Photographer will capture sunset at 5:33 PM with beach + resort backdrop. You'll both be glowing from spa treatments and dressed for birthday dinner!",
           "cost_range": "FREE (hotel guests) - $400-500 value!",
           "duration": "60 minutes (5:00-6:00 PM)",
           "phone": "239-449-6125",
           "booking_url": "ritzcarltonameliaisland.ipoolside.com",
-          "tips": "⭐ GOLDEN HOUR TIMING: 5:00 PM captures peak golden hour (4:33-5:53 PM) + sunset at 5:33 PM + blue hour. Skin at PEAK GLOW (4.2 hours after facial!). FOCUS: Individual headshots & full-body shots for dating profiles (each person), plus some casual friend shots together. Beach + resort combo. Expected: 30-50 professional edited photos. Perfect for dating apps! 📸",
+          "tips": "\u2b50 GOLDEN HOUR TIMING: 5:00 PM captures peak golden hour (4:33-5:53 PM) + sunset at 5:33 PM + blue hour. Skin at PEAK GLOW (4.2 hours after facial!). FOCUS: Individual headshots & full-body shots for dating profiles (each person), plus some casual friend shots together. Beach + resort combo. Expected: 30-50 professional edited photos. Perfect for dating apps! \ud83d\udcf8",
           "rating": "5.0/5",
           "scheduled_time": "5:00 PM",
           "location_preference": "Beach + Resort Grounds",
@@ -675,5 +675,5 @@
   "completed_activities": [],
   "notifications": [],
   "tsa_updates": [],
-  "last_updated": "2025-10-27T23:23:37.221401"
+  "last_updated": "2025-10-28T16:03:38.010985"
 }
