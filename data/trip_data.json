@@ -76,13 +76,13 @@
           "rating": "4.5/5"
         }
       ],
-      "status": "voted",
+      "status": "confirmed",
       "john_vote": "1",
-      "final_choice": null,
-      "meal_time": null,
+      "final_choice": 1,
+      "meal_time": "12:30 PM",
       "submitted_by": "Michael",
       "created_at": "2025-10-27T19:12:52.844903",
-      "updated_at": "2025-10-28T16:03:38.010958"
+      "updated_at": "2025-10-28T16:49:59.564087"
     },
     "sun_lunch": {
       "meal_id": "sun_lunch",
@@ -685,5 +685,5 @@
   "completed_activities": [],
   "notifications": [],
   "tsa_updates": [],
-  "last_updated": "2025-10-28T16:18:23.964283"
+  "last_updated": "2025-10-28T16:49:59.564101"
 }
