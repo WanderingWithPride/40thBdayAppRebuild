@@ -4,11 +4,15 @@ Provides turn-by-turn directions and optimized multi-stop routing
 """
 
 import requests
-import os
 from typing import List, Dict, Optional, Tuple
 import streamlit as st
 
-GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', '')
+def get_api_key():
+    """Get Google Maps API key from Streamlit secrets"""
+    try:
+        return st.secrets.get("GOOGLE_MAPS_API_KEY", "")
+    except:
+        return ""
 
 def get_directions(origin: str, destination: str, mode: str = "driving",
                    alternatives: bool = True) -> Optional[Dict]:
@@ -24,7 +28,8 @@ def get_directions(origin: str, destination: str, mode: str = "driving",
     Returns:
         Directions data or None
     """
-    if not GOOGLE_MAPS_API_KEY:
+    api_key = get_api_key()
+    if not api_key:
         return None
 
     url = "https://maps.googleapis.com/maps/api/directions/json"
@@ -35,7 +40,7 @@ def get_directions(origin: str, destination: str, mode: str = "driving",
         'mode': mode,
         'alternatives': alternatives,
         'departure_time': 'now',  # For real-time traffic
-        'key': GOOGLE_MAPS_API_KEY
+        'key': api_key
     }
 
     try:
@@ -63,7 +68,8 @@ def optimize_waypoints(origin: str, destination: str, waypoints: List[str]) -> O
     Returns:
         Optimized route data or None
     """
-    if not GOOGLE_MAPS_API_KEY or not waypoints:
+    api_key = get_api_key()
+    if not api_key or not waypoints:
         return None
 
     url = "https://maps.googleapis.com/maps/api/directions/json"
@@ -77,7 +83,7 @@ def optimize_waypoints(origin: str, destination: str, waypoints: List[str]) -> O
         'waypoints': waypoints_str,
         'mode': 'driving',
         'departure_time': 'now',
-        'key': GOOGLE_MAPS_API_KEY
+        'key': api_key
     }
 
     try:

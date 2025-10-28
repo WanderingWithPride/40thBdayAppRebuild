@@ -4,11 +4,15 @@ Converts addresses to coordinates and vice versa
 """
 
 import requests
-import os
 from typing import Optional, Dict, Tuple
 import streamlit as st
 
-GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', '')
+def get_api_key():
+    """Get Google Maps API key from Streamlit secrets"""
+    try:
+        return st.secrets.get("GOOGLE_MAPS_API_KEY", "")
+    except:
+        return ""
 
 @st.cache_data(ttl=86400)  # Cache for 24 hours
 def geocode_address(address: str) -> Optional[Dict]:
@@ -21,14 +25,15 @@ def geocode_address(address: str) -> Optional[Dict]:
     Returns:
         Geocoding result dictionary or None
     """
-    if not GOOGLE_MAPS_API_KEY:
+    api_key = get_api_key()
+    if not api_key:
         return None
 
     url = "https://maps.googleapis.com/maps/api/geocode/json"
 
     params = {
         'address': address,
-        'key': GOOGLE_MAPS_API_KEY
+        'key': api_key
     }
 
     try:
@@ -56,14 +61,15 @@ def reverse_geocode(lat: float, lon: float) -> Optional[Dict]:
     Returns:
         Reverse geocoding result dictionary or None
     """
-    if not GOOGLE_MAPS_API_KEY:
+    api_key = get_api_key()
+    if not api_key:
         return None
 
     url = "https://maps.googleapis.com/maps/api/geocode/json"
 
     params = {
         'latlng': f"{lat},{lon}",
-        'key': GOOGLE_MAPS_API_KEY
+        'key': api_key
     }
 
     try:

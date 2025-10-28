@@ -4,11 +4,15 @@ Provides restaurant/activity discovery, place details, and search functionality
 """
 
 import requests
-import os
 from typing import List, Dict, Optional
 import streamlit as st
 
-GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', '')
+def get_api_key():
+    """Get Google Maps API key from Streamlit secrets"""
+    try:
+        return st.secrets.get("GOOGLE_MAPS_API_KEY", "")
+    except:
+        return ""
 
 def search_nearby_places(lat: float, lon: float, place_type: str = "restaurant",
                          radius: int = 5000, min_rating: float = None,
@@ -27,14 +31,15 @@ def search_nearby_places(lat: float, lon: float, place_type: str = "restaurant",
     Returns:
         List of place dictionaries
     """
-    if not GOOGLE_MAPS_API_KEY:
+    api_key = get_api_key()
+    if not api_key:
         return []
 
     url = "https://places.googleapis.com/v1/places:searchNearby"
 
     headers = {
         'Content-Type': 'application/json',
-        'X-Goog-Api-Key': GOOGLE_MAPS_API_KEY,
+        'X-Goog-Api-Key': api_key,
         'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.priceLevel,places.photos,places.currentOpeningHours,places.location,places.types,places.websiteUri,places.nationalPhoneNumber'
     }
 
@@ -75,13 +80,14 @@ def get_place_details(place_id: str) -> Optional[Dict]:
     Returns:
         Place details dictionary or None
     """
-    if not GOOGLE_MAPS_API_KEY:
+    api_key = get_api_key()
+    if not api_key:
         return None
 
     url = f"https://places.googleapis.com/v1/places/{place_id}"
 
     headers = {
-        'X-Goog-Api-Key': GOOGLE_MAPS_API_KEY,
+        'X-Goog-Api-Key': api_key,
         'X-Goog-FieldMask': 'id,displayName,formattedAddress,rating,userRatingCount,priceLevel,photos,currentOpeningHours,reviews,websiteUri,nationalPhoneNumber,businessStatus,location,types,editorialSummary,accessibilityOptions'
     }
 
@@ -109,7 +115,8 @@ def get_place_photo_url(photo_reference: Dict, max_width: int = 400) -> str:
     Returns:
         Photo URL
     """
-    if not GOOGLE_MAPS_API_KEY or not photo_reference:
+    api_key = get_api_key()
+    if not api_key or not photo_reference:
         return ""
 
     # Extract photo name from reference
@@ -118,7 +125,7 @@ def get_place_photo_url(photo_reference: Dict, max_width: int = 400) -> str:
         return ""
 
     # Construct photo URL
-    return f"https://places.googleapis.com/v1/{photo_name}/media?maxWidthPx={max_width}&key={GOOGLE_MAPS_API_KEY}"
+    return f"https://places.googleapis.com/v1/{photo_name}/media?maxWidthPx={max_width}&key={api_key}"
 
 
 def search_restaurants_by_cuisine(lat: float, lon: float, cuisine: str = None,

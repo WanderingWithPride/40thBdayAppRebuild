@@ -3,11 +3,16 @@ Google Static Maps API Integration
 Generates static map images for sharing and embedding
 """
 
-import os
 from typing import List, Dict, Optional
 from urllib.parse import quote
+import streamlit as st
 
-GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', '')
+def get_api_key():
+    """Get Google Maps API key from Streamlit secrets"""
+    try:
+        return st.secrets.get("GOOGLE_MAPS_API_KEY", "")
+    except:
+        return ""
 
 def generate_static_map_url(center: str, zoom: int = 12, size: str = "600x400",
                             markers: List[Dict] = None, maptype: str = "roadmap",
@@ -26,7 +31,8 @@ def generate_static_map_url(center: str, zoom: int = 12, size: str = "600x400",
     Returns:
         Static map image URL
     """
-    if not GOOGLE_MAPS_API_KEY:
+    api_key = get_api_key()
+    if not api_key:
         return ""
 
     base_url = "https://maps.googleapis.com/maps/api/staticmap"
@@ -46,7 +52,7 @@ def generate_static_map_url(center: str, zoom: int = 12, size: str = "600x400",
 
             params += marker_str
 
-    params += f"&key={GOOGLE_MAPS_API_KEY}"
+    params += f"&key={api_key}"
 
     return base_url + params
 
@@ -112,7 +118,8 @@ def generate_route_map(origin: str, destination: str, waypoints: List[str] = Non
     Returns:
         Static map URL with route drawn
     """
-    if not GOOGLE_MAPS_API_KEY:
+    api_key = get_api_key()
+    if not api_key:
         return ""
 
     base_url = "https://maps.googleapis.com/maps/api/staticmap"
@@ -132,6 +139,6 @@ def generate_route_map(origin: str, destination: str, waypoints: List[str] = Non
     for point in path_points:
         params += f"|{quote(point)}"
 
-    params += f"&key={GOOGLE_MAPS_API_KEY}"
+    params += f"&key={api_key}"
 
     return base_url + params
