@@ -7468,35 +7468,29 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                 rest_details = restaurant_details.get(restaurant['name'], {})
                 is_johns_choice = (str(idx) == str(john_vote))
 
-                border_color = "#4caf50" if is_johns_choice else "#ddd"
-                # Make links clickable
-                phone = restaurant.get('phone', 'N/A')
-                phone_html = f'<a href="tel:{phone}" style="color: #2196f3; text-decoration: none;">{phone}</a>' if phone != 'N/A' else 'N/A'
-
-                booking = restaurant.get('booking_url', 'Call to book')
-                if booking and booking != 'N/A' and booking != 'Call to book' and booking.startswith('http'):
-                    booking_html = f'<a href="{booking}" target="_blank" style="color: #2196f3; text-decoration: none;">Book Online →</a>'
-                else:
-                    booking_html = booking
-
-                menu = rest_details.get('menu_url', 'N/A')
-                menu_html = f'<a href="{menu}" target="_blank" style="color: #2196f3; text-decoration: none;">View Menu →</a>' if menu != 'N/A' and menu.startswith('http') else menu
-
                 # Show clear indicator for John's choice
                 if is_johns_choice:
-                    st.success(f"👍 **JOHN'S CHOICE** - Option {idx + 1}")
+                    st.success(f"👍 **JOHN'S CHOICE** - Option {idx + 1}: {restaurant['name']}")
+                else:
+                    st.info(f"Option {idx + 1}: {restaurant['name']}")
 
-                st.markdown(f"""
-                <div class="ultimate-card" style="border-left: 4px solid {border_color}; background: {'#f1f8f4' if is_johns_choice else 'white'};">
-                    <div class="card-body">
-                        <h4 style="margin: 0;">{'✅ ' if is_johns_choice else ''}Option {idx + 1}: {restaurant['name']}</h4>
-                        <p style="margin: 0.5rem 0;"><strong>💰</strong> {restaurant.get('cost_range', 'N/A')} | <strong>👔</strong> {rest_details.get('dress_code', 'Casual')}</p>
-                        <p style="margin: 0.5rem 0;"><strong>📞</strong> {phone_html}</p>
-                        <p style="margin: 0.5rem 0;"><strong>🔗 Booking:</strong> {booking_html}</p>
-                        <p style="margin: 0.5rem 0;"><strong>🍽️ Menu:</strong> {menu_html}</p>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+                # Use columns for clean layout
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.write(f"**💰 Cost:** {restaurant.get('cost_range', 'N/A')}")
+                    st.write(f"**👔 Dress:** {rest_details.get('dress_code', 'Casual')}")
+                with col2:
+                    phone = restaurant.get('phone', 'N/A')
+                    if phone != 'N/A':
+                        st.write(f"**📞 Phone:** {phone}")
+                    booking = restaurant.get('booking_url', 'Call to book')
+                    if booking and booking != 'N/A' and booking != 'Call to book' and booking.startswith('http'):
+                        st.write(f"**🔗 Booking:** [{booking}]({booking})")
+                    menu = rest_details.get('menu_url', 'N/A')
+                    if menu != 'N/A' and menu.startswith('http'):
+                        st.write(f"**🍽️ Menu:** [View Menu]({menu})")
+
+                st.markdown("---")
 
             if john_vote == "none":
                 st.warning("❌ John said none of these work. Pick 3 new options!")
