@@ -202,13 +202,13 @@
           "rating": "4.4/5"
         }
       ],
-      "status": "proposed",
-      "john_vote": null,
+      "status": "voted",
+      "john_vote": "2",
       "final_choice": null,
       "meal_time": null,
       "submitted_by": "Michael",
       "created_at": "2025-10-27T21:13:13.417845",
-      "updated_at": "2025-10-27T21:13:13.417858"
+      "updated_at": "2025-10-28T17:52:02.819537"
     },
     "mon_dinner": {
       "meal_id": "mon_dinner",
@@ -685,5 +685,5 @@
   "completed_activities": [],
   "notifications": [],
   "tsa_updates": [],
-  "last_updated": "2025-10-28T17:51:24.886728"
+  "last_updated": "2025-10-28T17:52:02.819562"
 }
