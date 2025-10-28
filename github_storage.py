@@ -36,6 +36,91 @@ if not GITHUB_TOKEN:
 
 # Local fallback
 LOCAL_DATA_FILE = "trip_data_local.json"
+LOCAL_BACKUP_DIR = "data/backups"
+MAX_BACKUPS = 20
+
+
+def _create_backup(data_file):
+    """Create backup of current data file before writing
+
+    Args:
+        data_file (str): Path to data file to backup
+
+    Returns:
+        str: Path to created backup file, or None if no backup needed
+    """
+    import shutil
+    from pathlib import Path
+
+    if not os.path.exists(data_file):
+        return None
+
+    # Ensure backup directory exists
+    Path(LOCAL_BACKUP_DIR).mkdir(parents=True, exist_ok=True)
+
+    # Create timestamped backup
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    backup_path = f'{LOCAL_BACKUP_DIR}/trip_data_local_{timestamp}.json'
+    shutil.copy2(data_file, backup_path)
+    print(f"💾 Local backup created: {backup_path}")
+
+    # Cleanup old backups
+    _cleanup_old_backups()
+
+    return backup_path
+
+
+def _cleanup_old_backups():
+    """Keep only last N backups, delete older ones"""
+    from pathlib import Path
+
+    backups = sorted(Path(LOCAL_BACKUP_DIR).glob('trip_data_local_*.json'))
+
+    if len(backups) > MAX_BACKUPS:
+        for old_backup in backups[:-MAX_BACKUPS]:
+            old_backup.unlink()
+            print(f"🗑️ Deleted old local backup: {old_backup.name}")
+
+
+def _atomic_write_local(data, data_file):
+    """Write data to local file atomically (prevents corruption)
+
+    Args:
+        data (dict): Data to write
+        data_file (str): Path to target file
+
+    Returns:
+        bool: True if successful
+    """
+    import tempfile
+    import shutil
+
+    try:
+        # Create backup before writing
+        _create_backup(data_file)
+
+        # Write to temporary file first
+        temp_fd, temp_path = tempfile.mkstemp(
+            suffix='.json',
+            prefix='trip_data_tmp_',
+            dir='.',
+            text=True
+        )
+
+        with os.fdopen(temp_fd, 'w') as temp_file:
+            json.dump(data, temp_file, indent=2)
+            temp_file.flush()
+            os.fsync(temp_file.fileno())  # Force write to disk
+
+        # Atomic rename
+        shutil.move(temp_path, data_file)
+        return True
+
+    except Exception as e:
+        print(f"Error in atomic write: {e}")
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+        return False
 
 
 def init_empty_data():
@@ -66,8 +151,31 @@ def load_data_from_github():
             if os.path.exists(LOCAL_DATA_FILE):
                 with open(LOCAL_DATA_FILE, 'r') as f:
                     return json.load(f)
+        except json.JSONDecodeError as e:
+            print(f"❌ ERROR: Local data file is corrupted!")
+            print(f"JSON Error: {e}")
+
+            # Try to recover from most recent backup
+            from pathlib import Path
+            backups = sorted(Path(LOCAL_BACKUP_DIR).glob('trip_data_local_*.json'))
+            if backups:
+                most_recent = backups[-1]
+                print(f"🔄 Attempting recovery from backup: {most_recent}")
+                try:
+                    with open(most_recent, 'r') as f:
+                        recovered_data = json.load(f)
+                    print(f"✅ Successfully recovered from backup!")
+                    # Save recovered data
+                    _atomic_write_local(recovered_data, LOCAL_DATA_FILE)
+                    return recovered_data
+                except Exception as recovery_error:
+                    print(f"❌ Recovery failed: {recovery_error}")
+
+            print("⚠️ No backups available. Starting with empty data.")
+            return init_empty_data()
         except Exception as e:
             print(f"Error loading local data: {e}")
+            return init_empty_data()
         return init_empty_data()
 
     try:
@@ -105,14 +213,8 @@ def save_data_to_github(data, commit_message="Update trip data"):
     data["last_updated"] = datetime.now().isoformat()
 
     if not GITHUB_TOKEN:
-        # Local development - save to local file
-        try:
-            with open(LOCAL_DATA_FILE, 'w') as f:
-                json.dump(data, f, indent=2)
-            return True
-        except Exception as e:
-            print(f"Error saving local data: {e}")
-            return False
+        # Local development - save to local file with atomic write + backups
+        return _atomic_write_local(data, LOCAL_DATA_FILE)
 
     try:
         url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/contents/{GITHUB_DATA_PATH}"
