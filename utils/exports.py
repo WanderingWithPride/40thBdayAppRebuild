@@ -219,14 +219,6 @@ def _parse_duration(duration_str):
         except:
             pass
 
-    # Handle "90 minutes", "30 min", etc.
-    if 'min' in duration_str:
-        try:
-            minutes = float(duration_str.split('min')[0].strip().split()[0])
-            return minutes / 60.0  # Convert minutes to hours
-        except:
-            pass
-
     # Default
     return 2.0
 
@@ -324,15 +316,10 @@ def create_simple_text_schedule(activities_data, meal_proposals):
             # Add location if available
             if 'location' in activity:
                 loc = activity['location']
-                # Handle both dict and string location data
-                if isinstance(loc, dict):
-                    if loc.get('name'):
-                        schedule_text += f"{'':15} 📍 {loc['name']}\n"
-                    if loc.get('phone'):
-                        schedule_text += f"{'':15} 📞 {loc['phone']}\n"
-                elif isinstance(loc, str) and loc:
-                    # Location is a simple string
-                    schedule_text += f"{'':15} 📍 {loc}\n"
+                if loc.get('name'):
+                    schedule_text += f"{'':15} 📍 {loc['name']}\n"
+                if loc.get('phone'):
+                    schedule_text += f"{'':15} 📞 {loc['phone']}\n"
 
         schedule_text += "\n"
 
