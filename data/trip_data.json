@@ -609,14 +609,14 @@
           "is_repeatable": true
         }
       ],
-      "status": "proposed",
-      "john_vote": null,
+      "status": "voted",
+      "john_vote": "0",
       "final_choice": null,
       "activity_time": "2025-11-10",
       "date": "After dinner",
       "submitted_by": "Michael",
       "created_at": "2025-10-27T23:22:28.288771",
-      "updated_at": "2025-10-27T23:22:28.288780"
+      "updated_at": "2025-10-28T18:14:55.242327"
     },
     "fri_evening": {
       "activity_slot_id": "fri_evening",
@@ -685,5 +685,5 @@
   "completed_activities": [],
   "notifications": [],
   "tsa_updates": [],
-  "last_updated": "2025-10-28T18:14:45.209735"
+  "last_updated": "2025-10-28T18:14:55.242350"
 }
