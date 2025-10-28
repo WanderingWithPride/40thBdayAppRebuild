@@ -5241,7 +5241,7 @@ def render_packing_list():
 
 
 def render_full_schedule(df, activities_data, show_sensitive):
-    """Complete trip schedule - Visual timeline showing all days at once"""
+    """Complete trip schedule - Improved UX with tabs, filters, and clear activity types"""
     st.markdown('<h2 class="fade-in">🗓️ Complete Trip Schedule</h2>', unsafe_allow_html=True)
 
     # Get intelligence data
@@ -5270,6 +5270,21 @@ def render_full_schedule(df, activities_data, show_sensitive):
     with col4:
         urgent_count = len([a for a in activities_data if a.get('status') == 'URGENT'])
         st.metric("🚨 Urgent", urgent_count)
+
+    st.markdown("---")
+
+    # NEW: Add filters and day selector
+    filter_col1, filter_col2 = st.columns([2, 1])
+
+    with filter_col1:
+        # Day selector with ALL option
+        day_options = ["All Days", "Friday, Nov 7", "Saturday, Nov 8", "Sunday, Nov 9 🎂", "Monday, Nov 10", "Tuesday, Nov 11", "Wednesday, Nov 12"]
+        selected_day_filter = st.selectbox("📅 Jump to Day:", day_options, key="day_filter")
+
+    with filter_col2:
+        # Status filter
+        status_options = ["All Activities", "Urgent - Needs Booking", "Confirmed Only", "Pending/Optional"]
+        status_filter = st.selectbox("🔍 Filter:", status_options, key="status_filter")
 
     # Export options
     st.markdown("---")
@@ -5393,7 +5408,22 @@ def render_full_schedule(df, activities_data, show_sensitive):
     # Get all dates and sort
     dates = sorted(df['date'].dt.date.unique())
 
-    # NO TABS - Show all days in one scrollable view
+    # NEW: Filter dates based on selection
+    if selected_day_filter != "All Days":
+        # Map day names to dates
+        day_map = {
+            "Friday, Nov 7": datetime(2025, 11, 7).date(),
+            "Saturday, Nov 8": datetime(2025, 11, 8).date(),
+            "Sunday, Nov 9 🎂": datetime(2025, 11, 9).date(),
+            "Monday, Nov 10": datetime(2025, 11, 10).date(),
+            "Tuesday, Nov 11": datetime(2025, 11, 11).date(),
+            "Wednesday, Nov 12": datetime(2025, 11, 12).date(),
+        }
+        selected_date = day_map.get(selected_day_filter)
+        if selected_date:
+            dates = [d for d in dates if d == selected_date]
+
+    # Show days with improved UX
     for date in dates:
         # Day header with weather
         day_activities = [a for a in activities_data if pd.to_datetime(a['date']).date() == date]
@@ -5474,6 +5504,46 @@ def render_full_schedule(df, activities_data, show_sensitive):
 
         day_activities.sort(key=lambda x: x['time'])
 
+        # NEW: Apply status filter
+        if status_filter == "Urgent - Needs Booking":
+            day_activities = [a for a in day_activities if a.get('status') == 'URGENT']
+        elif status_filter == "Confirmed Only":
+            day_activities = [a for a in day_activities if a.get('status') in ['confirmed', 'Confirmed']]
+        elif status_filter == "Pending/Optional":
+            day_activities = [a for a in day_activities if a.get('status') in ['pending', 'Pending', 'optional']]
+
+        # NEW: Detect activity types (Shared vs Solo)
+        for activity in day_activities:
+            activity_id = activity.get('id', '')
+            activity_name = activity.get('activity', '').lower()
+
+            # Determine activity type
+            if activity_id == 'spa001' or 'couples massage' in activity_name:
+                activity['activity_type'] = 'shared'
+                activity['activity_type_label'] = '👥 SHARED - Both Together'
+            elif activity_id == 'spa002' or (activity_id == 'spa002' and 'hydrafacial' in activity_name):
+                activity['activity_type'] = 'john_solo'
+                activity['activity_type_label'] = '🎂 JOHN\'S TREATMENT - Michael has free time'
+            elif activity_id == 'spa003' or (activity_id == 'spa003' and 'mani-pedi' in activity_name):
+                activity['activity_type'] = 'john_solo'
+                activity['activity_type_label'] = '🎂 JOHN\'S TREATMENT - Michael has free time'
+            elif 'photography' in activity_name:
+                activity['activity_type'] = 'shared'
+                activity['activity_type_label'] = '👥 SHARED - Individual shots for each'
+            elif 'birthday dinner' in activity_name or activity_id == 'din001':
+                activity['activity_type'] = 'shared'
+                activity['activity_type_label'] = '👥 SHARED - Michael treating'
+            elif activity.get('is_meal'):
+                activity['activity_type'] = 'shared'
+                activity['activity_type_label'] = '👥 SHARED MEAL'
+            else:
+                activity['activity_type'] = 'shared'
+                activity['activity_type_label'] = '👥 SHARED'
+
+        # NEW: Separate meals from activities
+        meals = [a for a in day_activities if a.get('type') == 'dining' or a.get('is_meal')]
+        non_meal_activities = [a for a in day_activities if a.get('type') != 'dining' and not a.get('is_meal')]
+
         # Check if birthday
         is_birthday = date.month == 11 and date.day == 9
 
@@ -5510,10 +5580,44 @@ def render_full_schedule(df, activities_data, show_sensitive):
         </div>
         """, unsafe_allow_html=True)
 
-        # Timeline
-        if day_activities:
-            for idx, activity in enumerate(day_activities):
+        # NEW: Show meals section first
+        if meals:
+            st.markdown("### 🍽️ MEALS")
+            for meal in meals:
+                # Show meal in collapsed expander
+                meal_time = meal.get('time', 'TBD')
+                meal_name = meal.get('activity', 'Meal')
+                meal_status = meal.get('status', 'pending')
+                meal_type_label = meal.get('activity_type_label', '👥 SHARED MEAL')
+
+                # Status emoji
+                status_emoji = "✅" if meal_status in ['confirmed', 'Confirmed'] else "🗳️" if meal.get('is_meal_voting') else "⏳"
+
+                with st.expander(f"{status_emoji} {meal_time} - {meal_name}", expanded=False):
+                    st.markdown(f"**Type:** {meal_type_label}")
+                    if meal.get('description'):
+                        st.markdown(f"**Description:** {meal.get('description')}")
+                    if meal.get('cost'):
+                        cost_display = meal.get('cost') if show_sensitive else "$***"
+                        st.markdown(f"**Cost:** {cost_display}")
+                    if meal.get('notes'):
+                        st.info(mask_info(meal.get('notes', ''), show_sensitive))
+                    if meal.get('booking_url') and meal.get('booking_url') != 'N/A':
+                        st.markdown(f"[📞 Book Now]({meal.get('booking_url')})")
+
+                    # Handle voting meals
+                    if meal.get('is_meal_voting'):
+                        st.markdown("**Restaurant Options:**")
+                        for idx, restaurant in enumerate(meal.get('restaurant_options', [])):
+                            st.markdown(f"**Option {idx + 1}:** {restaurant['name']} - {restaurant.get('description', '')}")
+            st.markdown("---")
+
+        # NEW: Show activities section
+        if non_meal_activities:
+            st.markdown("### 🎯 ACTIVITIES")
+            for idx, activity in enumerate(non_meal_activities):
                 status_class = activity['status'].lower()
+                activity_id = activity.get('id', '')
 
                 # Calculate end time
                 end_time = None
