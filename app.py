@@ -5898,20 +5898,22 @@ def render_full_schedule(df, activities_data, show_sensitive):
                     safe_time_display = html.escape(time_display)
                     is_michael_solo = activity.get('activity_slot_id') in ['fri_evening', 'mon_morning', 'mon_afternoon', 'mon_evening']
 
-                    st.markdown(f"""
-                    <div class="timeline-item pending" style="margin: 1rem 0;">
-                        <div class="ultimate-card" style="border-left: 4px solid {'#2196f3' if is_michael_solo else '#ff9800'};">
-                            <div class="card-body">
-                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-                                    <h4 style="margin: 0;">{safe_activity_name}</h4>
-                                    <span class="status-pending">{'MICHAEL TO PICK' if is_michael_solo else 'PENDING VOTE'}</span>
-                                </div>
-                                <p style="margin: 0.5rem 0;"><b>🕐 {safe_time_display}</b></p>
-                                <p style="margin: 0.5rem 0; color: #666;">{'Michael will choose from 3 activity options below:' if is_michael_solo else 'John is voting on 3 activity options below:'}</p>
-                            </div>
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    status_text = 'MICHAEL TO PICK' if is_michael_solo else 'PENDING VOTE'
+                    description_text = 'Michael will choose from 3 activity options below:' if is_michael_solo else 'John is voting on 3 activity options below:'
+                    border_color = '#2196f3' if is_michael_solo else '#ff9800'
+
+                    st.markdown(f"""<div class="timeline-item pending" style="margin: 1rem 0;">
+<div class="ultimate-card" style="border-left: 4px solid {border_color};">
+<div class="card-body">
+<div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+<h4 style="margin: 0;">{safe_activity_name}</h4>
+<span class="status-pending">{status_text}</span>
+</div>
+<p style="margin: 0.5rem 0;"><b>🕐 {safe_time_display}</b></p>
+<p style="margin: 0.5rem 0; color: #666;">{description_text}</p>
+</div>
+</div>
+</div>""", unsafe_allow_html=True)
 
                     # Display all 3 activity options
                     import html
@@ -5929,20 +5931,21 @@ def render_full_schedule(df, activities_data, show_sensitive):
                         safe_booking = html.escape(booking) if booking != 'N/A' else 'N/A'
                         safe_tips = html.escape(act_option.get('tips', 'N/A'))
 
-                        st.markdown(f"""
-                        <div class="ultimate-card" style="margin: 0.5rem 0 0.5rem 2rem; border-left: 3px solid {'#2196f3' if is_michael_solo else '#4caf50'};">
-                            <div class="card-body" style="padding: 1rem;">
-                                <h5 style="margin: 0 0 0.5rem 0;">Option {idx + 1}: {safe_name}</h5>
-                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>📝</strong> {safe_description}</p>
-                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>💰</strong> {safe_cost_range}</p>
-                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>⏱️</strong> Duration: {safe_duration}</p>
-                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>⭐</strong> Rating: {safe_rating}</p>
-                                {f'<p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>📞</strong> {safe_phone}</p>' if phone != 'N/A' else ''}
-                                {f'<p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>🔗</strong> <a href="{safe_booking}" target="_blank">Booking Info</a></p>' if booking != 'N/A' and booking.startswith('http') else ''}
-                                <p style="margin: 0.25rem 0; font-size: 0.9rem; font-style: italic;"><strong>💡</strong> {safe_tips}</p>
-                            </div>
-                        </div>
-                        """, unsafe_allow_html=True)
+                        phone_html = f'<p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>📞</strong> {safe_phone}</p>' if phone != 'N/A' else ''
+                        booking_html = f'<p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>🔗</strong> <a href="{safe_booking}" target="_blank">Booking Info</a></p>' if booking != 'N/A' and booking.startswith('http') else ''
+
+                        st.markdown(f"""<div class="ultimate-card" style="margin: 0.5rem 0 0.5rem 2rem; border-left: 3px solid {'#2196f3' if is_michael_solo else '#4caf50'};">
+<div class="card-body" style="padding: 1rem;">
+<h5 style="margin: 0 0 0.5rem 0;">Option {idx + 1}: {safe_name}</h5>
+<p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>📝</strong> {safe_description}</p>
+<p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>💰</strong> {safe_cost_range}</p>
+<p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>⏱️</strong> Duration: {safe_duration}</p>
+<p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>⭐</strong> Rating: {safe_rating}</p>
+{phone_html}
+{booking_html}
+<p style="margin: 0.25rem 0; font-size: 0.9rem; font-style: italic;"><strong>💡</strong> {safe_tips}</p>
+</div>
+</div>""", unsafe_allow_html=True)
 
                 # Special handling for meal voting activities
                 elif activity.get('is_meal_voting'):
@@ -5951,20 +5954,18 @@ def render_full_schedule(df, activities_data, show_sensitive):
                     safe_activity_name = html.escape(activity['activity'])
                     safe_time_display = html.escape(time_display)
 
-                    st.markdown(f"""
-                    <div class="timeline-item pending" style="margin: 1rem 0;">
-                        <div class="ultimate-card" style="border-left: 4px solid #ff9800;">
-                            <div class="card-body">
-                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-                                    <h4 style="margin: 0;">{safe_activity_name}</h4>
-                                    <span class="status-pending">PENDING VOTE</span>
-                                </div>
-                                <p style="margin: 0.5rem 0;"><b>🕐 {safe_time_display}</b></p>
-                                <p style="margin: 0.5rem 0; color: #666;">John is voting on 3 restaurant options below:</p>
-                            </div>
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    st.markdown(f"""<div class="timeline-item pending" style="margin: 1rem 0;">
+<div class="ultimate-card" style="border-left: 4px solid #ff9800;">
+<div class="card-body">
+<div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+<h4 style="margin: 0;">{safe_activity_name}</h4>
+<span class="status-pending">PENDING VOTE</span>
+</div>
+<p style="margin: 0.5rem 0;"><b>🕐 {safe_time_display}</b></p>
+<p style="margin: 0.5rem 0; color: #666;">John is voting on 3 restaurant options below:</p>
+</div>
+</div>
+</div>""", unsafe_allow_html=True)
 
                     # Display all 3 restaurant options
                     import html
@@ -5983,19 +5984,19 @@ def render_full_schedule(df, activities_data, show_sensitive):
                         safe_menu = html.escape(menu) if menu != 'N/A' else 'N/A'
                         safe_tips = html.escape(restaurant.get('tips', 'N/A'))
 
-                        st.markdown(f"""
-                        <div class="ultimate-card" style="margin: 0.5rem 0 0.5rem 2rem; border-left: 3px solid #4caf50;">
-                            <div class="card-body" style="padding: 1rem;">
-                                <h5 style="margin: 0 0 0.5rem 0;">Option {idx + 1}: {safe_name}</h5>
-                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>📝</strong> {safe_description}</p>
-                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>💰</strong> {safe_cost_range}</p>
-                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>👔</strong> {safe_dress_code}</p>
-                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>📞</strong> {safe_phone}</p>
-                                {f'<p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>🔗</strong> <a href="{safe_menu}" target="_blank">View Menu</a></p>' if menu != 'N/A' and menu.startswith('http') else ''}
-                                <p style="margin: 0.25rem 0; font-size: 0.9rem; font-style: italic;"><strong>💡</strong> {safe_tips}</p>
-                            </div>
-                        </div>
-                        """, unsafe_allow_html=True)
+                        menu_html = f'<p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>🔗</strong> <a href="{safe_menu}" target="_blank">View Menu</a></p>' if menu != 'N/A' and menu.startswith('http') else ''
+
+                        st.markdown(f"""<div class="ultimate-card" style="margin: 0.5rem 0 0.5rem 2rem; border-left: 3px solid #4caf50;">
+<div class="card-body" style="padding: 1rem;">
+<h5 style="margin: 0 0 0.5rem 0;">Option {idx + 1}: {safe_name}</h5>
+<p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>📝</strong> {safe_description}</p>
+<p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>💰</strong> {safe_cost_range}</p>
+<p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>👔</strong> {safe_dress_code}</p>
+<p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>📞</strong> {safe_phone}</p>
+{menu_html}
+<p style="margin: 0.25rem 0; font-size: 0.9rem; font-style: italic;"><strong>💡</strong> {safe_tips}</p>
+</div>
+</div>""", unsafe_allow_html=True)
 
                 else:
                     # NEW: Regular activity card - COLLAPSIBLE!
