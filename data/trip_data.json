@@ -374,14 +374,14 @@
           "rating": "4.8/5"
         }
       ],
-      "status": "proposed",
-      "john_vote": null,
+      "status": "voted",
+      "john_vote": "1",
       "final_choice": null,
       "activity_time": "2025-11-08",
       "date": "After dinner",
       "submitted_by": "Michael",
       "created_at": "2025-10-27T22:37:03.547428",
-      "updated_at": "2025-10-27T22:37:03.547438"
+      "updated_at": "2025-10-28T18:12:34.111537"
     },
     "sun_afternoon": {
       "activity_slot_id": "sun_afternoon",
@@ -685,5 +685,5 @@
   "completed_activities": [],
   "notifications": [],
   "tsa_updates": [],
-  "last_updated": "2025-10-28T18:11:59.182032"
+  "last_updated": "2025-10-28T18:12:34.111553"
 }
