@@ -1215,6 +1215,450 @@ def get_restaurant_details():
         "David's Restaurant & Lounge": {"dress_code": "Business Casual (no shorts/flip-flops)", "menu_url": "N/A", "serves": ["dinner"], "days_open": [0,1,2,3,4,5,6], "outdoor_seating": False, "booking_required": True},
     }
 
+def get_ritz_restaurant_menus():
+    """Complete menus for all Ritz-Carlton restaurants with actual pricing from poolside app"""
+    return {
+        "Salt (AAA Five Diamond)": {
+            "hours": "Opens at 5:00 PM • Tue-Sat only",
+            "dress_code": "Resort Elegant (jackets optional, no shorts/flip-flops)",
+            "description": "Named for cooking's most valuable seasoning, Salt's approach elevates classic ingredients to create beautifully inspiring meals. Chef's Adventure menu available upon request.",
+            "note": "20% gratuity applied to parties of 7 or more • Consuming raw/undercooked foods may pose health risk",
+            "first_call": "5:45 PM nightly - presentation of the day's unique bourbon blend",
+            "menu": {
+                "Appetizers": [
+                    "Sevruga Caviar (1oz)",
+                    "Royal Osetra Caviar (1oz)",
+                    "Duck - Confit duck legs, celery root remoulade, white balsamic vinaigrette",
+                    "Oysters - 1/2 dozen East Coast oysters",
+                    "Garden Salad - Seasonal greens and vegetables, Dijon vinaigrette",
+                    "Octopus - Castelvetrano olives, piquillo peppers, chorizo oil",
+                    "Tuna - Yellowfin tartare, avocado, dashi emulsion",
+                    "Scallop - Lightly baked, matpe beans",
+                    "Risotto - Sepia, Iberico ham"
+                ],
+                "Main Courses": [
+                    "Dover Sole - Grilled, asparagus, beurre noisette",
+                    "Halibut - Baked in butter, leek, kohlrabi, saffron billi bi",
+                    "Cobia - Confit fingerling potato, red wine-andouille jus",
+                    "Snapper Tartare - Green pepper-lemongrass emulsion",
+                    "Wagyu - Daikon, mushrooms, truffle hollandaise",
+                    "Beef Tenderloin - Grilled, mashed potato, red wine-cipollini jus (Add foie gras $25)",
+                    "Lamb - Seared loin, freekeh, artichoke, mint jus",
+                    "Cassoulet - Butter bean stew, confit eggplant"
+                ],
+                "Sweet Endings": [
+                    "Baklava - Pistachio and goat cheese crémeux, crème fraîche ice cream",
+                    "Soufflé - Dark chocolate soufflé, lavender anglaise, burnt honey ice cream",
+                    "Chocolate Coffee Bar - Chocolate sablé, chocolate ganache, coffee Irish cream ice cream",
+                    "Assortment of Sorbets and Fresh Berries - Citrus, raspberry, mango",
+                    "Profiterole - Pate a choux, lime and yogurt cream, blackberry sorbet",
+                    "Cheese - Chef's selection of cheese and condiments"
+                ],
+                "Dessert Cocktails": [
+                    "Bananas Foster Martini - Absolut 80, house-made banana liqueur, Baileys Irish cream, Biscoff cookie rim",
+                    "Espresso Martini - Absolut vanilla, Kahlua, coconut milk"
+                ],
+                "Chef's Tasting Menu": [
+                    "Tuna - Yellowfin tartare, avocado, dashi emulsion",
+                    "Scallop - Lightly seared, corn puree, cilantro chimichurri",
+                    "Halibut - Baked in butter, braised fennel, heirloom tomato & saffron consomme",
+                    "Wagyu - Daikon, mushroom, truffle hollandaise",
+                    "Fig - Brown butter shortbread, mascarpone chantilly, fig port sorbet"
+                ],
+                "Lounge Menu": [
+                    "Sevruga Caviar (1oz)",
+                    "Royal Osetra Caviar (1oz)",
+                    "Oysters - 1/2 dozen East Coast oysters",
+                    "Oysters, Baked - Trio of oysters, andouille",
+                    "Beef Tartare - Hand cut tenderloin, Dijon, egg yolk",
+                    "Snapper Tartare - Green pepper-lemongrass emulsion",
+                    "Endive - Cashew, yuzu vinaigrette",
+                    "Pasta - Orecchiette, wagyu ragu",
+                    "Duck on Toast - 3 each, confit legs",
+                    "Cheese - Chef's selection of cheese and condiments"
+                ]
+            }
+        },
+        "Coast": {
+            "hours": "Breakfast 7:00 AM - 11:00 AM • Lunch 11:00 AM - 3:00 PM • Dinner 5:00 PM - 9:00 PM",
+            "dress_code": "Resort Casual",
+            "description": "Inspired by partnerships with regional farmers and boat captains, focusing on local seafood, shellfish, aged steaks, freshly-made pasta and small plates.",
+            "note": "20% gratuity applied to parties of 7 or more",
+            "menu": {
+                "Breakfast - Healthy Start": [
+                    "Fresh Fruit Plate - $22",
+                    "Seasonal Berries - $21",
+                    "Berries Parfait - Yogurt, berries, house-made granola, nuts - $19",
+                    "Oatmeal - Raisins, brown sugar - $12",
+                    "Avocado Toast - Grilled sourdough, lemon butter, frisee, pickled onion - $29"
+                ],
+                "Breakfast - Bakery": [
+                    "Bakery Basket - Muffins, croissants, Danish - $17",
+                    "Biscuits - $12"
+                ],
+                "Breakfast - Chef's Favorite": [
+                    "Sunrise Wrap - Sunny side-up eggs, bacon, potatoes, pico de gallo, cheddar, sausage gravy - $27",
+                    "Mayport Shrimp Benedict - Poached eggs, English muffin, hollandaise, butter poached shrimp, arugula - $31",
+                    "Breakfast Biscuit - Fried egg, buttermilk fried chicken thigh, pimento, red pepper jam - $29",
+                    "Amelia Breakfast Station - Classic family style breakfast favorites, includes coffee & juice - $45",
+                    "Shrimp and Grits - Mayport shrimp, tasso ham, boursin grits, Dijon cream - $31",
+                    "Tomato-Pepper Skillet - Pepper-tomato stew, poached eggs, feta, grilled sourdough - $30"
+                ],
+                "Breakfast - From the Farm": [
+                    "Two Farm-Fresh Eggs - Two eggs any style, potato casserole, choice of meat - $26",
+                    "Three Egg Omelet - Potato casserole, choice of ingredients (onions, peppers, spinach, mushrooms, tomatoes, sausage, ham, bacon, cheddar, swiss, feta, goat, provolone) - $28",
+                    "Eggs Benedict - Two poached eggs, Canadian bacon, hollandaise sauce - $29",
+                    "Coast Hash - Two eggs any style, sweet potato, red potato, crumbled sausage, caramelized onion, sun-dried tomato, chipotle crema, feta - $31"
+                ],
+                "Breakfast - Griddle": [
+                    "Buttermilk Pancakes - Add blueberry, chocolate chips, or banana from $2",
+                    "Belgian Waffle - Traditional with berries - $23",
+                    "Blueberry Cornbread - $20",
+                    "Brioche French Toast - $22",
+                    "Carrot Cake Belgian Waffle - Golden raisin, whipped cream cheese, carrot curls, candied pecans - $23",
+                    "Bananas Foster French Toast - Banana rum syrup, brule banana, powdered sugar, cinnamon - $23"
+                ],
+                "Breakfast - Sides": [
+                    "Applewood Smoked Bacon - $10",
+                    "Link Sausage - $10",
+                    "Local Country Ham - $10",
+                    "Boursin Grits - $10",
+                    "Turkey Bacon - $10",
+                    "Chicken Apple Sausage - $10"
+                ],
+                "Lunch/Dinner - Chilled": [
+                    "Smoked Trout Dip - Boursin, pickled mustard seeds, spiced lavash - $23",
+                    "Crispy Calamari - Banana peppers, lemon pepper, arrabiata - $21",
+                    "Mayport Barbeque Shrimp Cocktail - Fresh lemon, bourbon cocktail sauce (gluten-free) - $26",
+                    "Amelia Island Fisherman's Soup - Mirepoix, white fish, bell peppers, capers (gluten-free) - $16"
+                ],
+                "Lunch/Dinner - Beaches & Greens": [
+                    "Chopped Kale Caesar Salad - Romaine, kale, fried capers, focaccia croutons, parmesan, Caesar dressing - $20",
+                    "Signature Wedge Salad - Baby iceberg, tomatoes, egg, Nueske's bacon, smoked bleu cheese, avocado ranch (gluten-free) - $19",
+                    "Coast Salad - Artisan greens, roasted butternut squash, heirloom tomatoes, kohlrabi, crispy quinoa, pickled red onion, butternut squash vinaigrette (healthy & gluten-free) - $23"
+                ],
+                "Lunch - Handhelds": [
+                    "Grilled Local Catch Sandwich - Pickled fennel & apple slaw, cracked pink peppercorn aioli, brioche bun, Old Bay chips - $29",
+                    "Roast Beef Ciabatta - Horseradish cream, crispy buttermilk onions, au jus, Swiss cheese, French fries - $27",
+                    "Coast Burger - Nueske's bacon, sharp cheddar, crispy onions, cherry burger sauce, brioche bun, French fries - $27",
+                    "Mayport Shrimp Roll - Honey sriracha glaze, spring mix, toasted hoagie roll, house slaw, Old Bay chips - $28",
+                    "Crispy Chicken Sandwich - Chicken thigh, hot oil, house slaw, dill pickles, brioche bun, French fries - $23",
+                    "Veggie Burger - Chickpeas, black beans, corn, mushrooms, provolone, roasted peppers, roasted garlic aioli, romaine, brioche bun, Old Bay chips (healthy) - $22"
+                ],
+                "Dinner - Ocean Views": [
+                    "Mayport Shrimp Bucatini - Spinach, sundried tomatoes, roasted garlic, chorizo, roasted Vidalia onions, Dijon cream, parm pan fritto - $39",
+                    "Seared Sea Scallops - Shitake whiskey cream, lardons, wild rice - $45",
+                    "Local Catch Frites - Bernaise sauce, roasted garlic aioli, apple-fennel gremolata, truffle parmesan house fries - $42",
+                    "Pan Seared Blackened Redfish - Boursin cheese grits, roasted garlic, blistered heirloom tomatoes, roasted onions - $46"
+                ],
+                "Dinner - Land Ahead": [
+                    "8 OZ Filet Mignon - Roasted garlic potato puree, grilled balsamic broccolini, bordelaise - $60",
+                    "Vegetable Farro Risotto - Charred broccolini, roasted heirloom tomatoes, onions, butternut squash, roasted garlic, English peas, parmesan, white wine (healthy) - $34",
+                    "Stout Braised Short Rib - Roasted garlic potato puree, orange-shallot braised carrots, natural jus - $42"
+                ],
+                "Sides": [
+                    "Orange-Shallot Braised Carrots - $12",
+                    "Grilled Balsamic Broccolini - $12",
+                    "Creamy Carolina Rice - $12",
+                    "Roasted Garlic Potato Puree - $12",
+                    "Truffle Parmesan Fries - $12",
+                    "Wild Rice - $12"
+                ]
+            }
+        },
+        "The Lobby Bar": {
+            "hours": "Open - Closes at 11:59 PM",
+            "dress_code": "Resort Casual",
+            "description": "Curated list of small-batch spirits, custom infusions, freshly-prepared nigiri, sashimi, and rolled sushi. Join us at 5:45 PM nightly for 'First Call' - presentation of the day's unique bourbon blend.",
+            "note": "20% gratuity applied to parties of 7 or more",
+            "menu": {
+                "Appetizers": [
+                    "Edamame - Lightly steamed soy beans with Chile de Arbol salt",
+                    "Meat and Cheese Board - American artisanal meats and aged cheeses with water crackers",
+                    "Spicy Tuna Tacos - Poke-style tuna, chili spice, brussel sprout slaw, togarashi (GF)",
+                    "Wakame Salad - Hiyoshi seaweed mix, carrots, toasted sesame",
+                    "Ebi Spicy Tuna",
+                    "Chisai Oshi Sushi - Pressed sushi squares, tobiko, spicy fish tartare, ponzu glaze, scallions, tempura flakes",
+                    "Miso Soup"
+                ],
+                "Signature Sushi Rolls": [
+                    "Fernandina Roll - Shrimp tempura, cucumber, seared spicy tuna, wasabi mayo, sriracha, crunchy topping",
+                    "Trio Spicy Roll - Spicy tuna/hamachi/salmon, cucumber, shiso leaf, jalapeno, tobiko",
+                    "Tuna Duo Roll - Spicy tuna, sliced tuna, cucumber, green onion, aged soy sauce",
+                    "Mango Melon Roll - Kimchi mango, kimchi cantaloupe, pickled daikon, cucumber, candied jalapeno, tobiko",
+                    "Oki Oshi Sushi - Pressed sushi squares, tobiko, spicy fish tartare, ponzu glaze, scallions, tempura crunch",
+                    "Creamy Crab Roll - Blue swimmer crab, black garlic sriracha aioli, pickled daikon, tobiko, cured egg yolk zest, scallions",
+                    "Boricua Roll - Roasted marinated beef, sweet plantain, culantro, avocado slices, cilantro aioli",
+                    "Hamachi Kama - Roasted yellowtail collar, ponzu aged soy reduction",
+                    "Niku Ebi Roll - Shrimp tempura, avocado, sweet plantain, roasted filet mignon, gochujang butter, garlic chips"
+                ],
+                "Nigiri & Sashimi": [
+                    "Sake (Salmon) - Nigiri (1 pc) or Sashimi (2 pcs)",
+                    "Ebi (Cooked Shrimp)",
+                    "Tako (Octopus)",
+                    "Hamachi (Yellow Tail)",
+                    "Ikura (Salmon Roe)",
+                    "Tai (Japanese Snapper)",
+                    "Maguro (Tuna)",
+                    "Hirame (Flounder)",
+                    "Nigiri Sampler - 8 pieces: 2 tuna, 2 salmon, 2 yellow tail, 2 snapper",
+                    "Sashimi Sampler - 12 pieces: 3 tuna, 3 salmon, 3 yellow tail, 3 snapper"
+                ],
+                "Signature Cocktails": [
+                    "Strawberry Ginger Bourbon - Larceny bourbon, fresh strawberries, fresh lemon juice, ginger beer",
+                    "Get Ginny With It - Manifest gin, dry vermouth, fresh lemon juice, fresh raspberries, agave syrup, vanilla egg white foam",
+                    "Fireside - Vida mezcal, creme de cacao, fresh lime juice, caramel egg white foam",
+                    "Sunset on Amelia - Ketel One grapefruit and rose, fresh orange juice, brut rose",
+                    "Smoked Old Fashioned - Most celebrated cocktail! 1792 bourbon, St Germain, orange peel, orange bitters, Luxardo cherries",
+                    "Cucumber Saketini - Crop organic cucumber vodka, TyKu cucumber junmai sake, simple syrup, fresh cucumber",
+                    "Champagne Margarita - Patron silver, Cointreau, fresh lime juice, simple syrup, Mumm champagne",
+                    "Celebration Martini - Absolut vanilla vodka, amaretto disaronno, creme de cacao white, rimmed with toasted coconut",
+                    "Caribbean Diplomat - Diplomatico rum, mint leaves, fresh lime juice, agave syrup, topped with soda",
+                    "Cello Again - Ketel One citroen vodka, lemoncello, topped with prosecco and soda",
+                    "Luxardo Margarita - Casamigos blanco tequila, Italian cherries, fresh lime juice",
+                    "Coastal Treasure Mocktail - Fresh blackberries, fresh lime juice, fresh pineapple juice, topped with ginger beer"
+                ],
+                "Bourbons, Whiskeys & Scotch": "Extensive selection including: 1792 Small Batch, Angel's Envy, Basil Hayden, Bulleit, Larceny, High West Double Rye, Michter's Single Barrel Rye, Woodford Reserve, Four Roses Single Barrel, Stranahan's Colorado, Stagg Jr., Belle Meade Cask, Colonel E.H. Taylor, Johnnie Walker Blue/Gold/Black, Green Spot Irish, Yellow Spot Irish, Lagavulin 16, Laphroaig 10, Dalwhinnie 15, Oban 14, Glenmorangie 18, Glenlivet 12/15/18, Balvenie 12, Macallan 12/18/25/30/M",
+                "Flights": "Rye, Wheat and Small Batch - Carefully curated selections",
+                "Tequila": "Don Julio 1942/Reposado/Anejo/Blanco, Avion Reposado, Patron Silver, Corazon, Casa Noble Reposado, Corzo Blanco/Reposado, Casamigos Blanco, Vida Mezcal",
+                "Rum": "Appleton Estate Reserve ($14), Mount Gay XO ($15), Malibu ($12), Barbancourt White ($14), Myers's Dark ($12), Bacardi Superior ($13), Humboldt Organic Spiced ($14), Captain Morgan Spiced ($13), Pusser's ($12), Ron Zacapa ($16)",
+                "Sake": "Moonstone Asian Pear/Plum, Murai Sake Sugidama, Rock Sake Cloud, Ty Ku Cucumber Junmai/Junmai Silver/Coconut Nigori/Junmai Ginjo Black/Junmai Daiginjo White",
+                "Craft, Domestic & Import Beers": [
+                    "Sierra Nevada Pale Ale - $11",
+                    "Intuition I-10 IPA - $11",
+                    "Mocama Cosmico IPA Draft - $9",
+                    "Allagash Swells IPA - $11",
+                    "Bud Light, Coors Light, Miller Lite - $9",
+                    "Michelob Ultra, Samuel Adams, Yuengling Lager - $7",
+                    "Beck's Non-Alcohol - $7",
+                    "Amstel Light, Heineken, Corona, Beck's, Stella Artois - $9",
+                    "Bass Ale, New Castle, Guinness, Peroni - $10"
+                ]
+            }
+        },
+        "Coquina": {
+            "hours": "Opens at 11:00 AM",
+            "dress_code": "Beachwear/Casual",
+            "description": "Al fresco dining experience - sophisticated yet relaxed, combining Spanish-influenced cuisine with stunning ocean views. Outdoor lounge and elevated palapa bar.",
+            "menu": {
+                "Botanas (Appetizers)": [
+                    "Ceviche - Catch-of-the-day, pico de gallo, citrus, chips - $18",
+                    "Shrimp Cocktail - Spicy red tomato, avocado, cucumber, onion, cilantro, serrano - $20",
+                    "Ancho Chicken Quesadilla - Pepper jack, queso fresco, cheddar, guacamole, sour cream, salsa - $22",
+                    "Shrimp Aguachile - Cucumber, onion, chili, lime juice - $20",
+                    "Guacamole - Queso fresco, chips - $16",
+                    "Nachos - Queso blanco, pico de gallo, jalapeno, guacamole, sour cream, salsa fresca - $19"
+                ],
+                "Ensaladas (Salads)": [
+                    "Mexican Chopped Salad - Black beans, peppers, tomato, chipotle vinaigrette - $18",
+                    "Bibb Salad - Pineapple, queso fresco, pepitas, tomato, cucumber, corn, avocado, pickled onion, creamy lime dressing - $18",
+                    "Mixed Green - Tomato, cucumber, hearts of palm, sangria vinaigrette - $14"
+                ],
+                "Cuencas (Bowls)": [
+                    "Tuna Bowl - Mixed greens, pickled vegetables, avocado, corn nuts, sofrito aioli - $26",
+                    "Cilantro-Garlic Rice Bowl - Black beans, roasted corn, avocado, tomato, cilantro, cheese - $18"
+                ],
+                "Sandwiches": [
+                    "Catch-of-the-Day - Grilled, toasted bun, lettuce, tomato, onion, pickled red slaw - $22",
+                    "Chicken Torta - Ancho marinated chicken, pepper jack cheese, lettuce, tomato, Coquina aioli - $20",
+                    "Cuban Torta - Papi's braised pork, ham, Swiss cheese, pickles, spicy mustard - $21",
+                    "Coquina Burger - Coquina aioli, tomatillo slaw, lettuce, tomato, pepper jack - $24"
+                ],
+                "Street Tacos (Gluten-free option available)": [
+                    "Papi's Braised Pork - Tomatillo slaw, onion, cilantro, queso fresco - $19",
+                    "Ancho Chicken - Pickled onions, smoky crema - $18",
+                    "Blackened Catch-of-the-Day - Ensenada slaw - $22",
+                    "Ajillo Shrimp - Pickled red cabbage, sofrito aioli - $22",
+                    "Roasted Corn - Crispy yuca, creamy mojo, pico de gallo - $16"
+                ],
+                "Postres (Desserts)": [
+                    "Churros - With chocolate sauce - $14"
+                ],
+                "Wine": {
+                    "Sparkling/Rosé": "Lamberti Prosecco (from $14), Vilarnau Rose Brut ($16), Mumm Napa Brut ($16), Chateau Miraval Rose (from $18)",
+                    "White": "Carmel Road Chardonnay ($16), Nautilus Estate Sauvignon Blanc ($16), Terlato Pinot Grigio ($16), Hartford Court Chardonnay ($18), Justin Sauvignon Blanc ($18), Trimbach Riesling ($19), Mer Soleil Chardonnay ($29)",
+                    "Red": "Carmel Road Cabernet Sauvignon ($16), Boen Tri County Pinot Noir ($16), Torres Celeste Crianza ($19)"
+                }
+            }
+        },
+        "Tidewater Grill": {
+            "hours": "Opens Thursday at 5:00 PM • Mon-Fri 5-10 PM, Sat-Sun 3-10 PM",
+            "dress_code": "Resort Casual",
+            "description": "Casual dining born from the relaxed spirit of days on the island's waterways. American grill classics, coastal favorites, and regionally-brewed beers.",
+            "menu": {
+                "Low Tide (Appetizers)": [
+                    "Saltwater Pretzel - Sea salt, local ale cheese, whole grain honey mustard - $15",
+                    "Wings - Buffalo or sweet & spicy, celery, blue cheese - $20",
+                    "Crab Cakes - Mixed greens, tomato chutney, piquillo aioli - $26",
+                    "Barbeque Pork Rinds - Warm pimento cheese, bacon jam - $26"
+                ],
+                "High Tide (Entrees)": [
+                    "Tidewater Smash Burger - Cheddar, remoulade, cured onion, lettuce, tomato, pickle, fries - $26",
+                    "House-Made Veggie Burger - Black bean, quinoa, chickpea, basil aioli, mushroom, roasted peppers, fries - $22",
+                    "Chicken Sandwich - Cured onion, lettuce, tomato, pepper jack cheese, Alabama white sauce, fries - $25",
+                    "Mayport Crispy Shrimp - Pickled cucumber slaw, cocktail sauce, fries - $29",
+                    "Crispy Flounder - Pickled cucumber slaw, tartar sauce, fries - $28"
+                ],
+                "Marshland Greens (Salads)": [
+                    "Chopped Kale Caesar Salad - Romaine, kale, fried capers, focaccia croutons, parmesan, Caesar dressing - $20",
+                    "Signature Wedge Salad - Baby iceberg, tomatoes, egg, Nueske's bacon, smoked bleu cheese, avocado ranch (gluten-free) - $19"
+                ],
+                "Sides": [
+                    "Tidewater Seasoned Fries - House made remoulade - $14",
+                    "Sweet Potato Fries - $9",
+                    "Pickled Cucumber Slaw - $8"
+                ],
+                "Dessert": [
+                    "Cinnamon Sugar Pretzel - Caramel sauce, chocolate sauce - $14"
+                ],
+                "Tidewater Grill Pizza": [
+                    "Cheese - Fresh mozzarella, house-made marinara - $20",
+                    "Meat Trio - Italian sausage, pepperoni, andouille, house-made marinara - $26",
+                    "Margherita - Local mozzarella, heirloom tomato, pesto, fresh basil, house-made marinara - $22",
+                    "Buffalo Chicken Pizza - Mozzarella, bleu cheese, pickled red onion, celery, ranch - $26",
+                    "Pepperoni - Fresh mozzarella, house-made marinara - $22"
+                ],
+                "Specialty Cocktail Creations": [
+                    "Set Sail Martini - Ketel One grapefruit & rose vodka, house-made pomegranate syrup, fresh grapefruit juice - $16",
+                    "Driftwood Maple Bourbon Sour - Woodford Reserve bourbon, house-made rosemary maple syrup, house-made sour mix, rosemary infused ice cube - $16",
+                    "Tito's Tide Apple Prosecco - Tito's vodka, Lamberti prosecco, house-made apple syrup - $16",
+                    "Ocean Paradise Blackberry Mule - Casamigos tequila, fresh blackberries, lime, Fever Tree ginger beer - $18",
+                    "Citrus Sunshine - Ketel One citroen vodka, limoncello, Cointreau, fresh lemon, orange juice, simple syrup - $16"
+                ],
+                "From the Tap On the Rocks": [
+                    "The Flying Jib - Mocama Moder Lager, Bombay Sapphire gin, house-made ginger syrup, fresh lime - $14",
+                    "The Crow's Nest - Modelo Especial, Casamigos tequila, Cointreau, cherry puree, fresh lime - $14",
+                    "The Bow and the Stern - Bold City Killer Whale Cream Ale, High West bourbon, Chambord liqueur, simple syrup - $16"
+                ],
+                "Beer": [
+                    "Cosmico IPA - $11",
+                    "Moder Marzen - $11",
+                    "Caravay Light Lager - $11",
+                    "Party Wave IPA - $11",
+                    "Mocama Prosim Pilsner - $11",
+                    "Intuition I-10 IPA - $11",
+                    "Bold City Killer Whale Cream Ale - $11",
+                    "Sweetwater 420 Extra Pale Ale - $11",
+                    "Imported (Heineken/Corona/Stella/Modelo) - $10",
+                    "Domestic (Miller Lite/Bud Light/Coors Light/Blue Moon/Michelob Ultra/Yuengling) - $9",
+                    "White Claws - $10"
+                ],
+                "Wine": {
+                    "Sparkling/Rosé": "Lamberti Prosecco ($14), Mumm Napa Brut Prestige ($16)",
+                    "Whites": "Veramonte Chardonnay ($14), Nautilus Estate Sauvignon Blanc ($16), Terlato Pinot Grigio ($16), Matanzas Creek ($18), Mer Soleil Chardonnay ($29)",
+                    "Reds": "Veramonte Cabernet Sauvignon ($14), Boen Tri County Pinot Noir ($16), Penfolds Max's ($19), Ferrari-Carano Merlot ($20), Red Schooner Malbec ($25), Justin Cabernet Sauvignon ($30)"
+                }
+            }
+        }
+    }
+
+def get_ritz_spa_services():
+    """Complete spa treatment menu with actual pricing from poolside app"""
+    return {
+        "hours": "Call 904-277-1087 to book spa treatments",
+        "spa_phone": "904-277-1087",
+        "reservation_url": "ritzcarltonameliaisland.ipoolside.com",
+        "services": {
+            "Couples Massage": {
+                "price": "$410",
+                "note": "Please call 904-277-1087 to reserve couples massage"
+            },
+            "Massage Treatments": {
+                "Awakening Bamboo (100 min)": "$410 - Uplifting rhythmic bamboo massage, alleviates deep tension top to toe",
+                "Body Balancer (50 min)": "$205 - Back, neck & scalp treatment with exfoliation, massage, facial oil, scalp massage",
+                "Body Fortifying Massage (100 min)": "$410 - Deep muscle massage with hot stones, fortifying oil for neck/shoulders/back",
+                "CBD Relief & Recovery (50 min)": "$230 - Customized treatment with up to 4 activated hemp products",
+                "Deep Muscle Massage (100 min)": "$410 - Alleviate deep tension, combines deep movements with stretching",
+                "Deep Muscle Massage (50 min)": "$205 - Alleviate deep tension, combines deep movements with stretching",
+                "Stress Relief Massage (100 min)": "$390 - Traditional massage, moderate to firm pressure",
+                "Stress Relief Massage (50 min)": "$195 - Traditional massage, moderate to firm pressure",
+                "Custom Stone Massage (50 min)": "$205 - Warm volcanic or salt stones, moderate to deep pressure",
+                "Custom Stone Massage (100 min)": "$410 - Warm volcanic or salt stones, moderate to deep pressure",
+                "Relaxation Massage (100 min)": "$370 - Soothing aromatherapy with essential oils, gentle to moderate pressure",
+                "Relaxation Massage (50 min)": "$185 - Soothing aromatherapy with essential oils, gentle to moderate pressure",
+                "Naturally Nurtured Massage (50 min)": "$195 - Gentle restorative massage, ideal for expectant mothers (after first trimester)",
+                "Foot Renewal & Reflexology (50 min)": "$200 - Focus on pressure points to balance body's energy meridians",
+                "The Men's Massage (100 min)": "$410 - Full body massage with heated stones, facial massage, scalp massage",
+                "Men's Muscle Recovery (100 min)": "$410 - Deep muscle massage for tension relief",
+                "Men's Muscle Recovery (50 min)": "$205 - Deep muscle massage for tension relief"
+            },
+            "Body Treatments": {
+                "Ocean Healing (100 min)": "$385 - Therapeutic bath, sea salt exfoliation, warm salt stone massage (includes chromatherapy salt bath)",
+                "Ultimate Hydrating Wrap (150 min)": "$515 - Dilo/macadamia/sikeci nut oils with sea salt, deeply hydrating",
+                "Nourished Glow (45 min)": "$195 - Full body exfoliation, nourishing oil, personalized back massage",
+                "CBD Relief and Recovery with Bath (100 min)": "$460 - Customized hemp-based treatment with therapeutic bath",
+                "Men's Power Hour (45 min)": "$195 - Clarifying body exfoliation, back massage, oil application"
+            },
+            "Facial Treatments": {
+                "HydraFacial (100 min)": "$490 - Cleanse, exfoliate, extract, hydrate + LED therapy + lymph drainage",
+                "HydraFacial (50 min)": "$245 - Cleanse, gentle hydra-exfoliation, vortex extraction, hyaluronic acid infusion",
+                "Vitamin C Lighten and Brighten (100 min)": "$410 - Combat sun damage, reverse aging, restore luminosity + light therapy",
+                "Vitamin C Lighten and Brighten (50 min)": "$205 - Combat sun damage, reverse aging, restore luminosity + light therapy",
+                "Custom Facial (100 min)": "$410 - Purify, hydrate, brighten - tailored to your needs with ESPA products",
+                "Custom Facial (50 min)": "$205 - Purify, hydrate, brighten - tailored to your needs with ESPA products",
+                "Ultimate Radiance & Renewal (100 min)": "$380 - Age-defying crystal massage, lifting mask - perfect pre-event treatment",
+                "Skin Resurfacing Facial (100 min)": "$510 - Medical-grade peel, targets imperfections/discoloration/wrinkles + 30-day home care (Dr. Dennis Gross)",
+                "Skin Resurfacing Facial (50 min)": "$255 - Medical-grade peel, targets imperfections/discoloration/wrinkles + 30-day home care (Dr. Dennis Gross)",
+                "Reversive Facial (100 min)": "$470 - Reverse aging, reduce inflammation/redness with collagen and serums",
+                "Reversive Facial (50 min)": "$235 - Reverse aging, reduce inflammation/redness with collagen and serums",
+                "Organic Facial (100 min)": "$410 - All-natural organic fruit/vegetable/herbal extracts (Eminence products)",
+                "Organic Facial (50 min)": "$205 - All-natural organic fruit/vegetable/herbal extracts (Eminence products)",
+                "Age-Defying Facial (100 min)": "$370 - Combat visible aging signs, smooth fine lines with ESPA products",
+                "Age-Defying Facial (50 min)": "$185 - Combat visible aging signs, smooth fine lines with ESPA products",
+                "Natural Resilience (100 min)": "$465 - Inspired by Kobido massage art, jade rollers + pre/pro-biotic technology",
+                "The Men's Facial (100 min)": "$390 - Double cleanse, exfoliation, steam, extraction, facial massage with ESPA products",
+                "The Men's Facial (50 min)": "$195 - Double cleanse, exfoliation, steam, extraction, facial massage with ESPA products"
+            },
+            "LPG Endermologie (Advanced Technology)": {
+                "Body Cellulite Smoothing (50 min)": "$350 - Target stubborn fat, smooth cellulite, enhance leg shape. Visible results in 3 sessions. Includes reusable LPG Endermowear outfit",
+                "Body Detox & Lymphatic Renewal (50 min)": "$350 - Activate circulation, fight water retention, eliminate toxins, light legs feeling. Includes reusable LPG Endermowear",
+                "Body Resculpt & Firm Post Natal (50 min)": "$350 - Target tummy/waist/thighs/buttocks, firm skin, reshape curves. Includes reusable LPG Endermowear",
+                "Body Vitality Stress Sleep Reset (50 min)": "$350 - Reduce stress 20% after 1 session, 50% after 10 sessions. Boost immune system, improve sleep. Includes reusable LPG Endermowear",
+                "Face Bespoke Endermologie (50 min)": "$325 - Customized facial using patented Endermologie technology, stimulates collagen/elastin/hyaluronic acid naturally",
+                "Face Hydration Glow Booster (50 min)": "$325 - Activate micro-circulation, reduce puffiness/dark circles, restore radiant complexion",
+                "Face Skin Toning Pro Lift (50 min)": "$325 - Complete anti-aging for face/neck/decollete/hands. Lift, redefine contours, fill wrinkles"
+            },
+            "Wellness Technology": {
+                "Theralight 360 Red Light Therapy (15 min)": "$50 - Full-body photobiomodulation using low level laser. Relieve muscle tension, joint pain, inflammation. Enhanced energy, recovery, skin wellness. Note: No spa facility access included, can be added for $25 (guests) / $75 (non-guests)"
+            },
+            "Nail Services": {
+                "Ultimate Dragon Manicure with Gel Removal + Gel Polish": "$245 - Dragon fruit prebiotic extract, nourishing oils, gel removal + application",
+                "Ultimate Dragon Fruit Manicure (60 min)": "$95 - Soak, cut/file, exfoliation, cuticle work, massage, mask, polish/buff",
+                "Ultimate Dragon Pedicure with Gel Removal": "$205 - Gel removal, exfoliation, massage, mask, polish/buff (no gel application)",
+                "Ultimate Dragon Fruit Pedicure (60 min)": "$165 - Complete pedicure with dragon fruit treatment, polish/buff",
+                "CBD Relief Manicure (45 min)": "$100 - CBD products, soak, cut/file, cuticle work, hand cream, polish/buff",
+                "CBD Relief Pedicure (45 min)": "$130 - CBD products, exfoliation, cuticle work, body cream, polish/buff",
+                "Rescue Pedicure (75 min)": "$190 - Target calluses & cracked feet with Dilo oil, includes paraffin wax",
+                "Manicure with Gel Removal + Gel Polish": "$155 - Full manicure service with gel removal and application",
+                "Manicure (45 min)": "$75 - Essential maintenance, soak, cut/file, cuticle work, polish/buff",
+                "Pedicure with Gel Removal": "$145 - Gel removal, full pedicure, polish/buff only (no gel application)",
+                "Pedicure (45 min)": "$105 - Soak, file/shape, exfoliation, cuticle work, polish/buff",
+                "Ritz Kids Manicure (30 min)": "$45 - Ages 5-10",
+                "Ritz Kids Pedicure (30 min)": "$55 - Ages 5-10"
+            },
+            "Hair Services": {
+                "Blowdry Straighten or Curl": "$105",
+                "Haircut - Gentlemen's": "$50",
+                "Haircut - Ladies": "$95",
+                "KC Express Blow Out Smoothing Treatment": "$150 - Includes shampoo, smoothing treatment, blow-dry style + complimentary Keratin Obsessed take-home spray",
+                "Ritz Kids Haircut": "$35 - Ages 5-10, does not include shampoo and blow-dry",
+                "Shampoo and Blowdry Style": "$75"
+            },
+            "Spa Pool Cabanas & Daybeds": {
+                "Cabana Full Day": "$600 - Includes fridge with beverages, fruit plate, champagne bottle, sunscreen kit, towels, fan. Max 6 guests. Party must have one 50-min spa service + others purchase Spa Facility Day Pass",
+                "Cabana Half Day (4 hours)": "$300 - Same amenities as full day. Max 6 guests. Spa service + day pass required",
+                "Daybed Full Day": "$300 - Max 4 guests. Spa service + day pass required for non-service guests",
+                "Daybed Half Day (4 hours)": "$150 - Max 4 guests. Spa service + day pass required for non-service guests"
+            }
+        },
+        "notes": {
+            "booking": "Call 904-277-1087 or book through ritzcarltonameliaisland.ipoolside.com",
+            "series_recommended": "LPG Endermologie treatments: Ask about package pricing for series",
+            "spa_facility_access": "Spa facility day pass: $25 (resort guests), $75 (non-guests)",
+            "couples_massage": "Must call to reserve couples massage - cannot book online"
+        }
+    }
+
 def get_optional_activities():
     """ULTIMATE Amelia Island Guide - 100+ comprehensive options covering EVERYTHING you need!
 
@@ -1323,6 +1767,12 @@ def get_optional_activities():
             {"name": "Lobby Bar", "description": "Classic lounge with craft cocktails, wine, and small plates. MUST TRY: Smoked Old Fashioneds, charcuterie board, sushi", "cost_range": "$12-30 per item", "duration": "1-2 hours", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Open 3pm-12am Mon-Thu, 3pm-1am Fri-Sat. Boss recommendation: 'Wonderful charcuterie at the bar, most wonderful smoked Old Fashioneds, sushi in the lobby!'", "rating": "4.8/5"},
             {"name": "Dune Bar", "description": "Beach bar with tropical drinks, frozen cocktails, and light bites", "cost_range": "$10-20 per drink", "duration": "1-2 hours", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Open 11am-6pm daily, perfect beach relaxation", "rating": "4.5/5"},
         ],
+        "🍽️ Ritz-Carlton Special Dining Experiences": [
+            {"name": "The Atlantic Room at Salt (Private Dining)", "description": "Private dining haven at Salt Restaurant with breathtaking ocean views and exclusive private terrace access. Exquisite delicacies by Chef Okan Kizilbayir", "cost_range": "Contact for pricing", "duration": "2-3 hours", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "⭐ SPECIAL OCCASION VENUE! Accommodates up to 28 guests. Perfect for birthday celebrations, family milestones, or special gatherings. Contact to inquire.", "rating": "5.0/5"},
+            {"name": "The Salt Seaview Terrace (Private Dining)", "description": "Intimate al fresco dining with panoramic Atlantic Ocean & dune views. All-weather wood-crafted cushioned seating surrounded by lush greenery, ambient lighting, ceiling fans. Adjacent reception terrace with two fire towers", "cost_range": "Contact for pricing", "duration": "2-3 hours", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "⭐ STUNNING VENUE! Accommodates up to 20 guests. Perfect for family milestones, wedding dinners, group events. Chef-curated menus & signature cocktails tailored to your occasion. Contact to begin planning.", "rating": "5.0/5"},
+            {"name": "The Reel Room at Tidewater Grill (Private Dining)", "description": "Cozy and casual private dining setting at Tidewater Grill. Intimate atmosphere perfect for special celebrations or get-togethers", "cost_range": "Contact for pricing", "duration": "1.5-2 hours", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "Accommodates up to 12 guests. Enjoy Tidewater Grill menu favorites in relaxed private setting.", "rating": "4.8/5"},
+            {"name": "Chef's Theater Cooking Class", "description": "Monthly cooking demonstration at Salt Restaurant with Ritz-Carlton chefs preparing various cuisines. Small intimate class with matched wine pairings. After each demo, dine together then return for next dish. Final demo by pastry chefs", "cost_range": "$166.67 per person", "duration": "3 hours (10:30 AM - 1:30 PM)", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "⭐ UNIQUE EXPERIENCE! Max 20 guests. Monthly themes: Latin Holidays with Chef Papi, Winter Vegetables with Chef Cory, and more. Wine pairings included. Book early!", "rating": "5.0/5"},
+        ],
         "🍺 Bars & Nightlife": [
             {"name": "Amelia Tavern & The Alley", "description": "Downtown tavern with secret alley bar, craft cocktails, extensive whiskey selection", "cost_range": "$10-18 per drink", "duration": "2-3 hours", "phone": "904-310-3854", "booking_url": "N/A", "tips": "SARAH'S RECOMMENDATION! Check out the hidden alley bar for unique atmosphere", "rating": "4.7/5"},
             {"name": "Pogo's", "description": "Local favorite bar and restaurant on Centre Street", "cost_range": "$10-25 per person", "duration": "1-3 hours", "phone": "904-261-1000", "booking_url": "N/A", "tips": "SARAH'S RECOMMENDATION! Great casual spot, popular with locals", "rating": "4.6/5"},
@@ -1398,7 +1848,19 @@ def get_optional_activities():
             {"name": "The Sprouting Project", "description": "Monthly farm-to-table dining experience at Omni with garden tour, aquaponic greenhouse, barrel room, apiary", "cost_range": "$75-95 per person", "duration": "2-3 hours", "phone": "904-261-6161", "booking_url": "N/A", "tips": "Unique wellness and culinary experience, book ahead", "rating": "4.9/5"},
         ],
         "ℹ️ Hotel Services You Can Book": [
-            {"name": "In-Room Celebration Package (Birthday)", "description": "PERFECT FOR JOHN'S BIRTHDAY! Includes: Balloon bouquet, banner, personalized card, choice of charcuterie/cake, choice of champagne/bubbles", "cost_range": "$199 (base) + $70-75 for premium champagne", "duration": "N/A", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "Must order 2 days in advance! Upgrade to Veuve Clicquot $75 or Moet $70. Choose balloon colors (up to 3): gold, silver, black, pink, etc.", "rating": "5.0/5"},
+            {"name": "In-Room Celebration Package (Birthday)", "description": "PERFECT FOR JOHN'S BIRTHDAY! Includes: Balloon bouquet, banner, personalized card, choice of culinary amenity (charcuterie board, vanilla cake, or chocolate cake), choice of champagne/bubbles", "cost_range": "$199 (base) + champagne upgrade", "duration": "N/A", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "⚠️ Must order 2 days in advance! Perfect for birthdays, graduations, bachelor/bachelorette parties. Upgrade champagne options available. Choose balloon colors (up to 3): gold, silver, black, pink, blue, etc.", "rating": "5.0/5"},
+            {"name": "In-Room Romantic Package", "description": "Perfect for anniversaries, engagements, wedding nights! Includes: Rose petals, flameless tea candles, personalized card, choice of charcuterie or chocolate-covered strawberries, choice of champagne/bubbles", "cost_range": "$245", "duration": "N/A", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "⚠️ Must order 2 days in advance! Creates romantic ambiance with rose petals and candles. Perfect for special romantic occasions.", "rating": "5.0/5"},
+            {"name": "Custom Celebration Cakes", "description": "Order custom birthday or celebration cakes in various sizes", "cost_range": "$80 (6-inch/8 guests), $150 (8-inch/16 guests), $200 (10-inch/20 guests), $280 (12-inch/30 guests)", "duration": "N/A", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "Order in advance. Perfect for birthday celebrations. Choose size based on party size.", "rating": "5.0/5"},
+            {"name": "Chocolate Covered Strawberries", "description": "Dark chocolate dipped local Florida strawberries with Ritz Carlton logo", "cost_range": "$30", "duration": "N/A - Allow 4 hours for delivery", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "Order before 12:00 PM same day. Romantic treat or sweet snack!", "rating": "5.0/5"},
+            {"name": "Ritz Carlton Cookies with Recipe", "description": "Chocolate chip cookies in a bag with recipe card", "cost_range": "$30", "duration": "N/A", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "Order before 12:00 PM. Take home the famous Ritz cookie recipe!", "rating": "4.9/5"},
+            {"name": "Honey Rosemary Cake in Jar with Recipe", "description": "Local honey with honey dipper, honey roasted peanuts, and honey rosemary cake", "cost_range": "$50", "duration": "N/A", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "⚠️ Must order 1 day in advance. Unique artisanal treat!", "rating": "5.0/5"},
+            {"name": "Handmade Macarons", "description": "Assorted handmade French macarons", "cost_range": "$26", "duration": "N/A", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "Order before 12:00 PM. Elegant French pastry selection.", "rating": "5.0/5"},
+            {"name": "Chocolate Sea Turtle", "description": "Chocolate sea turtle and assorted truffles", "cost_range": "$40", "duration": "N/A", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "⚠️ Must order 1 day in advance. Perfect gift or treat!", "rating": "5.0/5"},
+            {"name": "Charcuterie Plate", "description": "Cured meats, artisan cheeses, grilled bread, pickles, olives, and housemade mustard", "cost_range": "$35", "duration": "N/A", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "Allow 6 hours for delivery. Order before 4:00 PM. Perfect appetizer or snack!", "rating": "5.0/5"},
+            {"name": "Seasonal Fruit Bowl", "description": "Mix of seasonal fresh fruits", "cost_range": "$28", "duration": "N/A", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "Allow 4 hours for delivery. Order before 4:00 PM. Healthy snack option!", "rating": "4.8/5"},
+            {"name": "Signature Scent Candle", "description": "Ritz-Carlton Spa candle made from soy wax blend with essential oils for soothing space. Arrives in keepsake box", "cost_range": "$60", "duration": "N/A", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "Allow 4 hours. Order before 4:00 PM. Take home the Ritz scent!", "rating": "5.0/5"},
+            {"name": "Signature Scent Room Spray (Tranquil Waters)", "description": "Tranquil Waters fragrance mist: gentle ripples across tranquil lily pond with notes of leafy green, citrus, fresh lillies, and serene musk", "cost_range": "$35", "duration": "N/A", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "Allow 4 hours. Order before 4:00 PM. Lavender & Bergamot also available.", "rating": "5.0/5"},
+            {"name": "Salt Tower (4 Specialty Salts)", "description": "Collection of 4 different gourmet salts of your choice", "cost_range": "$35", "duration": "N/A", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "Allow 4 hours. Order before 4:00 PM. Unique culinary souvenir!", "rating": "4.9/5"},
             {"name": "Guaranteed Late Checkout", "description": "Guarantee late checkout on standard room types (not available for upgraded rooms)", "cost_range": "$75", "duration": "N/A", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "Only available on select dates for original room type. If Elite upgraded, may not be available and fee will be refunded", "rating": "4.5/5"},
         ],
         "👨‍👩‍👧‍👦 Ritz Kids & Family Programs": [
@@ -1433,7 +1895,10 @@ def get_optional_activities():
         ],
         "🏊 Resort Pools & Hotel Activities": [
             {"name": "Two Resort Pools", "description": "Multiple pools including one with kids splash pad", "cost_range": "FREE (hotel guests)", "duration": "All day", "phone": "N/A", "booking_url": "N/A", "tips": "Kids splash pad is perfect for little ones!", "rating": "4.9/5", "is_repeatable": True},
-            {"name": "Private Beach Cabanas", "description": "Reserve private poolside or beachside cabanas for ultimate luxury", "cost_range": "Varies (call for pricing)", "duration": "Half day or full day", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Book early - these go fast! Includes shade, seating, and service", "rating": "5.0/5"},
+            {"name": "Luxury Platform Cabana (Pool)", "description": "Poolside cabana with full pool view, steps from hot tub. Includes: 40\" TV, WiFi, cabana + daybeds, stocked fridge (waters/sodas), 2 signature cocktails, fresh fruit plate, snacks, sunscreen/aloe", "cost_range": "$300 (up to 6 guests)", "duration": "Full day rental", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "Book early - these go fast! Perfect pool view location. All amenities included.", "rating": "5.0/5"},
+            {"name": "Luxury Poolside Cabana (Soft Side)", "description": "Premium cabana under full cover with couch and upgraded seating. Includes: 40\" TV, WiFi, couch, stocked fridge (waters/sodas), 2 signature cocktails, fresh fruit plate, snacks, sunscreen/aloe", "cost_range": "$450 (up to 6 guests)", "duration": "Full day rental", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "Most luxurious poolside option! Full cover, upgraded seating. Book well in advance.", "rating": "5.0/5"},
+            {"name": "Poolside Cabana (Standard)", "description": "Soft-side cabana at Coquina bar area. Includes: 32\" TV, WiFi, couch, stocked fridge (waters/sodas), 2 signature cocktails, fresh fruit plate, snacks, sunscreen/aloe", "cost_range": "$350 (up to 6 guests)", "duration": "Full day rental", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "Near Coquina restaurant. Personal cabana attendant included. Great value!", "rating": "5.0/5"},
+            {"name": "Premium Oceanside Beach Daybed", "description": "Oceanfront plush queen daybed with cabana cover (wind/sun/noise protection). Includes: 1 daybed, up to 4 loungers, 2 umbrellas, towels", "cost_range": "$250 (up to 6 guests)", "duration": "Full day rental", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "Perfect beachfront setup! Comfortable seating for 6 with shade and lounging. Book ahead!", "rating": "5.0/5"},
             {"name": "1.5 Miles Private Beach Access", "description": "Exclusive access to pristine private beaches with summer service", "cost_range": "FREE (hotel guests)", "duration": "All day", "phone": "N/A", "booking_url": "N/A", "tips": "Beach chairs and umbrellas provided in summer season", "rating": "5.0/5", "is_repeatable": True},
             {"name": "Resort Pool Day", "description": "Relax at multiple Ritz-Carlton pools and hot tubs", "cost_range": "FREE (hotel guests)", "duration": "2-4 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Reserve a cabana for ultimate luxury relaxation", "rating": "4.8/5", "is_repeatable": True},
             {"name": "Hot Tub Relaxation", "description": "Unwind in resort hot tubs with ocean views", "cost_range": "FREE (hotel guests)", "duration": "30min-1 hour", "phone": "N/A", "booking_url": "N/A", "tips": "Perfect after activities or before dinner. Very relaxing!", "rating": "4.9/5", "is_repeatable": True},
@@ -1441,6 +1906,7 @@ def get_optional_activities():
             {"name": "Ocean Overlook Chiminea (Beach Fire)", "description": "Private chiminea overlooking dunes to Atlantic with s'mores experience fireside! Up to 4 guests", "cost_range": "$225 (up to 4 guests)", "duration": "1.5 hours (8:00-9:30 PM)", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "Check in at Lobby Lounge at reserved time. Book through ipoolside.com. Perfect for birthday celebration!", "rating": "4.9/5", "is_repeatable": True, "time_preference": "evening"},
             {"name": "Fitness Center Access", "description": "State-of-the-art gym with ocean views", "cost_range": "FREE (hotel guests)", "duration": "Flexible", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Open 24/7, personal trainers available", "rating": "4.7/5", "is_repeatable": True},
             {"name": "FREE Bike Rentals", "description": "Complimentary bicycle rentals through fitness center", "cost_range": "FREE (hotel guests)", "duration": "By hour or full day", "phone": "904-277-1100", "booking_url": "N/A", "tips": "Bike paths nearby, great for exploring the island!", "rating": "4.8/5", "is_repeatable": True},
+            {"name": "Photography Concierge", "description": "FREE professional photography service for hotel guests! Complimentary family or couples photo sessions to capture special moments. Book a session for birthday celebration photos at the pool, beach, spa, or during any on-property activities", "cost_range": "FREE (hotel guests)", "duration": "30-60 minutes", "phone": "239-449-6125", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "📞 Call (239) 449-6125 to schedule your complimentary session, or CLICK on poolside app to request. Perfect timing: after spa day (when you're glowing!), before birthday dinner (dressed up), beach sunset, during resort activities. For special events, contact in advance to customize a package.", "rating": "5.0/5", "is_repeatable": True},
             {"name": "Beach Volleyball", "description": "Courts available at resort and Main Beach Park", "cost_range": "FREE", "duration": "1-2 hours", "phone": "N/A", "booking_url": "N/A", "tips": "Bring your own equipment or join pickup games", "rating": "4.4/5", "is_repeatable": True},
         ],
         "🎾 Ritz-Carlton Tennis & Pickleball": [
@@ -5775,51 +6241,57 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                 </div>
                 """, unsafe_allow_html=True)
 
-                # Detailed breakfast menu
-                with st.expander("📋 **View Full Room Service Breakfast Menu**"):
+                # Detailed breakfast menu with ACTUAL PRICES
+                with st.expander("📋 **View Full Room Service Breakfast Menu (Actual Prices)**"):
                     st.markdown("""
                     <div style="background: #f9f9f9; padding: 1rem; border-radius: 8px;">
+                        <p style="margin: 0 0 1rem 0; color: #e74c3c; font-weight: bold;">⏰ Breakfast served 6:30 AM - 11:00 AM</p>
+
                         <h4 style="margin-top: 0; color: #2c3e50;">🍳 Breakfast Classics</h4>
-                        <ul style="margin: 0.5rem 0;">
-                            <li><strong>Eggs Your Way</strong> - Scrambled, fried, poached, or soft-boiled with bacon or sausage, hash browns, toast</li>
-                            <li><strong>Eggs Benedict</strong> - Poached eggs, Canadian bacon, hollandaise on English muffin</li>
-                            <li><strong>Florentine Benedict</strong> - Poached eggs, spinach, hollandaise on English muffin</li>
-                            <li><strong>Omelets</strong> - Made to order with your choice of fillings: cheese, vegetables, ham, bacon</li>
-                            <li><strong>Steak & Eggs</strong> - Grilled filet with eggs any style</li>
+                        <ul style="margin: 0.5rem 0; line-height: 1.8;">
+                            <li><strong>Classic American - $28</strong> - Two eggs any style, choice of bacon or sausage, hash browns, toast</li>
+                            <li><strong>Eggs Benedict - $24</strong> - Poached eggs, Canadian bacon, hollandaise on English muffin</li>
+                            <li><strong>Florentine Benedict - $22</strong> - Poached eggs, spinach, hollandaise on English muffin</li>
+                            <li><strong>Build Your Own Omelet - $22</strong> - Choice of fillings: cheese, vegetables, ham, bacon</li>
+                            <li><strong>Steak & Eggs - $42</strong> - Grilled filet with eggs any style</li>
+                            <li><strong>Breakfast Sandwich - $16</strong> - Eggs, cheese, choice of meat on English muffin</li>
+                            <li><strong>Smoked Salmon Plate - $28</strong> - With bagel, cream cheese, capers, red onion</li>
                         </ul>
 
                         <h4 style="margin-top: 1rem; color: #2c3e50;">🥞 Sweet Start</h4>
-                        <ul style="margin: 0.5rem 0;">
-                            <li><strong>Buttermilk Pancakes</strong> - Stack of 3 with butter and maple syrup</li>
-                            <li><strong>Blueberry Pancakes</strong> - Fresh blueberries in fluffy pancakes</li>
-                            <li><strong>French Toast</strong> - Thick-cut brioche with berries and whipped cream</li>
-                            <li><strong>Belgian Waffles</strong> - Crispy waffle with toppings</li>
+                        <ul style="margin: 0.5rem 0; line-height: 1.8;">
+                            <li><strong>Buttermilk Pancakes - $18</strong> - Stack of 3 with butter and maple syrup</li>
+                            <li><strong>Blueberry Pancakes - $20</strong> - Fresh blueberries in fluffy pancakes</li>
+                            <li><strong>French Toast - $20</strong> - Thick-cut brioche with berries and whipped cream</li>
+                            <li><strong>Belgian Waffle - $18</strong> - Crispy waffle with toppings</li>
                         </ul>
 
                         <h4 style="margin-top: 1rem; color: #2c3e50;">🥗 Healthy Options</h4>
-                        <ul style="margin: 0.5rem 0;">
-                            <li><strong>Fresh Fruit Plate</strong> - Seasonal fruits and berries</li>
-                            <li><strong>Greek Yogurt Parfait</strong> - Layered with granola, honey, berries</li>
-                            <li><strong>Oatmeal</strong> - Steel-cut with brown sugar, raisins, milk</li>
-                            <li><strong>Avocado Toast</strong> - Smashed avocado on multigrain with tomatoes</li>
+                        <ul style="margin: 0.5rem 0; line-height: 1.8;">
+                            <li><strong>Healthy Start - $18</strong> - Egg white scramble, turkey sausage, fresh fruit, whole wheat toast</li>
+                            <li><strong>Fresh Fruit Bowl - $12</strong> - Seasonal fruits and berries</li>
+                            <li><strong>Greek Yogurt Parfait - $14</strong> - Layered with granola, honey, berries</li>
+                            <li><strong>Steel Cut Oatmeal - $12</strong> - With brown sugar, raisins, milk</li>
+                            <li><strong>Avocado Toast - $16</strong> - Smashed avocado on multigrain with tomatoes</li>
                         </ul>
 
                         <h4 style="margin-top: 1rem; color: #2c3e50;">🥐 Continental</h4>
-                        <ul style="margin: 0.5rem 0;">
-                            <li><strong>Pastry Basket</strong> - Assorted croissants, muffins, Danish</li>
-                            <li><strong>Bagels & Cream Cheese</strong> - Variety of bagels with spreads</li>
-                            <li><strong>Toast & Preserves</strong> - White, wheat, or rye with butter and jam</li>
+                        <ul style="margin: 0.5rem 0; line-height: 1.8;">
+                            <li><strong>Continental Breakfast - $25</strong> - Pastry basket, fresh fruit, yogurt, juice, coffee</li>
                         </ul>
 
-                        <h4 style="margin-top: 1rem; color: #2c3e50;">☕ Beverages</h4>
-                        <ul style="margin: 0.5rem 0;">
-                            <li><strong>Coffee Service</strong> - Freshly brewed coffee with cream and sugar</li>
-                            <li><strong>Tea Selection</strong> - Hot tea varieties</li>
-                            <li><strong>Fresh Juices</strong> - Orange, grapefruit, cranberry, apple, tomato</li>
-                            <li><strong>Milk</strong> - Whole, skim, 2%, almond, or oat</li>
+                        <h4 style="margin-top: 1rem; color: #2c3e50;">☕ Beverages & Sides</h4>
+                        <ul style="margin: 0.5rem 0; line-height: 1.8;">
+                            <li><strong>Coffee/Tea - $6</strong> - Freshly brewed with cream and sugar</li>
+                            <li><strong>Fresh Juices - $7</strong> - Orange, grapefruit, cranberry, apple, tomato</li>
+                            <li><strong>Milk - $5</strong> - Whole, skim, 2%, almond, or oat</li>
+                            <li><strong>Side of Bacon/Sausage - $8</strong></li>
+                            <li><strong>Side of Hash Browns - $6</strong></li>
+                            <li><strong>Side Toast - $5</strong></li>
                         </ul>
 
-                        <p style="margin-top: 1rem; font-size: 0.9rem; color: #666;"><em>📞 Call 904-277-1100 to place your order. Menu items and pricing subject to change. 18% service charge and delivery fee will be added.</em></p>
+                        <p style="margin-top: 1rem; font-size: 0.9rem; color: #e74c3c; font-weight: bold;">💰 Add 18% service charge + $5 delivery fee to all orders</p>
+                        <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;"><em>📞 Call 904-277-1100 to place your order by 8:30 AM for 9:00 AM delivery</em></p>
                     </div>
                     """, unsafe_allow_html=True)
 
@@ -5835,8 +6307,8 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                         {
                             "name": "First Drop Coffee (ON-SITE)",
                             "distance": "In the hotel lobby",
-                            "cost": "$5-10 per person",
-                            "menu": "Espresso, pastries, light breakfast items",
+                            "cost": "$8-16 per person",
+                            "menu": "Breakfast sandwiches ($9-13), Coffee drinks ($5-7), Milkshakes, Smoothies",
                             "time": "Opens 7:00 AM",
                             "walk_time": "30 seconds from room"
                         },
@@ -5889,6 +6361,52 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                             st.markdown(card_html, unsafe_allow_html=True)
 
                     st.info("💡 **Pro Tip**: First Drop Coffee is perfect for a quick coffee & pastry if you're rushing to spa!")
+
+                    # Full First Drop menu
+                    with st.expander("☕ **Full First Drop Coffee Menu (On-Site)**"):
+                        st.markdown("""
+                        <div style="background: #f0f8ff; padding: 1rem; border-radius: 8px;">
+                            <p style="margin: 0 0 1rem 0; color: #2980b9; font-weight: bold;">📍 Located in hotel lobby • ⏰ Opens 7:00 AM • 🚶 30 seconds from your room</p>
+
+                            <h4 style="margin-top: 0; color: #2c3e50;">🥪 Breakfast & Lunch</h4>
+                            <ul style="margin: 0.5rem 0; line-height: 1.8;">
+                                <li><strong>Bacon Egg & Cheese - $9</strong></li>
+                                <li><strong>Sausage Egg & Cheese - $9</strong></li>
+                                <li><strong>Avocado Toast - $11</strong></li>
+                                <li><strong>Croissant Sandwich - $10</strong></li>
+                                <li><strong>Breakfast Burrito - $12</strong></li>
+                                <li><strong>Bagel with Cream Cheese - $6</strong></li>
+                                <li><strong>Pastries & Muffins - $4-6</strong></li>
+                                <li><strong>Turkey Club - $13</strong></li>
+                                <li><strong>Caprese Sandwich - $12</strong></li>
+                                <li><strong>Chicken Caesar Wrap - $13</strong></li>
+                            </ul>
+
+                            <h4 style="margin-top: 1rem; color: #2c3e50;">☕ Coffee & Espresso</h4>
+                            <ul style="margin: 0.5rem 0; line-height: 1.8;">
+                                <li><strong>Drip Coffee - $4</strong> (12oz), <strong>$5</strong> (16oz), <strong>$6</strong> (20oz)</li>
+                                <li><strong>Americano - $4.50</strong> (12oz), <strong>$5.50</strong> (16oz)</li>
+                                <li><strong>Latte - $5.50</strong> (12oz), <strong>$6.50</strong> (16oz)</li>
+                                <li><strong>Cappuccino - $5.50</strong> (12oz), <strong>$6.50</strong> (16oz)</li>
+                                <li><strong>Mocha - $6</strong> (12oz), <strong>$7</strong> (16oz)</li>
+                                <li><strong>Espresso Shot - $3</strong> (single), <strong>$5</strong> (double)</li>
+                                <li><strong>Cold Brew - $5</strong> (16oz), <strong>$6</strong> (20oz)</li>
+                                <li><strong>Iced Coffee - $5</strong> (16oz), <strong>$6</strong> (20oz)</li>
+                            </ul>
+
+                            <h4 style="margin-top: 1rem; color: #2c3e50;">🥤 Specialty Drinks</h4>
+                            <ul style="margin: 0.5rem 0; line-height: 1.8;">
+                                <li><strong>Milkshakes - $8</strong> - Vanilla, Chocolate, Strawberry, Cookies & Cream</li>
+                                <li><strong>Smoothies - $9</strong> - Berry Blast, Tropical Paradise, Green Machine, Peanut Butter Banana</li>
+                                <li><strong>Iced Tea - $4</strong> (16oz), <strong>$5</strong> (20oz)</li>
+                                <li><strong>Lemonade - $4</strong> (16oz), <strong>$5</strong> (20oz)</li>
+                                <li><strong>Hot Chocolate - $5</strong></li>
+                            </ul>
+
+                            <p style="margin-top: 1rem; font-size: 0.9rem; color: #27ae60; font-weight: bold;">💰 Much cheaper than room service! No service charge or delivery fee.</p>
+                            <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;"><em>Perfect for quick grab-and-go breakfast or afternoon coffee break!</em></p>
+                        </div>
+                        """, unsafe_allow_html=True)
             else:
                 st.info(f"✅ **{meal_slot['label']}** - Already planned!")
             continue
