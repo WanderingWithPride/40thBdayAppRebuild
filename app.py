@@ -635,27 +635,259 @@ def load_ultimate_css():
         }
     }
     
-    /* Responsive */
+    /* ========================================================================
+       MOBILE RESPONSIVENESS - Comprehensive mobile-first design
+       ======================================================================== */
+
+    /* Tablet (portrait) */
+    @media (max-width: 992px) {
+        .main .block-container {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        .status-bar {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .timeline-item {
+            padding-left: 3.5rem;
+        }
+
+        .timeline::before {
+            left: 1rem;
+        }
+
+        .timeline-item::before {
+            left: calc(1rem - 12px);
+        }
+    }
+
+    /* Mobile (phone) */
     @media (max-width: 768px) {
+        /* Typography - smaller on mobile */
         .ultimate-header {
             margin-left: -1rem;
             margin-right: -1rem;
             border-radius: 0;
             padding: 2rem 1.5rem;
         }
-        
+
         .ultimate-header h1 {
-            font-size: 2.2rem;
+            font-size: 2rem;
+            line-height: 1.2;
         }
-        
+
+        .ultimate-header p {
+            font-size: 1.1rem;
+        }
+
+        .ultimate-header::before {
+            font-size: 150px;
+            top: -40px;
+            right: -40px;
+        }
+
+        /* Metric cards - stack on mobile */
         .metric-card {
             margin-left: -1rem;
             margin-right: -1rem;
             border-radius: 0;
+            padding: 2rem 1.5rem;
         }
-        
+
         .metric-value {
             font-size: 3rem;
+        }
+
+        .metric-label {
+            font-size: 0.95rem;
+        }
+
+        /* Cards - less padding on mobile */
+        .ultimate-card {
+            border-radius: 15px;
+            margin-left: -0.5rem;
+            margin-right: -0.5rem;
+        }
+
+        .card-header {
+            padding: 1.25rem 1.5rem;
+            font-size: 1.2rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* Buttons - touch-friendly (44px minimum) */
+        .ultimate-btn {
+            padding: 0.875rem 1.5rem;
+            font-size: 1rem;
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        /* Status badges */
+        .status-confirmed,
+        .status-pending,
+        .status-urgent {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            display: inline-block;
+            margin: 0.25rem 0;
+        }
+
+        /* Tabs - stack vertically on mobile */
+        .stTabs [data-baseweb="tab-list"] {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .stTabs [data-baseweb="tab"] {
+            width: 100%;
+            min-height: 50px;
+            padding: 0 1rem;
+            font-size: 1rem;
+        }
+
+        /* Weather widget */
+        .weather-widget {
+            padding: 1.5rem;
+            margin-left: -0.5rem;
+            margin-right: -0.5rem;
+            border-radius: 15px;
+        }
+
+        .weather-temp {
+            font-size: 3.5rem;
+            margin: 1rem 0;
+        }
+
+        /* Info boxes */
+        .info-box {
+            padding: 1rem;
+            margin-left: -0.5rem;
+            margin-right: -0.5rem;
+            border-radius: 10px;
+        }
+
+        /* Birthday special */
+        .birthday-special {
+            padding: 1.5rem;
+            margin-left: -0.5rem;
+            margin-right: -0.5rem;
+            border-radius: 15px;
+        }
+
+        /* Timeline - more compact */
+        .timeline::before {
+            left: 0.75rem;
+        }
+
+        .timeline-item {
+            padding-left: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .timeline-item::before {
+            left: calc(0.75rem - 10px);
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+        }
+
+        /* Packing items */
+        .packing-item {
+            padding: 0.875rem 1.25rem;
+            margin: 0.5rem 0;
+            border-radius: 10px;
+        }
+    }
+
+    /* Mobile (small phones) */
+    @media (max-width: 480px) {
+        .ultimate-header h1 {
+            font-size: 1.75rem;
+        }
+
+        .ultimate-header p {
+            font-size: 1rem;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+        }
+
+        .metric-label {
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+
+        .weather-temp {
+            font-size: 3rem;
+        }
+
+        .card-header {
+            font-size: 1.1rem;
+            padding: 1rem 1.25rem;
+        }
+
+        .card-body {
+            padding: 1.25rem;
+        }
+    }
+
+    /* Streamlit-specific mobile fixes */
+    @media (max-width: 768px) {
+        /* Make Streamlit columns stack on mobile */
+        .stColumn {
+            min-width: 100% !important;
+            flex: 1 1 100% !important;
+        }
+
+        /* Fix Streamlit buttons on mobile */
+        .stButton > button {
+            width: 100%;
+            min-height: 44px;
+            font-size: 1rem;
+            padding: 0.75rem 1rem;
+        }
+
+        /* Fix Streamlit selectbox */
+        .stSelectbox {
+            width: 100%;
+        }
+
+        /* Fix Streamlit text inputs */
+        .stTextInput > div > div > input {
+            font-size: 16px !important; /* Prevents iOS zoom */
+            padding: 0.75rem;
+        }
+
+        /* Fix Streamlit metrics */
+        .stMetric {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 1rem;
+        }
+
+        /* Fix Streamlit expanders */
+        .streamlit-expanderHeader {
+            font-size: 1rem;
+            padding: 1rem;
+        }
+
+        /* Fix sidebar on mobile */
+        [data-testid="stSidebar"] {
+            width: 100% !important;
+        }
+
+        [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {
+            font-size: 0.95rem;
         }
     }
     
@@ -4769,18 +5001,16 @@ def render_map_page(activities_data):
     st.markdown("### 🎯 Activity Type Overlays")
     st.markdown("*Toggle which types of activities to show on the map:*")
 
-    col1, col2, col3, col4, col5, col6 = st.columns(6)
+    # Use 3 columns for better mobile responsiveness
+    col1, col2, col3 = st.columns(3)
     with col1:
         show_hotel = st.checkbox("🏨 Hotel", value=True, key="show_hotel")
-    with col2:
         show_dining = st.checkbox("🍽️ Dining", value=True, key="show_dining")
-    with col3:
+    with col2:
         show_activities = st.checkbox("🎯 Activities", value=True, key="show_activities")
-    with col4:
         show_spa = st.checkbox("💆 Spa", value=True, key="show_spa")
-    with col5:
+    with col3:
         show_beach = st.checkbox("🏖️ Beach", value=True, key="show_beach")
-    with col6:
         show_transport = st.checkbox("✈️ Transport", value=True, key="show_transport")
 
     # Filter activities based on selections
