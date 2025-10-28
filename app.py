@@ -5340,25 +5340,11 @@ def render_full_schedule(df, activities_data, show_sensitive):
                 for gap in meal_gaps[:5]:  # Show first 5
                     st.markdown(f"• {gap['day_name']}: {gap['meal_type'].title()} at {gap['suggested_time']}")
 
-                # Auto-fill button
-                if st.button("🤖 Auto-Fill All Missing Meals", use_container_width=True, type="primary"):
-                    with st.spinner("🍽️ AI selecting best restaurants for missing meals..."):
-                        added = auto_fill_meals(meal_gaps, weather_data)
-
-                        if added:
-                            st.success(f"✅ Added {len(added)} meals to your schedule!")
-                            st.balloons()
-
-                            # Show what was added
-                            for meal in added:
-                                st.markdown(f"• **{meal['meal_type'].title()}** on {meal['day']} at {meal['time']}: {meal['restaurant']}")
-
-                            st.info("💡 Scroll down to see your updated schedule with new meals!")
-                            st.rerun()
-                        else:
-                            st.error("❌ Failed to add meals. Please try adding manually.")
-            else:
-                st.success("✅ All meals scheduled!")
+    # ENHANCED CONFLICT DETECTION + VISUALIZATION
+    st.markdown("---")
+    if st.checkbox("🔍 Show Detailed Conflict Analysis", value=False):
+        from utils.schedule_checker import show_schedule_conflicts_panel
+        show_schedule_conflicts_panel(activities_data)
 
     st.markdown("---")
 
@@ -9803,6 +9789,7 @@ def main():
                 "🎯 Travel Dashboard",
                 "📅 Today",
                 "🗓️ Full Schedule",
+                "📞 Bookings",
                 "👤 John's Page",
                 "🗺️ Map & Locations",
                 "🎒 Packing List",
@@ -9890,6 +9877,10 @@ def main():
     
     elif page == "🗓️ Full Schedule":
         render_full_schedule(df, activities_data, show_sensitive)
+
+    elif page == "📞 Bookings":
+        from pages.bookings import show_booking_dashboard
+        show_booking_dashboard()
 
     elif page == "👤 John's Page":
         render_johns_page(df, activities_data, show_sensitive)
