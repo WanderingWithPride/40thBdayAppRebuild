@@ -5415,6 +5415,8 @@ def render_full_schedule(df, activities_data, show_sensitive):
         for meal_slot in meal_slots:
             if meal_slot['date'] == date_str:
                 proposal = get_meal_proposal(meal_slot['id'])
+
+                # Show confirmed meals as activities
                 if proposal and proposal['status'] == 'confirmed':
                     final_idx = proposal.get('final_choice')
                     if final_idx is not None and final_idx < len(proposal['restaurant_options']):
@@ -5442,6 +5444,33 @@ def render_full_schedule(df, activities_data, show_sensitive):
                             'booking_url': final_restaurant.get('booking_url', '')
                         }
                         day_activities.append(meal_activity)
+
+                # Show proposed meals with all 3 options
+                elif proposal and proposal['status'] in ['proposed', 'voted']:
+                    display_time = proposal.get('meal_time') or meal_slot['time']
+
+                    # Create a voting placeholder activity
+                    meal_label = meal_slot['id'].replace('_', ' ').title()
+                    john_vote = proposal.get('john_vote')
+
+                    voting_activity = {
+                        'id': f"meal_vote_{meal_slot['id']}",
+                        'date': date_str,
+                        'time': display_time,
+                        'activity': f"🗳️ {meal_label} - Voting in Progress",
+                        'description': 'John is voting on restaurant options',
+                        'type': 'dining',
+                        'category': 'Dining',
+                        'duration': '1-2 hours',
+                        'cost': 'TBD',
+                        'status': 'pending',
+                        'notes': f"3 restaurant options proposed. John's vote: {'Option ' + str(int(john_vote) + 1) if john_vote is not None else 'Not voted yet'}",
+                        'location': {'name': 'TBD - Awaiting vote', 'address': ''},
+                        'is_meal_voting': True,
+                        'meal_slot_id': meal_slot['id'],
+                        'restaurant_options': proposal['restaurant_options']
+                    }
+                    day_activities.append(voting_activity)
 
         day_activities.sort(key=lambda x: x['time'])
 
@@ -5538,21 +5567,65 @@ def render_full_schedule(df, activities_data, show_sensitive):
                     else:
                         john_status_badge = '<p style="margin: 0.5rem 0;"><span style="background: #ff9800; color: white; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem;">❓ John: Needs to Decide</span></p>'
 
-                # Activity card
-                # Escape ALL dynamic content to prevent HTML breaking
-                import html
-                safe_activity_name = html.escape(activity['activity'])
-                safe_status = html.escape(activity['status'])
-                safe_time_display = html.escape(time_display)
-                safe_duration = html.escape(activity.get('duration', '')) if activity.get('duration') else ''
-                safe_location = html.escape(activity['location']['name'])
-                safe_phone = html.escape(mask_info(activity['location'].get('phone', 'N/A'), show_sensitive))
-                safe_cost = html.escape("$" + str(activity['cost']) if show_sensitive else "$***")
-                safe_notes = html.escape(mask_info(activity.get('notes', ''), show_sensitive))
-                safe_notes = safe_notes.replace('\n', '<br>')
+                # Special handling for meal voting activities
+                if activity.get('is_meal_voting'):
+                    # Display meal voting with all 3 options
+                    import html
+                    safe_activity_name = html.escape(activity['activity'])
+                    safe_time_display = html.escape(time_display)
 
-                # Build HTML with minimal indentation to avoid Streamlit rendering issues
-                activity_html = f"""<div class="timeline-item {status_class}" style="margin: 1rem 0;">
+                    st.markdown(f"""
+                    <div class="timeline-item pending" style="margin: 1rem 0;">
+                        <div class="ultimate-card" style="border-left: 4px solid #ff9800;">
+                            <div class="card-body">
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                                    <h4 style="margin: 0;">{safe_activity_name}</h4>
+                                    <span class="status-pending">PENDING VOTE</span>
+                                </div>
+                                <p style="margin: 0.5rem 0;"><b>🕐 {safe_time_display}</b></p>
+                                <p style="margin: 0.5rem 0; color: #666;">John is voting on 3 restaurant options below:</p>
+                            </div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    # Display all 3 restaurant options
+                    restaurant_details_map = get_restaurant_details()
+                    for idx, restaurant in enumerate(activity.get('restaurant_options', [])):
+                        rest_details = restaurant_details_map.get(restaurant['name'], {})
+                        phone = restaurant.get('phone', 'N/A')
+                        menu = rest_details.get('menu_url', 'N/A')
+
+                        st.markdown(f"""
+                        <div class="ultimate-card" style="margin: 0.5rem 0 0.5rem 2rem; border-left: 3px solid #4caf50;">
+                            <div class="card-body" style="padding: 1rem;">
+                                <h5 style="margin: 0 0 0.5rem 0;">Option {idx + 1}: {restaurant['name']}</h5>
+                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>📝</strong> {restaurant.get('description', 'N/A')}</p>
+                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>💰</strong> {restaurant.get('cost_range', 'N/A')}</p>
+                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>👔</strong> {rest_details.get('dress_code', 'Casual')}</p>
+                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>📞</strong> {phone}</p>
+                                {f'<p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>🔗</strong> <a href="{menu}" target="_blank">View Menu</a></p>' if menu != 'N/A' and menu.startswith('http') else ''}
+                                <p style="margin: 0.25rem 0; font-size: 0.9rem; font-style: italic;"><strong>💡</strong> {restaurant.get('tips', 'N/A')}</p>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+
+                else:
+                    # Regular activity card
+                    # Escape ALL dynamic content to prevent HTML breaking
+                    import html
+                    safe_activity_name = html.escape(activity['activity'])
+                    safe_status = html.escape(activity['status'])
+                    safe_time_display = html.escape(time_display)
+                    safe_duration = html.escape(activity.get('duration', '')) if activity.get('duration') else ''
+                    safe_location = html.escape(activity['location']['name'])
+                    safe_phone = html.escape(mask_info(activity['location'].get('phone', 'N/A'), show_sensitive))
+                    safe_cost = html.escape("$" + str(activity['cost']) if show_sensitive else "$***")
+                    safe_notes = html.escape(mask_info(activity.get('notes', ''), show_sensitive))
+                    safe_notes = safe_notes.replace('\n', '<br>')
+
+                    # Build HTML with minimal indentation to avoid Streamlit rendering issues
+                    activity_html = f"""<div class="timeline-item {status_class}" style="margin: 1rem 0;">
 <div class="ultimate-card">
 <div class="card-body">
 <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
@@ -5568,7 +5641,7 @@ def render_full_schedule(df, activities_data, show_sensitive):
 </div>
 </div>
 </div>"""
-                st.markdown(activity_html, unsafe_allow_html=True)
+                    st.markdown(activity_html, unsafe_allow_html=True)
 
                 # Display additional details (dress code, what to bring, tips) below the card
                 if activity.get('dress_code'):
@@ -9435,7 +9508,7 @@ def main():
         # Navigation
         # Check if nav override is set (from Getting Ready button)
         if st.session_state.get('nav_to_packing', False):
-            default_index = 6  # Packing List (updated for new Travel Dashboard)
+            default_index = 6  # Packing List
             st.session_state['nav_to_packing'] = False
         else:
             default_index = 0
@@ -9447,7 +9520,6 @@ def main():
                 "🎯 Travel Dashboard",
                 "📅 Today",
                 "🗓️ Full Schedule",
-                "🎯 Explore & Plan",
                 "👤 John's Page",
                 "🗺️ Map & Locations",
                 "🎒 Packing List",
@@ -9535,9 +9607,6 @@ def main():
     
     elif page == "🗓️ Full Schedule":
         render_full_schedule(df, activities_data, show_sensitive)
-
-    elif page == "🎯 Explore & Plan":
-        render_explore_activities()
 
     elif page == "👤 John's Page":
         render_johns_page(df, activities_data, show_sensitive)
