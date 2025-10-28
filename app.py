@@ -4545,7 +4545,24 @@ def render_ultimate_header():
 def render_dashboard_ultimate(df, activities_data, weather_data, show_sensitive):
     """Ultimate dashboard with all features"""
     st.markdown('<h2 class="fade-in">🏠 Trip Dashboard</h2>', unsafe_allow_html=True)
-    
+
+    # Show validation report if requested
+    if st.session_state.get('show_validation_report', False):
+        from utils.data_validator import validate_trip_data, generate_validation_report
+
+        data = get_trip_data()
+        is_valid, errors, warnings = validate_trip_data(activities_data, data)
+        report = generate_validation_report(is_valid, errors, warnings)
+
+        with st.expander("🔍 Data Validation Report", expanded=True):
+            st.code(report, language="text")
+
+            if st.button("✓ Close Report"):
+                st.session_state['show_validation_report'] = False
+                st.rerun()
+
+        st.markdown("---")
+
     # Key metrics row
     col1, col2, col3, col4 = st.columns(4)
     
@@ -4586,7 +4603,123 @@ def render_dashboard_ultimate(df, activities_data, weather_data, show_sensitive)
             <div class="metric-label">Confirmed</div>
         </div>
         """, unsafe_allow_html=True)
-    
+
+    # ACTION ITEMS & PROGRESS SECTION
+    st.markdown("---")
+    st.markdown("### 🎯 Action Items & Trip Progress")
+
+    # Calculate progress metrics
+    data = get_trip_data()
+
+    # Booking progress
+    bookings_needed = len(df[df['status'] == 'URGENT'])
+    total_bookable = len(df[df['status'].isin(['URGENT', 'Confirmed'])])
+    booking_progress = ((total_bookable - bookings_needed) / total_bookable * 100) if total_bookable > 0 else 100
+
+    # Meal voting progress
+    meal_proposals = data.get('meal_proposals', {})
+    meals_with_votes = sum(1 for m in meal_proposals.values() if m.get('john_vote') is not None)
+    meals_confirmed = sum(1 for m in meal_proposals.values() if m.get('status') == 'confirmed')
+    total_meals = len(meal_proposals)
+    meal_progress = (meals_confirmed / total_meals * 100) if total_meals > 0 else 100
+
+    # Activity voting progress
+    activity_proposals = data.get('activity_proposals', {})
+    activities_with_votes = sum(1 for a in activity_proposals.values() if a.get('john_vote') is not None)
+    activities_confirmed = sum(1 for a in activity_proposals.values() if a.get('status') == 'confirmed')
+    total_activities = len(activity_proposals)
+    activity_progress = (activities_confirmed / total_activities * 100) if total_activities > 0 else 100
+
+    # Overall trip readiness
+    overall_progress = (booking_progress + meal_progress + activity_progress) / 3
+
+    col1, col2 = st.columns([2, 1])
+
+    with col1:
+        # Progress bars
+        st.markdown("#### 📊 Trip Readiness")
+
+        st.markdown(f"**Overall Progress** ({overall_progress:.0f}%)")
+        st.progress(overall_progress / 100)
+
+        st.markdown(f"**Bookings** ({booking_progress:.0f}%) - {total_bookable - bookings_needed}/{total_bookable} confirmed")
+        st.progress(booking_progress / 100)
+
+        st.markdown(f"**Meals** ({meal_progress:.0f}%) - {meals_confirmed}/{total_meals} confirmed")
+        st.progress(meal_progress / 100)
+
+        st.markdown(f"**Activities** ({activity_progress:.0f}%) - {activities_confirmed}/{total_activities} confirmed")
+        st.progress(activity_progress / 100)
+
+    with col2:
+        st.markdown("#### 🚀 Quick Actions")
+
+        if bookings_needed > 0:
+            if st.button(f"📞 {bookings_needed} Booking(s) Needed", use_container_width=True, type="primary"):
+                st.session_state['dashboard_nav_override'] = "📞 Bookings"
+                st.rerun()
+
+        meals_pending = total_meals - meals_confirmed
+        if meals_pending > 0:
+            if st.button(f"🍽️ {meals_pending} Meal(s) Pending", use_container_width=True):
+                st.session_state['dashboard_nav_override'] = "👤 John's Page"
+                st.rerun()
+
+        activities_pending = total_activities - activities_confirmed
+        if activities_pending > 0:
+            if st.button(f"🎯 {activities_pending} Activity(ies) Pending", use_container_width=True):
+                st.session_state['dashboard_nav_override'] = "👤 John's Page"
+                st.rerun()
+
+        if bookings_needed == 0 and meals_pending == 0 and activities_pending == 0:
+            st.success("✅ All items confirmed!")
+            if st.button("📅 View Full Schedule", use_container_width=True):
+                st.session_state['dashboard_nav_override'] = "🗓️ Full Schedule"
+                st.rerun()
+
+        st.markdown("---")
+
+        if st.button("📋 Export Calendar", use_container_width=True):
+            st.session_state['dashboard_nav_override'] = "🗓️ Full Schedule"
+            st.info("Navigate to Full Schedule to export .ics file")
+
+    # WEATHER ALERTS SECTION
+    st.markdown("---")
+    st.markdown("### ⚠️ Weather Alerts")
+
+    from utils.weather_alerts import check_weather_alerts
+
+    weather_alerts = check_weather_alerts(activities_data, weather_data)
+
+    if weather_alerts:
+        # Show critical alerts
+        critical_alerts = [a for a in weather_alerts if a['severity'] == 'warning']
+        info_alerts = [a for a in weather_alerts if a['severity'] == 'info']
+
+        if critical_alerts:
+            st.warning(f"🚨 {len(critical_alerts)} weather warning(s) for outdoor activities")
+
+            for alert in critical_alerts[:3]:  # Show top 3 critical
+                with st.expander(f"{alert['message']}", expanded=True):
+                    st.write(f"**📅 Date:** {alert['date']} at {alert['time']}")
+                    st.write(f"**💡 Suggestion:** {alert['suggestion']}")
+
+                    if alert['type'] == 'rain':
+                        st.progress(alert['rain_chance'] / 100, text=f"{alert['rain_chance']}% chance of rain")
+                    elif alert['type'] == 'uv':
+                        st.progress(alert['uv_index'] / 11, text=f"UV Index: {alert['uv_index']}")
+
+        if info_alerts and not critical_alerts:
+            st.info(f"ℹ️ {len(info_alerts)} weather notice(s)")
+
+            for alert in info_alerts[:3]:  # Show top 3 info
+                with st.expander(f"{alert['message']}"):
+                    st.write(f"**📅 Date:** {alert['date']} at {alert['time']}")
+                    st.write(f"**💡 Tip:** {alert['suggestion']}")
+
+    else:
+        st.success("✅ No weather concerns for scheduled outdoor activities!")
+
     # Weather widget
     st.markdown("### 🌤️ Current Weather")
     col1, col2 = st.columns([1, 2])
@@ -4807,6 +4940,24 @@ def render_today_view(df, activities_data, weather_data, show_sensitive):
                         elif 'arrival' in travel_act.get('activity', '').lower() and 'DCA' in travel_act.get('notes', ''):
                             st.markdown("#### 🚗 Traffic from DCA")
                             st.info("Check traffic conditions before heading to airport")
+
+                st.markdown("---")
+
+            # WEATHER ALERTS FOR TODAY
+            from utils.weather_alerts import generate_weather_briefing
+
+            briefing = generate_weather_briefing(activities_data, weather_data, today_str)
+
+            if briefing['alerts']:
+                st.markdown("### ⚠️ Weather Alerts for Today")
+
+                for alert in briefing['alerts']:
+                    if alert['severity'] == 'warning':
+                        st.warning(alert['message'])
+                    else:
+                        st.info(alert['message'])
+
+                    st.caption(f"💡 {alert['suggestion']}")
 
                 st.markdown("---")
 
@@ -5340,25 +5491,11 @@ def render_full_schedule(df, activities_data, show_sensitive):
                 for gap in meal_gaps[:5]:  # Show first 5
                     st.markdown(f"• {gap['day_name']}: {gap['meal_type'].title()} at {gap['suggested_time']}")
 
-                # Auto-fill button
-                if st.button("🤖 Auto-Fill All Missing Meals", use_container_width=True, type="primary"):
-                    with st.spinner("🍽️ AI selecting best restaurants for missing meals..."):
-                        added = auto_fill_meals(meal_gaps, weather_data)
-
-                        if added:
-                            st.success(f"✅ Added {len(added)} meals to your schedule!")
-                            st.balloons()
-
-                            # Show what was added
-                            for meal in added:
-                                st.markdown(f"• **{meal['meal_type'].title()}** on {meal['day']} at {meal['time']}: {meal['restaurant']}")
-
-                            st.info("💡 Scroll down to see your updated schedule with new meals!")
-                            st.rerun()
-                        else:
-                            st.error("❌ Failed to add meals. Please try adding manually.")
-            else:
-                st.success("✅ All meals scheduled!")
+    # ENHANCED CONFLICT DETECTION + VISUALIZATION
+    st.markdown("---")
+    if st.checkbox("🔍 Show Detailed Conflict Analysis", value=False):
+        from utils.schedule_checker import show_schedule_conflicts_panel
+        show_schedule_conflicts_panel(activities_data)
 
     st.markdown("---")
 
@@ -9789,42 +9926,49 @@ def main():
         st.markdown("---")
         
         # Navigation
-        # Check if nav override is set (from Getting Ready button)
+        # Check if nav override is set (from Getting Ready button or dashboard quick actions)
+        nav_pages = [
+            "🏠 Dashboard",
+            "🎯 Travel Dashboard",
+            "📅 Today",
+            "🗓️ Full Schedule",
+            "📞 Bookings",
+            "👤 John's Page",
+            "🗺️ Map & Locations",
+            "🎒 Packing List",
+            "🎂 Birthday",
+            "📸 Memories",
+            "💰 Budget",
+            "🌤️ Weather",
+            "ℹ️ About"
+        ]
+
         if st.session_state.get('nav_to_packing', False):
-            default_index = 6  # Packing List
+            default_index = 7  # Packing List
             st.session_state['nav_to_packing'] = False
+        elif st.session_state.get('dashboard_nav_override'):
+            override_page = st.session_state['dashboard_nav_override']
+            default_index = nav_pages.index(override_page) if override_page in nav_pages else 0
+            st.session_state['dashboard_nav_override'] = None
         else:
             default_index = 0
 
         page = st.selectbox(
             "Navigate to:",
-            [
-                "🏠 Dashboard",
-                "🎯 Travel Dashboard",
-                "📅 Today",
-                "🗓️ Full Schedule",
-                "👤 John's Page",
-                "🗺️ Map & Locations",
-                "🎒 Packing List",
-                "🎂 Birthday",
-                "📸 Memories",
-                "💰 Budget",
-                "🌤️ Weather",
-                "ℹ️ About"
-            ],
+            nav_pages,
             index=default_index,
             label_visibility="collapsed"
         )
 
         st.markdown("---")
-        
+
         # Quick stats
         urgent_count = len(df[df['status'] == 'URGENT'])
         if urgent_count > 0:
             st.error(f"⚠️ {urgent_count} urgent booking(s)")
         else:
             st.success("✅ All bookings set!")
-        
+
         # Use .date() for consistent day counting across all countdowns
         days_until = (TRIP_CONFIG['start_date'].date() - datetime.now().date()).days
         if days_until > 0:
@@ -9833,7 +9977,23 @@ def main():
             st.success("🎉 Trip starts TODAY!")
         else:
             st.success("🏖️ On your trip!")
-        
+
+        # Data validation status
+        from utils.data_validator import validate_trip_data
+        data = get_trip_data()
+        is_valid, errors, warnings = validate_trip_data(activities_data, data)
+
+        if errors:
+            st.error(f"🔍 {len(errors)} data error(s)")
+            if st.button("View Details", key="validation_errors", use_container_width=True):
+                st.session_state['show_validation_report'] = True
+        elif warnings:
+            st.warning(f"🔍 {len(warnings)} data warning(s)")
+            if st.button("View Details", key="validation_warnings", use_container_width=True):
+                st.session_state['show_validation_report'] = True
+        else:
+            st.success("✅ Data validated!")
+
         st.markdown("---")
 
         # Notifications
@@ -9890,6 +10050,10 @@ def main():
     
     elif page == "🗓️ Full Schedule":
         render_full_schedule(df, activities_data, show_sensitive)
+
+    elif page == "📞 Bookings":
+        from pages.bookings import show_booking_dashboard
+        show_booking_dashboard()
 
     elif page == "👤 John's Page":
         render_johns_page(df, activities_data, show_sensitive)
