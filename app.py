@@ -98,6 +98,13 @@ def init_session_state():
         st.session_state.notifications = []  # Initialize empty notifications
     if 'photos' not in st.session_state:
         st.session_state.photos = []  # Initialize empty photos
+    if 'packing_list' not in st.session_state:
+        # Load packing progress from database and convert to simple format
+        packing_progress = get_packing_progress()
+        st.session_state.packing_list = {
+            item_id: item_data.get('packed', False)
+            for item_id, item_data in packing_progress.items()
+        }
     if 'init_complete' not in st.session_state:
         st.session_state.init_complete = True
 
@@ -628,27 +635,259 @@ def load_ultimate_css():
         }
     }
     
-    /* Responsive */
+    /* ========================================================================
+       MOBILE RESPONSIVENESS - Comprehensive mobile-first design
+       ======================================================================== */
+
+    /* Tablet (portrait) */
+    @media (max-width: 992px) {
+        .main .block-container {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        .status-bar {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .timeline-item {
+            padding-left: 3.5rem;
+        }
+
+        .timeline::before {
+            left: 1rem;
+        }
+
+        .timeline-item::before {
+            left: calc(1rem - 12px);
+        }
+    }
+
+    /* Mobile (phone) */
     @media (max-width: 768px) {
+        /* Typography - smaller on mobile */
         .ultimate-header {
             margin-left: -1rem;
             margin-right: -1rem;
             border-radius: 0;
             padding: 2rem 1.5rem;
         }
-        
+
         .ultimate-header h1 {
-            font-size: 2.2rem;
+            font-size: 2rem;
+            line-height: 1.2;
         }
-        
+
+        .ultimate-header p {
+            font-size: 1.1rem;
+        }
+
+        .ultimate-header::before {
+            font-size: 150px;
+            top: -40px;
+            right: -40px;
+        }
+
+        /* Metric cards - stack on mobile */
         .metric-card {
             margin-left: -1rem;
             margin-right: -1rem;
             border-radius: 0;
+            padding: 2rem 1.5rem;
         }
-        
+
         .metric-value {
             font-size: 3rem;
+        }
+
+        .metric-label {
+            font-size: 0.95rem;
+        }
+
+        /* Cards - less padding on mobile */
+        .ultimate-card {
+            border-radius: 15px;
+            margin-left: -0.5rem;
+            margin-right: -0.5rem;
+        }
+
+        .card-header {
+            padding: 1.25rem 1.5rem;
+            font-size: 1.2rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* Buttons - touch-friendly (44px minimum) */
+        .ultimate-btn {
+            padding: 0.875rem 1.5rem;
+            font-size: 1rem;
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        /* Status badges */
+        .status-confirmed,
+        .status-pending,
+        .status-urgent {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            display: inline-block;
+            margin: 0.25rem 0;
+        }
+
+        /* Tabs - stack vertically on mobile */
+        .stTabs [data-baseweb="tab-list"] {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .stTabs [data-baseweb="tab"] {
+            width: 100%;
+            min-height: 50px;
+            padding: 0 1rem;
+            font-size: 1rem;
+        }
+
+        /* Weather widget */
+        .weather-widget {
+            padding: 1.5rem;
+            margin-left: -0.5rem;
+            margin-right: -0.5rem;
+            border-radius: 15px;
+        }
+
+        .weather-temp {
+            font-size: 3.5rem;
+            margin: 1rem 0;
+        }
+
+        /* Info boxes */
+        .info-box {
+            padding: 1rem;
+            margin-left: -0.5rem;
+            margin-right: -0.5rem;
+            border-radius: 10px;
+        }
+
+        /* Birthday special */
+        .birthday-special {
+            padding: 1.5rem;
+            margin-left: -0.5rem;
+            margin-right: -0.5rem;
+            border-radius: 15px;
+        }
+
+        /* Timeline - more compact */
+        .timeline::before {
+            left: 0.75rem;
+        }
+
+        .timeline-item {
+            padding-left: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .timeline-item::before {
+            left: calc(0.75rem - 10px);
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+        }
+
+        /* Packing items */
+        .packing-item {
+            padding: 0.875rem 1.25rem;
+            margin: 0.5rem 0;
+            border-radius: 10px;
+        }
+    }
+
+    /* Mobile (small phones) */
+    @media (max-width: 480px) {
+        .ultimate-header h1 {
+            font-size: 1.75rem;
+        }
+
+        .ultimate-header p {
+            font-size: 1rem;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+        }
+
+        .metric-label {
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+
+        .weather-temp {
+            font-size: 3rem;
+        }
+
+        .card-header {
+            font-size: 1.1rem;
+            padding: 1rem 1.25rem;
+        }
+
+        .card-body {
+            padding: 1.25rem;
+        }
+    }
+
+    /* Streamlit-specific mobile fixes */
+    @media (max-width: 768px) {
+        /* Make Streamlit columns stack on mobile */
+        .stColumn {
+            min-width: 100% !important;
+            flex: 1 1 100% !important;
+        }
+
+        /* Fix Streamlit buttons on mobile */
+        .stButton > button {
+            width: 100%;
+            min-height: 44px;
+            font-size: 1rem;
+            padding: 0.75rem 1rem;
+        }
+
+        /* Fix Streamlit selectbox */
+        .stSelectbox {
+            width: 100%;
+        }
+
+        /* Fix Streamlit text inputs */
+        .stTextInput > div > div > input {
+            font-size: 16px !important; /* Prevents iOS zoom */
+            padding: 0.75rem;
+        }
+
+        /* Fix Streamlit metrics */
+        .stMetric {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 1rem;
+        }
+
+        /* Fix Streamlit expanders */
+        .streamlit-expanderHeader {
+            font-size: 1rem;
+            padding: 1rem;
+        }
+
+        /* Fix sidebar on mobile */
+        [data-testid="stSidebar"] {
+            width: 100% !important;
+        }
+
+        [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {
+            font-size: 0.95rem;
         }
     }
     
@@ -4732,45 +4971,205 @@ def render_today_view(df, activities_data, weather_data, show_sensitive):
         """, unsafe_allow_html=True)
 
 def render_map_page(activities_data):
-    """Interactive map page"""
+    """Interactive map page with day-by-day filtering and activity type overlays"""
     st.markdown('<h2 class="fade-in">🗺️ Trip Map & Locations</h2>', unsafe_allow_html=True)
-    
+
     st.markdown("""
     <div class="info-box" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
         <h4 style="margin: 0 0 0.5rem 0;">📍 Interactive Map</h4>
-        <p style="margin: 0;">Explore all your trip locations! Click markers for details and distances from your hotel.</p>
+        <p style="margin: 0;">Explore your trip locations with day-by-day filtering and activity type overlays!</p>
     </div>
     """, unsafe_allow_html=True)
-    
-    # Create and display map
-    trip_map = create_ultimate_map(activities_data)
+
+    # Day-by-day filter
+    st.markdown("### 📅 Filter by Day")
+    day_options = ["All Days", "Friday, Nov 7", "Saturday, Nov 8", "Sunday, Nov 9 (Birthday!)", "Monday, Nov 10", "Tuesday, Nov 11", "Wednesday, Nov 12"]
+    day_map = {
+        "All Days": None,
+        "Friday, Nov 7": "2025-11-07",
+        "Saturday, Nov 8": "2025-11-08",
+        "Sunday, Nov 9 (Birthday!)": "2025-11-09",
+        "Monday, Nov 10": "2025-11-10",
+        "Tuesday, Nov 11": "2025-11-11",
+        "Wednesday, Nov 12": "2025-11-12"
+    }
+
+    selected_day = st.selectbox("Select a day to view:", day_options, index=0)
+    selected_date = day_map[selected_day]
+
+    # Activity type overlays
+    st.markdown("### 🎯 Activity Type Overlays")
+    st.markdown("*Toggle which types of activities to show on the map:*")
+
+    # Use 3 columns for better mobile responsiveness
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        show_hotel = st.checkbox("🏨 Hotel", value=True, key="show_hotel")
+        show_dining = st.checkbox("🍽️ Dining", value=True, key="show_dining")
+    with col2:
+        show_activities = st.checkbox("🎯 Activities", value=True, key="show_activities")
+        show_spa = st.checkbox("💆 Spa", value=True, key="show_spa")
+    with col3:
+        show_beach = st.checkbox("🏖️ Beach", value=True, key="show_beach")
+        show_transport = st.checkbox("✈️ Transport", value=True, key="show_transport")
+
+    # Filter activities based on selections
+    filtered_activities = []
+    for activity in activities_data:
+        # Filter by day
+        if selected_date and activity['date'] != selected_date:
+            continue
+
+        # Filter by type
+        activity_type = activity['type']
+        if activity_type == 'dining' and not show_dining:
+            continue
+        if activity_type == 'activity' and not show_activities:
+            continue
+        if activity_type == 'spa' and not show_spa:
+            continue
+        if activity_type == 'beach' and not show_beach:
+            continue
+        if activity_type == 'transport' and not show_transport:
+            continue
+
+        filtered_activities.append(activity)
+
+    # Summary stats
+    st.markdown("---")
+    col_stat1, col_stat2, col_stat3, col_stat4 = st.columns(4)
+    with col_stat1:
+        st.metric("📍 Locations Shown", len(filtered_activities))
+    with col_stat2:
+        dining_count = len([a for a in filtered_activities if a['type'] == 'dining'])
+        st.metric("🍽️ Dining", dining_count)
+    with col_stat3:
+        activity_count = len([a for a in filtered_activities if a['type'] == 'activity' or a['type'] == 'beach'])
+        st.metric("🎯 Activities", activity_count)
+    with col_stat4:
+        spa_count = len([a for a in filtered_activities if a['type'] == 'spa'])
+        st.metric("💆 Spa", spa_count)
+
+    # Create map with filtered activities
+    if show_hotel:
+        trip_map = create_ultimate_map(filtered_activities)
+    else:
+        # If hotel checkbox is unchecked, create map without hotel marker
+        # Center on first activity or default location
+        if filtered_activities:
+            center = [filtered_activities[0]['location']['lat'], filtered_activities[0]['location']['lon']]
+        else:
+            center = [TRIP_CONFIG['hotel']['lat'], TRIP_CONFIG['hotel']['lon']]
+
+        import folium
+        trip_map = folium.Map(location=center, zoom_start=12, tiles='OpenStreetMap')
+
+        # Add activity markers
+        type_colors = {'transport': 'blue', 'activity': 'green', 'spa': 'purple', 'dining': 'orange', 'beach': 'lightblue'}
+        type_icons = {'transport': 'plane', 'activity': 'ship', 'spa': 'heart', 'dining': 'cutlery', 'beach': 'umbrella'}
+
+        for activity in filtered_activities:
+            loc = activity['location']
+            import html
+            safe_activity = html.escape(activity['activity'])
+            safe_date = html.escape(activity['date'])
+            safe_time = html.escape(activity['time'])
+            safe_loc_name = html.escape(loc['name'])
+
+            folium.Marker(
+                location=[loc['lat'], loc['lon']],
+                popup=folium.Popup(f"<div style='min-width: 250px'><h3>{safe_activity}</h3><p>{safe_date} at {safe_time}</p><p>{safe_loc_name}</p></div>", max_width=300),
+                tooltip=f"{safe_activity} - {safe_date}",
+                icon=folium.Icon(color=type_colors.get(activity['type'], 'gray'), icon=type_icons.get(activity['type'], 'info-sign'), prefix='fa')
+            ).add_to(trip_map)
+
     st_folium(trip_map, width=None, height=600)
-    
+
+    # Activity list showing what's confirmed/agreed upon
+    st.markdown("---")
+    st.markdown("### 📋 Your Activity List")
+
+    if filtered_activities:
+        # Group by date
+        from collections import defaultdict
+        by_date = defaultdict(list)
+        for activity in filtered_activities:
+            by_date[activity['date']].append(activity)
+
+        for date in sorted(by_date.keys()):
+            date_obj = pd.to_datetime(date)
+            day_activities = sorted(by_date[date], key=lambda x: x['time'])
+
+            with st.expander(f"**{date_obj.strftime('%A, %B %d')}** ({len(day_activities)} activities)", expanded=(date == selected_date)):
+                for activity in day_activities:
+                    # Determine status badge
+                    status = activity.get('status', 'Confirmed')
+                    if status == 'Confirmed':
+                        badge_color = "#4caf50"
+                        badge_text = "✅ Confirmed"
+                    elif status == 'URGENT':
+                        badge_color = "#f44336"
+                        badge_text = "🚨 Urgent"
+                    else:
+                        badge_color = "#ff9800"
+                        badge_text = "📅 Planned"
+
+                    # Determine if John is included
+                    john_note = ""
+                    if activity.get('id') == 'din001':
+                        john_note = " • 🎉 John's attending (Michael's treat!)"
+                    elif activity['type'] == 'dining' and activity['date'] >= '2025-11-08':
+                        john_note = " • 👥 Going Dutch"
+
+                    st.markdown(f"""
+                    <div class="ultimate-card" style="border-left: 4px solid {badge_color};">
+                        <div class="card-body">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div style="flex: 1;">
+                                    <h4 style="margin: 0 0 0.5rem 0;">{activity['activity']}</h4>
+                                    <p style="margin: 0.25rem 0;"><strong>⏰</strong> {activity['time']} {f"• {activity.get('duration', '')}" if activity.get('duration') else ""}</p>
+                                    <p style="margin: 0.25rem 0;"><strong>📍</strong> {activity['location']['name']}</p>
+                                    <p style="margin: 0.25rem 0; font-style: italic; font-size: 0.9rem;">{activity['notes']}{john_note}</p>
+                                </div>
+                                <div style="margin-left: 1rem;">
+                                    <span style="background: {badge_color}; color: white; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem; white-space: nowrap;">{badge_text}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+    else:
+        st.info("No activities match your filters. Try selecting different options above.")
+
     # Distance matrix
+    st.markdown("---")
     st.markdown("### 🚗 Travel Times from Hotel")
-    
+
     cols = st.columns(3)
     unique_locations = {}
-    
-    for activity in activities_data:
+
+    for activity in filtered_activities:
         loc_name = activity['location']['name']
         if loc_name not in unique_locations and activity['type'] != 'transport':
             unique_locations[loc_name] = activity['location']
-    
-    for idx, (name, loc) in enumerate(unique_locations.items()):
-        with cols[idx % 3]:
-            distance = calculate_distance_from_hotel(loc['lat'], loc['lon'])
-            travel_time = int(distance / 0.583)  # 35 mph average
-            
-            st.markdown(f"""
-            <div class="ultimate-card fade-in">
-                <div class="card-body">
-                    <h4 style="margin: 0 0 0.5rem 0;">{name}</h4>
-                    <p style="margin: 0.25rem 0;">🚗 {distance:.1f} miles</p>
-                    <p style="margin: 0.25rem 0;">⏱️ ~{travel_time} minutes</p>
+
+    if unique_locations:
+        for idx, (name, loc) in enumerate(unique_locations.items()):
+            with cols[idx % 3]:
+                distance = calculate_distance_from_hotel(loc['lat'], loc['lon'])
+                travel_time = int(distance / 0.583)  # 35 mph average
+
+                st.markdown(f"""
+                <div class="ultimate-card fade-in">
+                    <div class="card-body">
+                        <h4 style="margin: 0 0 0.5rem 0;">{name}</h4>
+                        <p style="margin: 0.25rem 0;">🚗 {distance:.1f} miles</p>
+                        <p style="margin: 0.25rem 0;">⏱️ ~{travel_time} minutes</p>
+                    </div>
                 </div>
-            </div>
-            """, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
+    else:
+        st.info("No locations to display travel times for.")
 
 def render_packing_list():
     """Smart packing list"""
@@ -7730,25 +8129,63 @@ def render_johns_page(df, activities_data, show_sensitive):
             </div>
             """, unsafe_allow_html=True)
 
-            spa_options = [
-                {"name": "Gentleman's Facial", "cost": "$165", "duration": "50 min", "desc": "Designed for men's skin. Addresses shaving irritation and deep cleaning."},
-                {"name": "Aromatherapy Massage", "cost": "$185-245", "duration": "50-80 min", "desc": "Relaxing full-body massage with essential oils."},
-                {"name": "Hot Stone Massage", "cost": "$205", "duration": "80 min", "desc": "Therapeutic massage with heated stones to ease muscle tension."},
-                {"name": "Sports Massage", "cost": "$195", "duration": "50 min", "desc": "Deep tissue massage focused on muscle recovery."},
-            ]
+            # Get full spa services menu
+            spa_services = get_ritz_spa_services()
 
-            for spa in spa_options:
-                st.markdown(f"""
-                <div class="ultimate-card">
-                    <div class="card-body">
-                        <h4 style="margin: 0 0 0.25rem 0;">{spa['name']}</h4>
-                        <p style="margin: 0.25rem 0; color: #666;"><strong>{spa['duration']} • {spa['cost']}</strong></p>
-                        <p style="margin: 0.5rem 0; font-size: 0.9rem;">{spa['desc']}</p>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+            st.markdown(f"""
+            **📞 Booking:** {spa_services['spa_phone']}
+            **🌐 Online:** [{spa_services['reservation_url']}](https://{spa_services['reservation_url']})
+            """)
 
+            st.info(f"💡 **Spa Facility Access:** $25 (resort guests), $75 (non-guests)")
+
+            # Display services by category
+            service_tabs = st.tabs(["💆 Massage", "👤 Facials", "🧖 Body Treatments", "🔬 Advanced Tech", "💅 Nails", "💇 Hair", "🛁 Cabanas"])
+
+            with service_tabs[0]:  # Massage
+                st.markdown("### Massage Treatments")
+                for service_name, details in spa_services['services']['Massage Treatments'].items():
+                    st.markdown(f"**{service_name}** - {details}")
+
+            with service_tabs[1]:  # Facials
+                st.markdown("### Facial Treatments")
+                for service_name, details in spa_services['services']['Facial Treatments'].items():
+                    st.markdown(f"**{service_name}** - {details}")
+
+            with service_tabs[2]:  # Body Treatments
+                st.markdown("### Body Treatments")
+                for service_name, details in spa_services['services']['Body Treatments'].items():
+                    st.markdown(f"**{service_name}** - {details}")
+
+            with service_tabs[3]:  # Advanced Technology
+                st.markdown("### LPG Endermologie (Advanced Technology)")
+                st.caption("Patented technology for body contouring, anti-aging, and wellness")
+                for service_name, details in spa_services['services']['LPG Endermologie (Advanced Technology)'].items():
+                    st.markdown(f"**{service_name}** - {details}")
+                st.markdown("---")
+                st.markdown("### Red Light Therapy")
+                for service_name, details in spa_services['services']['Wellness Technology'].items():
+                    st.markdown(f"**{service_name}** - {details}")
+
+            with service_tabs[4]:  # Nails
+                st.markdown("### Nail Services")
+                for service_name, details in spa_services['services']['Nail Services'].items():
+                    st.markdown(f"**{service_name}** - {details}")
+
+            with service_tabs[5]:  # Hair
+                st.markdown("### Hair Services")
+                for service_name, details in spa_services['services']['Hair Services'].items():
+                    st.markdown(f"**{service_name}** - {details}")
+
+            with service_tabs[6]:  # Cabanas
+                st.markdown("### Spa Pool Cabanas & Daybeds")
+                st.caption("Enjoy spa amenities in privacy with your group")
+                for service_name, details in spa_services['services']['Spa Pool Cabanas & Daybeds'].items():
+                    st.markdown(f"**{service_name}** - {details}")
+
+            st.markdown('---')
             st.markdown('**📞 To Book:** <a href="tel:904-277-1087" style="color: #2196f3; text-decoration: none;">Call spa at 904-277-1087</a>', unsafe_allow_html=True)
+            st.caption("💡 Couples massages must be booked by phone. Ask about LPG Endermologie series packages.")
 
         with subtab3:
             st.markdown("**🏖️ Nearby Activities** (during free time)")
@@ -7978,6 +8415,33 @@ def render_johns_page(df, activities_data, show_sensitive):
             <p style="margin: 0.5rem 0 0 0; opacity: 0.95;">Michael has proposed restaurant options for meals. Vote on which ones work for you!</p>
         </div>
         """, unsafe_allow_html=True)
+
+        # Show complete Ritz-Carlton menus for reference
+        ritz_menus = get_ritz_restaurant_menus()
+        with st.expander("📋 View Complete Ritz-Carlton Restaurant Menus (All Venues)", expanded=False):
+            st.markdown("*Browse full menus to see what food options are available at each restaurant*")
+            menu_tabs = st.tabs(list(ritz_menus.keys()))
+            for idx, (rest_name, menu_data) in enumerate(ritz_menus.items()):
+                with menu_tabs[idx]:
+                    st.markdown(f"**{menu_data.get('hours', 'See restaurant for hours')}**")
+                    st.markdown(f"*Dress Code: {menu_data.get('dress_code', 'N/A')}*")
+                    st.markdown(f"_{menu_data.get('description', '')}_")
+                    if menu_data.get('note'):
+                        st.caption(menu_data['note'])
+                    if menu_data.get('first_call'):
+                        st.info(f"⭐ {menu_data['first_call']}")
+
+                    # Display menu items by category
+                    for category, items in menu_data.get('menu', {}).items():
+                        st.markdown(f"**{category}**")
+                        if isinstance(items, list):
+                            for item in items[:10]:  # Show first 10 items
+                                st.markdown(f"- {item}")
+                            if len(items) > 10:
+                                st.caption(f"...and {len(items) - 10} more items")
+                        else:
+                            st.markdown(f"- {items}")
+                        st.markdown("")
 
         # Refresh button to reload proposals
         if st.button("🔄 Refresh to Check for New Proposals", use_container_width=True):
