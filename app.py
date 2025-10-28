@@ -60,6 +60,40 @@ from data_operations import (
     save_manual_tsa_update, get_latest_manual_tsa_update
 )
 
+# Google API Integrations
+try:
+    from utils.google_places import (
+        render_places_search_widget,
+        search_nearby_places,
+        get_place_details
+    )
+    from utils.air_quality import (
+        render_air_quality_widget,
+        check_outdoor_activity_safety
+    )
+    from utils.google_routes import (
+        get_directions,
+        render_directions_card,
+        render_route_optimizer
+    )
+    from utils.street_view import (
+        render_street_view_preview,
+        get_street_view_url
+    )
+    from utils.geocoding import (
+        geocode_address,
+        get_coordinates,
+        validate_address
+    )
+    from utils.static_maps import (
+        generate_trip_map,
+        generate_static_map_url
+    )
+    GOOGLE_APIS_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️ Google API utilities not available: {e}")
+    GOOGLE_APIS_AVAILABLE = False
+
 # ============================================================================
 # CONFIGURATION & SETUP
 # ============================================================================
@@ -3620,6 +3654,29 @@ def add_activity_to_schedule(activity_name, activity_description, selected_day, 
     import uuid
     activity_id = f"custom_{uuid.uuid4().hex[:8]}"
 
+    # Try to geocode location if Google APIs available and location is not TBD
+    location_data = {
+        "name": location_name,
+        "address": "TBD",
+        "lat": 30.6074,  # Default to Amelia Island
+        "lon": -81.4493,
+        "phone": "N/A"
+    }
+
+    if GOOGLE_APIS_AVAILABLE and location_name and location_name != 'TBD':
+        try:
+            from utils.geocoding import validate_address
+
+            validation = validate_address(location_name)
+            if validation and validation.get('valid'):
+                location_data['address'] = validation.get('formatted_address', 'TBD')
+                coords = validation.get('coordinates', {})
+                location_data['lat'] = coords.get('lat', 30.6074)
+                location_data['lon'] = coords.get('lng', -81.4493)
+        except Exception as e:
+            # Silently fall back to defaults if geocoding fails
+            pass
+
     # Create activity object
     new_activity = {
         "id": activity_id,
@@ -3628,13 +3685,7 @@ def add_activity_to_schedule(activity_name, activity_description, selected_day, 
         "activity": activity_name,
         "type": activity_type,
         "duration": duration,
-        "location": {
-            "name": location_name,
-            "address": "TBD",
-            "lat": 30.6074,  # Default to Amelia Island
-            "lon": -81.4493,
-            "phone": "N/A"
-        },
+        "location": location_data,
         "status": "Custom",
         "cost": cost,
         "category": activity_type.capitalize(),
@@ -5270,6 +5321,24 @@ def render_map_page(activities_data):
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
+
+                    # Get Directions button
+                    if GOOGLE_APIS_AVAILABLE:
+                        direction_col1, direction_col2 = st.columns([1, 3])
+                        with direction_col1:
+                            if st.button(f"🧭 Directions", key=f"dir_{activity.get('id', date)}_{idx}", use_container_width=True):
+                                st.session_state[f"show_directions_{activity.get('id', date)}_{idx}"] = True
+
+                        # Show directions if button was clicked
+                        if st.session_state.get(f"show_directions_{activity.get('id', date)}_{idx}", False):
+                            try:
+                                render_directions_card(
+                                    origin="The Ritz-Carlton, Amelia Island",
+                                    destination=activity['location']['name'],
+                                    mode="driving"
+                                )
+                            except Exception as e:
+                                st.error(f"Could not load directions: {str(e)}")
     else:
         st.info("No activities match your filters. Try selecting different options above.")
 
@@ -5302,6 +5371,42 @@ def render_map_page(activities_data):
                 """, unsafe_allow_html=True)
     else:
         st.info("No locations to display travel times for.")
+
+    # ============ STATIC TRIP MAP GENERATOR ============
+    if GOOGLE_APIS_AVAILABLE:
+        st.markdown("---")
+        st.markdown("### 📸 Shareable Trip Map")
+        st.caption("Generate a static map image you can save and share")
+
+        try:
+            from utils.static_maps import generate_trip_map
+
+            # Collect all unique locations
+            markers = []
+            for activity in activities_data:
+                if activity['type'] != 'transport':
+                    markers.append({
+                        'lat': activity['location']['lat'],
+                        'lon': activity['location']['lon'],
+                        'label': activity['activity'][:20]  # Truncate for readability
+                    })
+
+            if st.button("🗺️ Generate Shareable Trip Map", use_container_width=True):
+                with st.spinner("Generating map image..."):
+                    map_url = generate_trip_map(
+                        hotel_location={'lat': 30.6074, 'lon': -81.4493, 'name': 'Hotel'},
+                        activities=[{'location': m} for m in markers[:10]],  # Limit to 10 markers
+                        size="800x600"
+                    )
+
+                    if map_url:
+                        st.image(map_url, caption="Your Trip Map - Right-click to save!", use_container_width=True)
+                        st.success("✅ Map generated! Right-click the image to save it.")
+                        st.markdown(f"**Direct link:** [View Full Size]({map_url})")
+                    else:
+                        st.error("Could not generate map. Check API configuration.")
+        except Exception as e:
+            st.info("💡 Static map generator requires Google Maps API configuration")
 
 def render_packing_list():
     """Smart packing list"""
@@ -5779,11 +5884,11 @@ def render_full_schedule(df, activities_data, show_sensitive):
                 activity['activity_type'] = 'shared'
                 activity['activity_type_label'] = '👥 SHARED - Both Together'
             elif activity_id == 'spa002' or (activity_id == 'spa002' and 'hydrafacial' in activity_name):
-                activity['activity_type'] = 'john_solo'
-                activity['activity_type_label'] = '🎂 JOHN\'S TREATMENT - Michael has free time'
+                activity['activity_type'] = 'michael_solo'
+                activity['activity_type_label'] = '🎂 MICHAEL\'S TREATMENT - Birthday spa time!'
             elif activity_id == 'spa003' or (activity_id == 'spa003' and 'mani-pedi' in activity_name):
-                activity['activity_type'] = 'john_solo'
-                activity['activity_type_label'] = '🎂 JOHN\'S TREATMENT - Michael has free time'
+                activity['activity_type'] = 'michael_solo'
+                activity['activity_type_label'] = '🎂 MICHAEL\'S TREATMENT - Birthday pampering!'
             # Photography and special events
             elif 'photography' in activity_name:
                 activity['activity_type'] = 'shared'
@@ -6619,6 +6724,19 @@ def render_explore_activities():
                     </div>
                     """, unsafe_allow_html=True)
 
+                    # Street View preview for restaurants with addresses
+                    if GOOGLE_APIS_AVAILABLE and ('🍽️' in category or 'Dining' in category):
+                        if activity.get('address'):
+                            try:
+                                render_street_view_preview(
+                                    location=activity['address'],
+                                    title=f"{activity['name']} Street View",
+                                    size="600x200"
+                                )
+                            except Exception as e:
+                                # Silently skip if Street View not available
+                                pass
+
                     # Activity details
                     detail_col1, detail_col2, detail_col3 = st.columns(3)
                     with detail_col1:
@@ -7053,6 +7171,59 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
     st.markdown("---")
     st.markdown("### 🌤️ Weather Forecast")
     st.info("Average: 75°F • Partly cloudy • Perfect beach weather!")
+
+    # ============ OUTDOOR ACTIVITY SAFETY CHECK ============
+    if GOOGLE_APIS_AVAILABLE:
+        st.markdown("---")
+        st.markdown("### 🌿 Outdoor Activity Safety")
+        st.caption("Real-time air quality and pollen levels from Google Air Quality API")
+
+        from utils.air_quality import check_outdoor_activity_safety
+
+        try:
+            safety_check = check_outdoor_activity_safety(30.6074, -81.4493)
+
+            if safety_check:
+                is_safe = safety_check.get('safe_for_outdoor', True)
+                warnings = safety_check.get('warnings', [])
+
+                if is_safe and not warnings:
+                    st.success("✅ **Great conditions** for outdoor activities!")
+                elif warnings:
+                    st.warning("⚠️ **Outdoor Activity Advisories:**")
+                    for warning in warnings:
+                        st.markdown(f"- {warning}")
+                else:
+                    st.error("🚨 **Poor conditions** - Consider indoor activities")
+        except Exception as e:
+            # Silently skip if API not available
+            pass
+
+    # ============ ROUTE OPTIMIZER ============
+    if GOOGLE_APIS_AVAILABLE:
+        st.markdown("---")
+        st.markdown("### 🗺️ Daily Route Optimizer")
+        st.caption("Optimize your daily route to save time and gas using Google Routes API")
+
+        # Get today's activities
+        from datetime import datetime
+        today_str = datetime.now().strftime('%Y-%m-%d')
+        today_activities = [a for a in activities_data if a.get('date') == today_str]
+
+        if today_activities and len(today_activities) > 1:
+            try:
+                render_route_optimizer(
+                    activities=today_activities,
+                    hotel_location={
+                        'name': 'The Ritz-Carlton, Amelia Island',
+                        'lat': 30.6074,
+                        'lon': -81.4493
+                    }
+                )
+            except Exception as e:
+                st.info("💡 Route optimizer available when you have multiple activities planned for the day")
+        else:
+            st.info("💡 **Route optimizer** will show the best order to visit multiple locations when you have 2+ activities scheduled for the day")
 
     # ============ BOOZE RUN SHOPPING LIST ============
     st.markdown("---")
@@ -10097,6 +10268,7 @@ def main():
             "📞 Bookings",
             "👤 John's Page",
             "🗺️ Map & Locations",
+            "🔍 Discover",
             "🎒 Packing List",
             "🎂 Birthday",
             "📸 Memories",
@@ -10106,7 +10278,7 @@ def main():
         ]
 
         if st.session_state.get('nav_to_packing', False):
-            default_index = 7  # Packing List
+            default_index = 8  # Packing List (updated after adding Discover)
             st.session_state['nav_to_packing'] = False
         elif st.session_state.get('dashboard_nav_override'):
             override_page = st.session_state['dashboard_nav_override']
@@ -10321,31 +10493,77 @@ def main():
                 high_times = [h['time'] for h in day_tides.get('high', [])]
                 tide_info = f"<p style='margin: 0.5rem 0; font-size: 0.85rem;'>🌊 High tides: {', '.join(high_times) if high_times else 'N/A'}</p>"
 
-            st.markdown(f"""
-            <div class="ultimate-card fade-in">
-                <div class="card-body">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div style="flex: 1;">
-                            <h4 style="margin: 0;">{date_obj.strftime('%A, %B %d')}</h4>
-                            <p style="margin: 0.5rem 0;">{emoji} {day['condition']}</p>
-                            {tide_info}
-                        </div>
-                        <div style="text-align: right;">
-                            <p style="margin: 0; font-size: 1.5rem; font-weight: bold;">
-                                {day['high']:.0f}° / {day['low']:.0f}°
-                            </p>
-                            <p style="margin: 0.5rem 0; font-size: 0.9rem;">
-                                💧 {day.get('precipitation', 0)}% • 💨 {day.get('wind', 0)} mph
-                            </p>
-                            <p style="margin: 0.5rem 0; font-size: 0.9rem; color: {uv_color}; font-weight: bold;">
-                                ☀️ UV: {uv} ({uv_level})
-                            </p>
-                        </div>
-                    </div>
-                </div>
+            # Remove indentation from HTML to prevent code block rendering
+            html_content = f"""
+<div class="ultimate-card fade-in">
+<div class="card-body">
+<div style="display: flex; justify-content: space-between; align-items: center;">
+<div style="flex: 1;">
+<h4 style="margin: 0;">{date_obj.strftime('%A, %B %d')}</h4>
+<p style="margin: 0.5rem 0;">{emoji} {day['condition']}</p>
+{tide_info}
+</div>
+<div style="text-align: right;">
+<p style="margin: 0; font-size: 1.5rem; font-weight: bold;">
+{day['high']:.0f}° / {day['low']:.0f}°
+</p>
+<p style="margin: 0.5rem 0; font-size: 0.9rem;">
+💧 {day.get('precipitation', 0)}% • 💨 {day.get('wind', 0)} mph
+</p>
+<p style="margin: 0.5rem 0; font-size: 0.9rem; color: {uv_color}; font-weight: bold;">
+☀️ UV: {uv} ({uv_level})
+</p>
+</div>
+</div>
+</div>
+</div>
+"""
+            st.markdown(html_content, unsafe_allow_html=True)
+
+        # Air Quality & Pollen Section
+        if GOOGLE_APIS_AVAILABLE:
+            st.markdown("---")
+            st.markdown("### 🌿 Air Quality & Pollen Forecast")
+            st.caption("Real-time air quality and allergen levels from Google Air Quality API")
+
+            render_air_quality_widget(
+                location_name="Amelia Island",
+                lat=30.6074,
+                lon=-81.4493
+            )
+
+    elif page == "🔍 Discover":
+        st.markdown('<h2 class="fade-in">🔍 Discover Nearby</h2>', unsafe_allow_html=True)
+
+        st.markdown("""
+        <div class="ultimate-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <div class="card-body" style="color: white;">
+                <h3 style="margin: 0 0 0.5rem 0;">🗺️ Explore Amelia Island</h3>
+                <p style="margin: 0; opacity: 0.95;">
+                    Discover restaurants, cafes, attractions, and more near your hotel using Google Places API!
+                </p>
             </div>
-            """, unsafe_allow_html=True)
-    
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("")
+
+        if GOOGLE_APIS_AVAILABLE:
+            # Search widget with Places API
+            render_places_search_widget(
+                location_name="The Ritz-Carlton, Amelia Island",
+                lat=30.6074,
+                lon=-81.4493
+            )
+        else:
+            st.error("❌ Google API utilities not available. Please check configuration.")
+            st.info("""
+            **To enable Discover features:**
+            1. Ensure `GOOGLE_MAPS_API_KEY` is set in `.streamlit/secrets.toml`
+            2. Enable Places API (New) in Google Cloud Console
+            3. Restart the app
+            """)
+
     elif page == "ℹ️ About":
         st.markdown('<h2 class="fade-in">ℹ️ About This App</h2>', unsafe_allow_html=True)
         
@@ -10359,8 +10577,12 @@ def main():
             <div class="card-header">✨ Features</div>
             <div class="card-body">
                 <ul style="line-height: 2;">
-                    <li>🗺️ Interactive maps of all locations</li>
-                    <li>🌤️ Real-time weather integration</li>
+                    <li>🗺️ Interactive maps with street view previews</li>
+                    <li>🌤️ Real-time weather, UV index & tides</li>
+                    <li>🌿 Air quality & pollen forecasts</li>
+                    <li>🔍 Discover nearby restaurants & attractions</li>
+                    <li>🧭 Turn-by-turn directions & route optimization</li>
+                    <li>📸 Shareable static trip maps</li>
                     <li>🎒 Smart packing list generator</li>
                     <li>📅 Context-aware "Today" view</li>
                     <li>💰 Comprehensive budget tracking</li>
@@ -10390,8 +10612,14 @@ def main():
                 <p>This is a completely rebuilt version with:</p>
                 <ul>
                     <li>Brand new modern UI with animations</li>
-                    <li>Real weather API integration</li>
+                    <li>Real weather API integration (OpenWeather + Google)</li>
                     <li>Interactive maps with all locations</li>
+                    <li><strong>NEW: Google Places API</strong> - Discover restaurants & attractions</li>
+                    <li><strong>NEW: Air Quality & Pollen API</strong> - Health & safety advisories</li>
+                    <li><strong>NEW: Street View Static API</strong> - Preview locations before you go</li>
+                    <li><strong>NEW: Directions & Routes API</strong> - Turn-by-turn navigation</li>
+                    <li><strong>NEW: Geocoding API</strong> - Auto-locate custom activities</li>
+                    <li><strong>NEW: Static Maps API</strong> - Shareable trip map images</li>
                     <li>Smart packing list based on activities</li>
                     <li>Enhanced mobile experience</li>
                     <li>Better data organization</li>
@@ -10399,10 +10627,29 @@ def main():
                 </ul>
             </div>
         </div>
+
+        <div class="ultimate-card" style="margin-top: 1.5rem;">
+            <div class="card-header">🌐 Powered By</div>
+            <div class="card-body">
+                <p><strong>Google Maps Platform APIs:</strong></p>
+                <ul>
+                    <li>Places API (New) - Restaurant discovery</li>
+                    <li>Air Quality API - Real-time AQI & pollutants</li>
+                    <li>Pollen API - Allergen forecasts</li>
+                    <li>Directions API - Turn-by-turn navigation</li>
+                    <li>Routes API - Multi-stop optimization</li>
+                    <li>Geocoding API - Address validation</li>
+                    <li>Street View Static API - Location previews</li>
+                    <li>Static Maps API - Shareable map images</li>
+                </ul>
+                <p style="margin-top: 1rem;"><strong>Other APIs:</strong> OpenWeather, NOAA Tides, AviationStack</p>
+                <p style="margin-top: 1rem;"><strong>Framework:</strong> Streamlit, Folium, Plotly</p>
+            </div>
+        </div>
         """, unsafe_allow_html=True)
-        
+
         st.markdown("---")
-        st.caption("**Built with:** Streamlit, Folium, Plotly, OpenWeather API")
+        st.caption("**Built with:** Streamlit • Google Maps Platform • OpenWeather • NOAA • AviationStack")
         st.caption("**Enhanced by:** Claude Code")
         st.caption("**Version:** 2.0 Ultimate Edition")
     
