@@ -5715,61 +5715,148 @@ def render_full_schedule(df, activities_data, show_sensitive):
                         """, unsafe_allow_html=True)
 
                 else:
-                    # Regular activity card
-                    # Escape ALL dynamic content to prevent HTML breaking
+                    # NEW: Regular activity card - COLLAPSIBLE!
                     import html
                     safe_activity_name = html.escape(activity['activity'])
                     safe_status = html.escape(activity['status'])
                     safe_time_display = html.escape(time_display)
-                    safe_duration = html.escape(activity.get('duration', '')) if activity.get('duration') else ''
-                    safe_location = html.escape(activity['location']['name'])
-                    safe_phone = html.escape(mask_info(activity['location'].get('phone', 'N/A'), show_sensitive))
-                    safe_cost = html.escape("$" + str(activity['cost']) if show_sensitive else "$***")
-                    safe_notes = html.escape(mask_info(activity.get('notes', ''), show_sensitive))
-                    safe_notes = safe_notes.replace('\n', '<br>')
+                    safe_cost = "$" + str(activity['cost']) if show_sensitive else "$***"
 
-                    # Build HTML with minimal indentation to avoid Streamlit rendering issues
-                    activity_html = f"""<div class="timeline-item {status_class}" style="margin: 1rem 0;">
-<div class="ultimate-card">
-<div class="card-body">
-<div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-<h4 style="margin: 0;">{safe_activity_name} {custom_badge}</h4>
-<span class="status-{status_class}">{safe_status}</span>
-</div>
-<p style="margin: 0.5rem 0;"><b>🕐 {safe_time_display}</b> {f'({safe_duration})' if activity.get('duration') else ''}</p>
-<p style="margin: 0.5rem 0;">📍 {safe_location}</p>
-<p style="margin: 0.5rem 0;">📞 {safe_phone}</p>
-<p style="margin: 0.5rem 0;">💰 {safe_cost}</p>
-<p style="margin: 0.5rem 0; font-style: italic;">{safe_notes}</p>
-{john_status_badge}
-</div>
-</div>
-</div>"""
-                    st.markdown(activity_html, unsafe_allow_html=True)
+                    # Activity type label
+                    activity_type_label = activity.get('activity_type_label', '')
 
-                # Display additional details (dress code, what to bring, tips) below the card
-                if activity.get('dress_code'):
-                    st.markdown(f"**👔 Dress Code:** {activity['dress_code']}")
-
-                if activity.get('what_to_bring'):
-                    st.markdown("**🎒 What to Bring:**")
-                    items = activity['what_to_bring']
-                    if isinstance(items, list):
-                        for item in items:
-                            st.markdown(f"- {item}")
+                    # Status emoji for expander title
+                    if activity['status'] == 'URGENT':
+                        status_emoji = "🚨"
+                    elif activity['status'] in ['confirmed', 'Confirmed']:
+                        status_emoji = "✅"
                     else:
-                        st.markdown(f"- {items}")
+                        status_emoji = "⏳"
 
-                if activity.get('tips'):
-                    tips = activity['tips']
-                    if isinstance(tips, list):
-                        st.markdown("**💡 Tips:**")
-                        for tip in tips:
-                            st.markdown(f"- {tip}")
-                    elif isinstance(tips, str):
-                        st.info(f"💡 **Tip:** {tips}")
+                    # Determine if expanded by default (only urgent items)
+                    expanded = activity['status'] == 'URGENT'
 
-        else:
+                    # Create expander title
+                    expander_title = f"{status_emoji} {safe_time_display} - {safe_activity_name}"
+                    if activity.get('is_custom'):
+                        expander_title += " ➕"
+
+                    with st.expander(expander_title, expanded=expanded):
+                        # Activity type badge
+                        if activity_type_label:
+                            if 'free time' in activity_type_label.lower():
+                                st.info(f"**{activity_type_label}**")
+                            else:
+                                st.markdown(f"**Type:** {activity_type_label}")
+
+                        # Status
+                        if activity['status'] == 'URGENT':
+                            st.error(f"**Status:** {safe_status} - BOOK ASAP!")
+                        else:
+                            st.markdown(f"**Status:** {safe_status}")
+
+                        # Core details
+                        if activity.get('duration'):
+                            st.markdown(f"**Duration:** {activity.get('duration')}")
+
+                        st.markdown(f"**Location:** {activity['location']['name']}")
+
+                        if show_sensitive and activity['location'].get('phone') and activity['location'].get('phone') != 'N/A':
+                            phone = activity['location'].get('phone')
+                            st.markdown(f"**Phone:** {phone}")
+
+                        st.markdown(f"**Cost:** {safe_cost}")
+
+                        # Notes
+                        if activity.get('notes'):
+                            notes = mask_info(activity.get('notes', ''), show_sensitive)
+                            st.info(notes)
+
+                        # Dress code
+                        if activity.get('dress_code'):
+                            st.markdown(f"**👔 Dress Code:** {activity['dress_code']}")
+
+                        # What to bring
+                        if activity.get('what_to_bring'):
+                            st.markdown("**🎒 What to Bring:**")
+                            items = activity['what_to_bring']
+                            if isinstance(items, list):
+                                for item in items:
+                                    st.markdown(f"- {item}")
+                            else:
+                                st.markdown(f"- {items}")
+
+                        # Tips
+                        if activity.get('tips'):
+                            tips = activity['tips']
+                            if isinstance(tips, list):
+                                st.markdown("**💡 Tips:**")
+                                for tip in tips:
+                                    st.markdown(f"- {tip}")
+                            elif isinstance(tips, str):
+                                st.markdown(f"**💡 Tip:** {tips}")
+
+                        # Booking link
+                        if activity.get('booking_url') and activity.get('booking_url') != 'N/A' and activity.get('booking_url').startswith('http'):
+                            st.markdown(f"[📞 Book Now]({activity.get('booking_url')})")
+
+        # NEW: Show Michael's free time options when John has solo activities
+        michael_free_time_activities = [a for a in non_meal_activities if a.get('activity_type') == 'john_solo']
+        if michael_free_time_activities:
+            st.markdown("---")
+            st.markdown("### 🏖️ YOUR FREE TIME OPTIONS")
+            st.info("💡 While John is getting his treatments, here are your options:")
+
+            # Get activity proposals for this day's afternoon (Michael's free time)
+            date_str = date.strftime('%Y-%m-%d')
+            if date_str == '2025-11-09':  # Sunday - spa day
+                # Show options for sun_afternoon slot
+                from datetime import datetime as dt
+                import json
+                try:
+                    with open('data/trip_data.json', 'r') as f:
+                        trip_data = json.load(f)
+
+                    sun_afternoon = trip_data.get('activity_proposals', {}).get('sun_afternoon', {})
+                    if sun_afternoon and sun_afternoon.get('activity_options'):
+                        st.markdown("**During John's Spa Treatments (12:00-3:30 PM):**")
+
+                        col1, col2 = st.columns(2)
+
+                        with col1:
+                            st.success("**Option 1: Relax & Enjoy Hotel**")
+                            st.markdown("- ☀️ Saltwater pool (FREE)")
+                            st.markdown("- 🧖 Steam rooms & saunas (FREE)")
+                            st.markdown("- 🏖️ Private beach (FREE)")
+                            st.markdown("- 🔥 Hot tubs with ocean views (FREE)")
+                            st.markdown("- 📖 Read, relax, recharge")
+
+                        with col2:
+                            st.success("**Option 2: Book Your Own Spa Treatments**")
+                            st.markdown("- 💆 Your own facial ($185-245)")
+                            st.markdown("- 💅 Your own mani-pedi ($180-260)")
+                            st.markdown("- 🧘 Other spa services available")
+                            st.markdown("- 📞 Call 904-277-1087 to book")
+
+                        # Show activity options from the proposal
+                        if len(sun_afternoon.get('activity_options', [])) > 0:
+                            st.markdown("**Other Activity Options:**")
+                            for idx, option in enumerate(sun_afternoon['activity_options'][:3]):
+                                with st.expander(f"Option {idx+3}: {option.get('name', 'Activity')}", expanded=False):
+                                    if option.get('description'):
+                                        st.markdown(f"**Description:** {option['description']}")
+                                    if option.get('cost_range'):
+                                        st.markdown(f"**Cost:** {option['cost_range']}")
+                                    if option.get('duration'):
+                                        st.markdown(f"**Duration:** {option['duration']}")
+                                    if option.get('phone') and option['phone'] != 'N/A':
+                                        st.markdown(f"**Phone:** {option['phone']}")
+                                    if option.get('tips'):
+                                        st.info(f"💡 {option['tips']}")
+                except:
+                    pass
+
+        elif not non_meal_activities and not meals:
             st.info("No scheduled activities - free day!")
 
         st.markdown("---")
