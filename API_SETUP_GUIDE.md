@@ -38,19 +38,60 @@ Get actual weather forecasts for Amelia Island during your trip.
 
 ---
 
-## 3️⃣ Google Maps API (OPTIONAL - for live traffic)
+## 3️⃣ Google Maps Platform APIs (RECOMMENDED - for enhanced features)
 
 ### Why?
-Get real-time traffic updates and drive times.
+Get real-time traffic, air quality monitoring, pollen forecasts, place search, directions, and more!
 
 ### Steps:
-1. Go to https://console.cloud.google.com/
-2. Create a new project: "40th-birthday-trip"
-3. Enable "Distance Matrix API"
-4. Go to "Credentials" → "Create Credentials" → "API Key"
-5. Copy your API key
 
-**Cost:** FREE ($200/month credit - more than enough!)
+1. **Go to Google Cloud Console**
+   - Visit https://console.cloud.google.com/
+
+2. **Create a New Project**
+   - Click "Select a project" → "New Project"
+   - Name: "40th-birthday-trip"
+   - Click "Create"
+
+3. **Enable Required APIs**
+   - Go to "APIs & Services" → "Library"
+   - Search for and enable each of these APIs:
+     - ✅ **Air Quality API** (for air quality monitoring)
+     - ✅ **Pollen API** (for pollen forecasts)
+     - ✅ **Distance Matrix API** (for travel times and traffic)
+     - ✅ **Geocoding API** (for address validation)
+     - ✅ **Places API (New)** (for restaurant/activity search)
+     - ✅ **Directions API** (for route planning)
+     - ✅ **Maps Static API** (for shareable map images)
+     - ✅ **Street View Static API** (for location previews)
+
+4. **Create API Key**
+   - Go to "Credentials" → "Create Credentials" → "API Key"
+   - Copy your API key
+   - (Optional) Click "Restrict Key" to limit usage:
+     - Application restrictions: None (or IP addresses if you know them)
+     - API restrictions: Select only the APIs listed above
+
+5. **Important Notes**
+   - ⚠️ **All APIs use the SAME API key** - you only need one key!
+   - 🔒 **Secure your key**: Never commit it to GitHub
+   - 💰 **Billing**: You must enable billing, but you get $200/month free credit
+   - 📊 **Usage**: This trip will use far less than the free tier
+
+**Cost:** FREE ($200/month credit - your trip will use ~$5-10 max!)
+
+### What Each API Does:
+
+| API | Feature | Where Used |
+|-----|---------|-----------|
+| Air Quality API | Real-time air quality index (AQI) and pollutant levels | Dashboard, Today page |
+| Pollen API | 5-day pollen forecast (tree, grass, weed) | Dashboard, Weather page |
+| Distance Matrix API | Drive times with live traffic | Travel Intelligence |
+| Geocoding API | Validate addresses and convert to coordinates | Location management |
+| Places API | Find restaurants, activities, nearby attractions | Activity planning |
+| Directions API | Turn-by-turn directions between locations | Route planning |
+| Maps Static API | Generate shareable map images | Trip maps |
+| Street View Static API | Preview images of locations | Location details |
 
 ---
 
@@ -71,42 +112,56 @@ Track your flights in real-time with gate info.
 
 ## 📝 Configure Your App
 
-Once you have your API keys, create a file called `secrets.toml` in the `.streamlit` folder:
+Once you have your API keys, you need to add them to your app configuration.
 
-### Option A: For Streamlit Cloud (when deployed)
+### Option A: For Local Testing
+
+1. **Copy the template file**
+   ```bash
+   cp .streamlit/secrets.toml.example .streamlit/secrets.toml
+   ```
+
+2. **Edit `.streamlit/secrets.toml`** with your actual API keys
+   ```bash
+   nano .streamlit/secrets.toml
+   # or use your preferred text editor
+   ```
+
+3. **Fill in your keys** (remove the "your_" placeholders):
+   ```toml
+   # GitHub Token (for data persistence)
+   GITHUB_TOKEN = "ghp_your_actual_token_here"
+
+   # GitHub Repository
+   GITHUB_REPO = "WanderingWithPride/40thBdayAppRebuild"
+
+   # Password hash (current password is "28008985")
+   TRIP_PASSWORD_HASH = "a5be948874610641149611913c4924e5"
+
+   # Weather API (RECOMMENDED)
+   OPENWEATHER_API_KEY = "your_actual_openweather_key"
+
+   # Google Maps Platform API (RECOMMENDED - all features use this ONE key)
+   GOOGLE_MAPS_API_KEY = "your_actual_google_maps_key"
+
+   # Flight API (OPTIONAL)
+   AVIATIONSTACK_API_KEY = "your_actual_aviationstack_key"
+   ```
+
+4. **Save and close** the file
+
+5. **Verify the file is ignored by git**
+   ```bash
+   # This should already be in .gitignore, but double-check:
+   echo ".streamlit/secrets.toml" >> .gitignore
+   ```
+
+### Option B: For Streamlit Cloud (when deployed)
 
 In your Streamlit Cloud dashboard:
 1. Go to your app settings
 2. Click "Secrets"
-3. Add:
-
-```toml
-# GitHub Token (for data persistence)
-GITHUB_TOKEN = "your_github_token_here"
-
-# Password hash (current password is "28008985")
-TRIP_PASSWORD_HASH = "a5be948874610641149611913c4924e5"
-
-# Weather API (RECOMMENDED)
-OPENWEATHER_API_KEY = "your_openweather_key_here"
-
-# Traffic API (OPTIONAL)
-GOOGLE_MAPS_API_KEY = "your_google_maps_key_here"
-
-# Flight API (OPTIONAL)
-AVIATIONSTACK_API_KEY = "your_aviationstack_key_here"
-```
-
-### Option B: For Local Testing
-
-Create `.streamlit/secrets.toml`:
-
-```bash
-# Create the file
-touch .streamlit/secrets.toml
-```
-
-Then add the same content as above.
+3. Paste the entire contents of your local `secrets.toml` file
 
 ---
 
@@ -121,9 +176,28 @@ streamlit run app.py
 ### What to Check:
 
 ✅ **Weather Page**: Should show real Amelia Island forecast (not sample data)
-✅ **Dashboard**: Weather widget should say "OpenWeather" instead of "Sample Data"
+✅ **Dashboard**:
+   - Weather widget should say "OpenWeather" instead of "Sample Data"
+   - Air Quality widget should show actual AQI value (not "data unavailable")
+   - Pollen widget should show Tree/Grass/Weed levels (not "data unavailable")
 ✅ **Meals/Activities**: Votes should persist after page refresh
 ✅ **Travel Intelligence**: Should show "Connected to AviationStack" if configured
+✅ **Maps**: Should show interactive maps with location markers
+
+### Quick API Test
+
+You can also run the test script to verify all APIs:
+
+```bash
+python test_apis_live.py
+```
+
+This will check:
+- ✅ OpenWeather API connection
+- ✅ Google Maps APIs (all 8 APIs)
+- ✅ Air Quality API
+- ✅ Pollen API
+- ✅ GitHub connection
 
 ---
 
