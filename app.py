@@ -4545,7 +4545,24 @@ def render_ultimate_header():
 def render_dashboard_ultimate(df, activities_data, weather_data, show_sensitive):
     """Ultimate dashboard with all features"""
     st.markdown('<h2 class="fade-in">🏠 Trip Dashboard</h2>', unsafe_allow_html=True)
-    
+
+    # Show validation report if requested
+    if st.session_state.get('show_validation_report', False):
+        from utils.data_validator import validate_trip_data, generate_validation_report
+
+        data = get_trip_data()
+        is_valid, errors, warnings = validate_trip_data(activities_data, data)
+        report = generate_validation_report(is_valid, errors, warnings)
+
+        with st.expander("🔍 Data Validation Report", expanded=True):
+            st.code(report, language="text")
+
+            if st.button("✓ Close Report"):
+                st.session_state['show_validation_report'] = False
+                st.rerun()
+
+        st.markdown("---")
+
     # Key metrics row
     col1, col2, col3, col4 = st.columns(4)
     
@@ -9944,14 +9961,14 @@ def main():
         )
 
         st.markdown("---")
-        
+
         # Quick stats
         urgent_count = len(df[df['status'] == 'URGENT'])
         if urgent_count > 0:
             st.error(f"⚠️ {urgent_count} urgent booking(s)")
         else:
             st.success("✅ All bookings set!")
-        
+
         # Use .date() for consistent day counting across all countdowns
         days_until = (TRIP_CONFIG['start_date'].date() - datetime.now().date()).days
         if days_until > 0:
@@ -9960,7 +9977,23 @@ def main():
             st.success("🎉 Trip starts TODAY!")
         else:
             st.success("🏖️ On your trip!")
-        
+
+        # Data validation status
+        from utils.data_validator import validate_trip_data
+        data = get_trip_data()
+        is_valid, errors, warnings = validate_trip_data(activities_data, data)
+
+        if errors:
+            st.error(f"🔍 {len(errors)} data error(s)")
+            if st.button("View Details", key="validation_errors", use_container_width=True):
+                st.session_state['show_validation_report'] = True
+        elif warnings:
+            st.warning(f"🔍 {len(warnings)} data warning(s)")
+            if st.button("View Details", key="validation_warnings", use_container_width=True):
+                st.session_state['show_validation_report'] = True
+        else:
+            st.success("✅ Data validated!")
+
         st.markdown("---")
 
         # Notifications
