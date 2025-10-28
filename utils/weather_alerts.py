@@ -172,26 +172,28 @@ def _is_extended_outdoor(activity):
         bool: True if extended outdoor activity
     """
 
-    duration_str = activity.get('duration', '1 hour').lower()
-
-    # Parse duration
-    try:
-        if 'hour' in duration_str:
-            hours = float(duration_str.split('hour')[0].strip().split()[-1])
-            return hours >= 2
-        elif 'h' in duration_str:
-            hours = float(duration_str.split('h')[0].strip())
-            return hours >= 2
-    except:
-        pass
-
-    # Assume extended for certain activities
-    extended_activities = ['boat tour', 'beach', 'all day', 'full day', 'photography']
+    # First check activity name for keywords that indicate extended outdoor time
+    extended_activities = ['boat tour', 'beach', 'all day', 'full day', 'photography', 'entire day']
     activity_name = activity.get('activity', '').lower()
 
     for extended in extended_activities:
         if extended in activity_name:
             return True
+
+    # Then check duration if explicitly provided
+    duration_str = activity.get('duration', '').lower()
+
+    if duration_str:
+        # Parse duration
+        try:
+            if 'hour' in duration_str:
+                hours = float(duration_str.split('hour')[0].strip().split()[-1])
+                return hours >= 2
+            elif 'h' in duration_str:
+                hours = float(duration_str.split('h')[0].strip())
+                return hours >= 2
+        except:
+            pass
 
     return False
 
