@@ -5218,7 +5218,7 @@ def render_full_schedule(df, activities_data, show_sensitive):
 
     # Export options
     st.markdown("---")
-    export_col1, export_col2 = st.columns(2)
+    export_col1, export_col2, export_col3 = st.columns(3)
 
     with export_col1:
         # CSV Export
@@ -5279,6 +5279,36 @@ def render_full_schedule(df, activities_data, show_sensitive):
             mime="text/plain",
             use_container_width=True
         )
+
+    with export_col3:
+        # Calendar Export (iCal format) - import into Google Calendar, Apple Calendar, Outlook
+        from utils.exports import export_to_ical
+        from github_storage import get_trip_data
+
+        if st.button("📅 Generate Calendar File", use_container_width=True, help="Creates .ics file you can import into Google Calendar, Apple Calendar, or Outlook"):
+            try:
+                data = get_trip_data()
+                meal_proposals = data.get('meal_proposals', {})
+
+                # Generate calendar file
+                ical_filename = export_to_ical(activities_data, meal_proposals)
+
+                # Read the file and offer download
+                with open(ical_filename, 'rb') as f:
+                    ical_data = f.read()
+
+                st.download_button(
+                    label="⬇️ Download Calendar (.ics)",
+                    data=ical_data,
+                    file_name="birthday_trip.ics",
+                    mime="text/calendar",
+                    use_container_width=True
+                )
+
+                st.success("✅ Calendar file ready! Import into your calendar app for offline access + reminders.")
+
+            except Exception as e:
+                st.error(f"Error generating calendar: {e}")
 
     # Show conflicts and meal gaps
     if conflicts or meal_gaps:
