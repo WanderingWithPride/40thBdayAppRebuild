@@ -2,7 +2,7 @@
 ## November 9, 2025 - John's 40th Birthday
 
 **FREE Ritz-Carlton Photography Concierge Service**
-**Both Michael & John - Couples Photos**
+**Michael & John - Friends/Besties - Individual Shots for Dating Profiles**
 
 ---
 
@@ -136,31 +136,52 @@
 
 ## 📸 PHOTO IDEAS & POSES
 
-### Formal/Professional (First 15 min):
-- Standing together, resort backdrop
-- Holding each other, looking at camera
-- Individual shots of birthday boy
-- Serious, professional dating profile shots
+### Individual Headshots/Portraits (First 20 min) - FOR DATING PROFILES:
+**Michael's shots (10 min):**
+- Professional headshot, resort backdrop
+- Smiling at camera (friendly, approachable)
+- Serious/confident look
+- Casual laugh (natural)
+- Full body shot (standing, relaxed pose)
 
-### Casual/Romantic (Middle 20 min):
-- Walking on beach
-- Laughing together
-- Looking at each other (not camera)
-- Natural, candid moments
-- Hands in pockets (relaxed pose)
+**John's shots (10 min):**
+- Same variety as Michael
+- Birthday boy glow!
+- Professional + casual options
+- Multiple angles/expressions
 
-### Sunset Shots (Around 5:33 PM):
-- Silhouettes against sunset
-- Kissing silhouette (classic!)
-- Walking away from camera toward sunset
-- Side-by-side watching sunset
+### Individual Beach Shots (Next 15 min) - VARIETY FOR APPS:
+**Each person separately:**
+- Walking on beach (candid)
+- Looking out at ocean (contemplative)
+- Sitting on beach (relaxed)
+- Laughing naturally
+- Hands in pockets (casual confident)
+- Different outfits if time (jacket on/off)
 
-### Fun/Candid (Final 15 min):
-- Jumping on beach
+### Friend Shots Together (10 min) - BIRTHDAY MEMORIES:
+- Standing together, arms around shoulders (buddies!)
+- Laughing at something funny
+- Walking on beach side-by-side
+- Casual hanging out vibe
+- Birthday celebration energy
+
+### Sunset Shots (Around 5:33 PM - 10 min):
+**Individual silhouettes:**
+- Each person silhouetted against sunset
+- Walking toward sunset
+- Standing watching sunset
+
+**Friend shot:**
+- Two buddies watching sunset together
+- Sunset backdrop (no silhouette)
+
+### Fun/Candid (Final 5 min):
+- Jumping on beach (separately + together)
 - Playing in waves
-- Laughing, being silly
+- Being silly
 - Birthday celebration vibe
-- Blue hour romantic shots
+- Blue hour individual shots
 
 ---
 
@@ -170,13 +191,14 @@
 **Or:** Ritz poolside app: ritzcarltonameliaisland.ipoolside.com
 
 ### What to Say:
-> "Hi! We'd like to book the complimentary Photography Concierge service for November 9th at 5:00 PM for a 60-minute session. It's John's 40th birthday and we want golden hour couples photos on the beach and resort grounds. We'll be two people, dressed for dinner, and would love to capture the sunset around 5:33 PM."
+> "Hi! We'd like to book the complimentary Photography Concierge service for November 9th at 5:00 PM for a 60-minute session. It's my friend's 40th birthday and we want golden hour photos on the beach and resort grounds. We'll be two people, dressed for dinner, and need mostly individual shots for our dating profiles, plus a few friend photos together. We'd love to capture the sunset around 5:33 PM."
 
 ### They'll Ask:
 - **Date:** November 9, 2025
 - **Time:** 5:00 PM
 - **Duration:** 60 minutes (30-60 min sessions available - request the full hour!)
-- **Number of people:** 2 people (couples session)
+- **Number of people:** 2 people (friends session)
+- **Type of shots:** MOSTLY individual portraits/headshots for dating profiles + some friend shots together
 - **Occasion:** 40th birthday celebration
 - **Preferred location:** Beach + resort grounds combo
 - **Room number:** (Give them your room #)
@@ -240,22 +262,23 @@
 
 ## 📱 USES FOR THESE PHOTOS
 
-### Dating Profiles (You Mentioned!):
-- Professional quality headshots
-- Couples shots showing you together
-- Variety of outfits/settings in one shoot
-- Golden hour = most flattering light
+### Dating Profiles (PRIMARY USE!):
+- **Individual professional headshots** for each person
+- **Multiple poses/expressions** - serious, smiling, candid
+- **Variety of settings** - beach, resort, different backgrounds
+- **Golden hour = most flattering light** (hides flaws, adds glow!)
+- **Full body + headshot options** for different apps
 
 ### Other Uses:
-- Social media (Instagram, Facebook)
-- Holiday cards
-- Birthday announcements
-- Framed prints for home
-- Profile pictures everywhere
-- Memories of 40th birthday!
+- Social media (Instagram, Facebook) - individual posts
+- Professional LinkedIn headshots
+- Profile pictures for everything
+- Birthday announcement (friend celebration!)
+- Framed prints for your own homes
+- Memories of 40th birthday trip!
 - Show friends/family
 
-**Value:** Professional 60-min couples photo session at resort = $300-500
+**Value:** Professional 60-min photo session with 2 people at resort = $300-500
 **Your Cost:** FREE ✨
 
 ---
@@ -269,16 +292,21 @@
 - **Timeline:** Usually 5-7 days after session
 
 ### Photo Variety:
-- Formal portraits
-- Casual candids
-- Sunset silhouettes
-- Individual shots
-- Couples shots
+- **Individual headshots** (each person - multiple expressions)
+- **Individual full-body shots** (each person - beach + resort)
+- **Casual candids** (individual + some together)
+- **Sunset silhouettes** (individual + one friend shot)
+- **Friend photos together** (birthday memories!)
 - Landscape + portrait orientation
 - Close-ups + full-body
-- Serious + fun
+- Serious + smiling + candid
 
-**Enough variety for ALL your dating profiles and social media for the next year!**
+**Split roughly:**
+- 40% Michael's individual shots (~12-15 photos)
+- 40% John's individual shots (~12-15 photos)
+- 20% Friend shots together (~6-10 photos)
+
+**Enough variety for BOTH your dating profiles for the next year!**
 
 ---
 
