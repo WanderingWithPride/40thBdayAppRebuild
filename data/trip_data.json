@@ -667,7 +667,8 @@
   "john_preferences": {
     "avoid_seafood_focused": "false",
     "avoid_mexican": "false",
-    "activity_opt_in_spa002": "not_interested"
+    "activity_opt_in_spa002": "not_interested",
+    "activity_opt_in_spa003": "not_interested"
   },
   "alcohol_requests": [
     {
@@ -686,5 +687,5 @@
   "completed_activities": [],
   "notifications": [],
   "tsa_updates": [],
-  "last_updated": "2025-10-28T18:16:37.724018"
+  "last_updated": "2025-10-28T18:17:00.503234"
 }
