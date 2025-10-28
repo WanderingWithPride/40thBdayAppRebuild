@@ -34,13 +34,13 @@
           "rating": "4.5/5"
         }
       ],
-      "status": "proposed",
-      "john_vote": null,
+      "status": "voted",
+      "john_vote": "0",
       "final_choice": null,
       "meal_time": null,
       "submitted_by": "Michael",
       "created_at": "2025-10-27T18:03:17.259841",
-      "updated_at": "2025-10-27T18:03:17.259854"
+      "updated_at": "2025-10-28T16:06:28.681007"
     },
     "sat_lunch": {
       "meal_id": "sat_lunch",
@@ -675,5 +675,5 @@
   "completed_activities": [],
   "notifications": [],
   "tsa_updates": [],
-  "last_updated": "2025-10-28T16:03:38.010985"
+  "last_updated": "2025-10-28T16:06:28.681033"
 }
