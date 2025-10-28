@@ -4739,45 +4739,207 @@ def render_today_view(df, activities_data, weather_data, show_sensitive):
         """, unsafe_allow_html=True)
 
 def render_map_page(activities_data):
-    """Interactive map page"""
+    """Interactive map page with day-by-day filtering and activity type overlays"""
     st.markdown('<h2 class="fade-in">🗺️ Trip Map & Locations</h2>', unsafe_allow_html=True)
-    
+
     st.markdown("""
     <div class="info-box" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
         <h4 style="margin: 0 0 0.5rem 0;">📍 Interactive Map</h4>
-        <p style="margin: 0;">Explore all your trip locations! Click markers for details and distances from your hotel.</p>
+        <p style="margin: 0;">Explore your trip locations with day-by-day filtering and activity type overlays!</p>
     </div>
     """, unsafe_allow_html=True)
-    
-    # Create and display map
-    trip_map = create_ultimate_map(activities_data)
+
+    # Day-by-day filter
+    st.markdown("### 📅 Filter by Day")
+    day_options = ["All Days", "Friday, Nov 7", "Saturday, Nov 8", "Sunday, Nov 9 (Birthday!)", "Monday, Nov 10", "Tuesday, Nov 11", "Wednesday, Nov 12"]
+    day_map = {
+        "All Days": None,
+        "Friday, Nov 7": "2025-11-07",
+        "Saturday, Nov 8": "2025-11-08",
+        "Sunday, Nov 9 (Birthday!)": "2025-11-09",
+        "Monday, Nov 10": "2025-11-10",
+        "Tuesday, Nov 11": "2025-11-11",
+        "Wednesday, Nov 12": "2025-11-12"
+    }
+
+    selected_day = st.selectbox("Select a day to view:", day_options, index=0)
+    selected_date = day_map[selected_day]
+
+    # Activity type overlays
+    st.markdown("### 🎯 Activity Type Overlays")
+    st.markdown("*Toggle which types of activities to show on the map:*")
+
+    col1, col2, col3, col4, col5, col6 = st.columns(6)
+    with col1:
+        show_hotel = st.checkbox("🏨 Hotel", value=True, key="show_hotel")
+    with col2:
+        show_dining = st.checkbox("🍽️ Dining", value=True, key="show_dining")
+    with col3:
+        show_activities = st.checkbox("🎯 Activities", value=True, key="show_activities")
+    with col4:
+        show_spa = st.checkbox("💆 Spa", value=True, key="show_spa")
+    with col5:
+        show_beach = st.checkbox("🏖️ Beach", value=True, key="show_beach")
+    with col6:
+        show_transport = st.checkbox("✈️ Transport", value=True, key="show_transport")
+
+    # Filter activities based on selections
+    filtered_activities = []
+    for activity in activities_data:
+        # Filter by day
+        if selected_date and activity['date'] != selected_date:
+            continue
+
+        # Filter by type
+        activity_type = activity['type']
+        if activity_type == 'dining' and not show_dining:
+            continue
+        if activity_type == 'activity' and not show_activities:
+            continue
+        if activity_type == 'spa' and not show_spa:
+            continue
+        if activity_type == 'beach' and not show_beach:
+            continue
+        if activity_type == 'transport' and not show_transport:
+            continue
+
+        filtered_activities.append(activity)
+
+    # Summary stats
+    st.markdown("---")
+    col_stat1, col_stat2, col_stat3, col_stat4 = st.columns(4)
+    with col_stat1:
+        st.metric("📍 Locations Shown", len(filtered_activities))
+    with col_stat2:
+        dining_count = len([a for a in filtered_activities if a['type'] == 'dining'])
+        st.metric("🍽️ Dining", dining_count)
+    with col_stat3:
+        activity_count = len([a for a in filtered_activities if a['type'] == 'activity' or a['type'] == 'beach'])
+        st.metric("🎯 Activities", activity_count)
+    with col_stat4:
+        spa_count = len([a for a in filtered_activities if a['type'] == 'spa'])
+        st.metric("💆 Spa", spa_count)
+
+    # Create map with filtered activities
+    if show_hotel:
+        trip_map = create_ultimate_map(filtered_activities)
+    else:
+        # If hotel checkbox is unchecked, create map without hotel marker
+        # Center on first activity or default location
+        if filtered_activities:
+            center = [filtered_activities[0]['location']['lat'], filtered_activities[0]['location']['lon']]
+        else:
+            center = [TRIP_CONFIG['hotel']['lat'], TRIP_CONFIG['hotel']['lon']]
+
+        import folium
+        trip_map = folium.Map(location=center, zoom_start=12, tiles='OpenStreetMap')
+
+        # Add activity markers
+        type_colors = {'transport': 'blue', 'activity': 'green', 'spa': 'purple', 'dining': 'orange', 'beach': 'lightblue'}
+        type_icons = {'transport': 'plane', 'activity': 'ship', 'spa': 'heart', 'dining': 'cutlery', 'beach': 'umbrella'}
+
+        for activity in filtered_activities:
+            loc = activity['location']
+            import html
+            safe_activity = html.escape(activity['activity'])
+            safe_date = html.escape(activity['date'])
+            safe_time = html.escape(activity['time'])
+            safe_loc_name = html.escape(loc['name'])
+
+            folium.Marker(
+                location=[loc['lat'], loc['lon']],
+                popup=folium.Popup(f"<div style='min-width: 250px'><h3>{safe_activity}</h3><p>{safe_date} at {safe_time}</p><p>{safe_loc_name}</p></div>", max_width=300),
+                tooltip=f"{safe_activity} - {safe_date}",
+                icon=folium.Icon(color=type_colors.get(activity['type'], 'gray'), icon=type_icons.get(activity['type'], 'info-sign'), prefix='fa')
+            ).add_to(trip_map)
+
     st_folium(trip_map, width=None, height=600)
-    
+
+    # Activity list showing what's confirmed/agreed upon
+    st.markdown("---")
+    st.markdown("### 📋 Your Activity List")
+
+    if filtered_activities:
+        # Group by date
+        from collections import defaultdict
+        by_date = defaultdict(list)
+        for activity in filtered_activities:
+            by_date[activity['date']].append(activity)
+
+        for date in sorted(by_date.keys()):
+            date_obj = pd.to_datetime(date)
+            day_activities = sorted(by_date[date], key=lambda x: x['time'])
+
+            with st.expander(f"**{date_obj.strftime('%A, %B %d')}** ({len(day_activities)} activities)", expanded=(date == selected_date)):
+                for activity in day_activities:
+                    # Determine status badge
+                    status = activity.get('status', 'Confirmed')
+                    if status == 'Confirmed':
+                        badge_color = "#4caf50"
+                        badge_text = "✅ Confirmed"
+                    elif status == 'URGENT':
+                        badge_color = "#f44336"
+                        badge_text = "🚨 Urgent"
+                    else:
+                        badge_color = "#ff9800"
+                        badge_text = "📅 Planned"
+
+                    # Determine if John is included
+                    john_note = ""
+                    if activity.get('id') == 'din001':
+                        john_note = " • 🎉 John's attending (Michael's treat!)"
+                    elif activity['type'] == 'dining' and activity['date'] >= '2025-11-08':
+                        john_note = " • 👥 Going Dutch"
+
+                    st.markdown(f"""
+                    <div class="ultimate-card" style="border-left: 4px solid {badge_color};">
+                        <div class="card-body">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div style="flex: 1;">
+                                    <h4 style="margin: 0 0 0.5rem 0;">{activity['activity']}</h4>
+                                    <p style="margin: 0.25rem 0;"><strong>⏰</strong> {activity['time']} {f"• {activity.get('duration', '')}" if activity.get('duration') else ""}</p>
+                                    <p style="margin: 0.25rem 0;"><strong>📍</strong> {activity['location']['name']}</p>
+                                    <p style="margin: 0.25rem 0; font-style: italic; font-size: 0.9rem;">{activity['notes']}{john_note}</p>
+                                </div>
+                                <div style="margin-left: 1rem;">
+                                    <span style="background: {badge_color}; color: white; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem; white-space: nowrap;">{badge_text}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+    else:
+        st.info("No activities match your filters. Try selecting different options above.")
+
     # Distance matrix
+    st.markdown("---")
     st.markdown("### 🚗 Travel Times from Hotel")
-    
+
     cols = st.columns(3)
     unique_locations = {}
-    
-    for activity in activities_data:
+
+    for activity in filtered_activities:
         loc_name = activity['location']['name']
         if loc_name not in unique_locations and activity['type'] != 'transport':
             unique_locations[loc_name] = activity['location']
-    
-    for idx, (name, loc) in enumerate(unique_locations.items()):
-        with cols[idx % 3]:
-            distance = calculate_distance_from_hotel(loc['lat'], loc['lon'])
-            travel_time = int(distance / 0.583)  # 35 mph average
-            
-            st.markdown(f"""
-            <div class="ultimate-card fade-in">
-                <div class="card-body">
-                    <h4 style="margin: 0 0 0.5rem 0;">{name}</h4>
-                    <p style="margin: 0.25rem 0;">🚗 {distance:.1f} miles</p>
-                    <p style="margin: 0.25rem 0;">⏱️ ~{travel_time} minutes</p>
+
+    if unique_locations:
+        for idx, (name, loc) in enumerate(unique_locations.items()):
+            with cols[idx % 3]:
+                distance = calculate_distance_from_hotel(loc['lat'], loc['lon'])
+                travel_time = int(distance / 0.583)  # 35 mph average
+
+                st.markdown(f"""
+                <div class="ultimate-card fade-in">
+                    <div class="card-body">
+                        <h4 style="margin: 0 0 0.5rem 0;">{name}</h4>
+                        <p style="margin: 0.25rem 0;">🚗 {distance:.1f} miles</p>
+                        <p style="margin: 0.25rem 0;">⏱️ ~{travel_time} minutes</p>
+                    </div>
                 </div>
-            </div>
-            """, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
+    else:
+        st.info("No locations to display travel times for.")
 
 def render_packing_list():
     """Smart packing list"""
