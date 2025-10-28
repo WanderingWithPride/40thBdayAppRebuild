@@ -184,13 +184,23 @@
 
 ## ⏰ TIMING ANALYSIS
 
-### Current Schedule:
-- **9:30 AM:** Arrive (enjoy free saltwater pool, steam, relaxation lounge)
+### Complete Sunday Schedule:
+- **9:30 AM:** Arrive at spa (enjoy free saltwater pool, steam, relaxation lounge)
 - **10:00 AM:** Heaven in a Hammock Massage (80 min) → Ends 11:20 AM
 - **12:00 PM:** Facial (50 min) → Ends 12:50 PM
 - **1:30 PM:** Mani-Pedi (90 min for basic, 120 min for dragon fruit) → Ends 3:00 or 3:30 PM
-- **3:30-6:30 PM:** FREE TIME (photography, beach, relax, get ready)
+- **3:00-5:00 PM:** Get ready, shower, dress up for photos & dinner
+- **5:00-6:00 PM:** 📸 **GOLDEN HOUR PHOTOGRAPHY SESSION** (BOTH of you!)
+- **6:00-7:00 PM:** Relax, final dinner prep
 - **7:00 PM:** Birthday Dinner at David's Restaurant
+
+### 📸 Why 5:00 PM Photography is PERFECT:
+- **4.2 hours after facial** = PEAK GLOW time!
+- **Golden hour:** 4:33-5:53 PM (best light of the day!)
+- **Sunset at 5:33 PM** = photographer captures it!
+- **Both dressed up** for birthday dinner (look amazing!)
+- **60 full minutes** = 30-50 professional photos
+- **Perfect for dating profiles** + social media + memories!
 
 ### ✅ Timing works PERFECTLY with basic mani-pedi!
 ### ⚠️ If you choose Dragon Fruit mani-pedi, you finish at 3:30 PM (still okay, but tighter)
@@ -262,27 +272,39 @@
 ## 📞 ACTION ITEMS
 
 ### 1. ☎️ CALL SPA: 904-277-1087
-**VERIFY:**
+**VERIFY & BOOK:**
 - Is "Heaven in a Hammock" really $490 total ($245 per person)?
 - Or is it the standard couples massage at $410?
 - **This is $80 difference!**
+- Book all treatments for November 9
 
-### 2. DECIDE ON FACIAL:
-- [ ] Age-Defying Facial ($185) - Best value for 40
+### 2. ☎️ CALL PHOTOGRAPHY: 239-449-6125
+**BOOK GOLDEN HOUR SESSION:**
+- Date: November 9, 2025
+- Time: **5:00 PM - 6:00 PM** (request FULL 60 minutes!)
+- People: 2 (Michael & John - couples session)
+- Occasion: 40th birthday celebration
+- Location: Beach + resort grounds combo
+- **Request:** Sunset shots at 5:33 PM
+- **Ask:** How many photos? Delivery method? Timeline?
+
+### 3. DECIDE ON FACIAL:
+- [ ] Age-Defying Facial ($185) - Best value for 40 ⭐ RECOMMENDED
 - [ ] Men's Facial ($195) - Designed for men
-- [ ] HydraFacial ($245) - Maximum glow
+- [ ] HydraFacial ($245) - Maximum glow for photos
 - [ ] Custom Facial ($205) - Personalized
 
-### 3. DECIDE ON MANI-PEDI:
+### 4. DECIDE ON MANI-PEDI:
 - [ ] Basic ($180) - Clean & groomed ✅ RECOMMENDED
 - [ ] CBD Relief ($230) - Relaxation upgrade
 - [ ] Dragon Fruit ($260) - Luxury splurge
 
-### 4. FINALIZE BUDGET:
+### 5. FINALIZE BUDGET:
 - Current incorrect budget: $835
 - Minimum corrected budget: $855 (Package A)
 - Maximum with HydraFacial: $915 (Package C)
 - With Michael's facial too: $1,100-1,110
+- **Photography:** FREE! ($400-500 value!)
 
 ---
 
