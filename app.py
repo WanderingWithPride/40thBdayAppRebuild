@@ -2754,24 +2754,33 @@ def render_traffic_widget(origin, destination, label=""):
     else:
         color = '#f44336'
 
+    # Escape all user-provided strings
+    import html
+    safe_label = html.escape(label if label else 'Route Traffic')
+    safe_distance = html.escape(traffic['distance']['text'])
+    safe_duration = html.escape(traffic['duration_in_traffic']['text'])
+    safe_emoji = html.escape(traffic.get('traffic_emoji', '🚗'))
+    safe_level = html.escape(traffic['traffic_level'])
+
     # Build delay text if needed
     delay_text = ""
     if traffic.get('delay_minutes', 0) > 0:
-        delay_text = f"<p style='margin: 0.5rem 0 0 0; font-size: 0.85rem;'>+{traffic['delay_minutes']} min delay</p>"
+        safe_delay = html.escape(str(traffic['delay_minutes']))
+        delay_text = f"<p style='margin: 0.5rem 0 0 0; font-size: 0.85rem;'>+{safe_delay} min delay</p>"
 
     st.markdown(f"""<div class="ultimate-card" style="border-left: 4px solid {color};">
 <div class="card-body">
-<h4 style="margin: 0 0 0.5rem 0;">🚗 {label if label else 'Route Traffic'}</h4>
+<h4 style="margin: 0 0 0.5rem 0;">🚗 {safe_label}</h4>
 <div style="display: flex; justify-content: space-between; align-items: center;">
 <div>
 <p style="margin: 0.25rem 0;">
-<strong>Distance:</strong> {traffic['distance']['text']}<br>
-<strong>Duration:</strong> {traffic['duration_in_traffic']['text']}
+<strong>Distance:</strong> {safe_distance}<br>
+<strong>Duration:</strong> {safe_duration}
 </p>
 </div>
 <div style="text-align: right;">
 <div style="background: {color}; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-weight: bold;">
-{traffic.get('traffic_emoji', '🚗')} {traffic['traffic_level']}
+{safe_emoji} {safe_level}
 </div>
 {delay_text}
 </div>
@@ -2796,26 +2805,34 @@ def render_tsa_wait_widget(airport_code):
     else:
         color = '#f44336'
 
+    # Escape all user-provided strings
+    import html
+    safe_airport = html.escape(airport_code)
+    safe_recommendation = html.escape(wait_data['recommendation'])
+    safe_emoji = html.escape(wait_data.get('wait_emoji', '🟡'))
+    safe_level = html.escape(wait_data['wait_level'])
+
     # Data source indicator
     if wait_data.get('status') == 'MANUAL':
-        data_source_badge = f"<span style='background: #2196f3; color: white; padding: 0.25rem 0.5rem; border-radius: 8px; font-size: 0.75rem;'>📱 {wait_data['message']}</span>"
+        safe_message = html.escape(wait_data['message'])
+        data_source_badge = f"<span style='background: #2196f3; color: white; padding: 0.25rem 0.5rem; border-radius: 8px; font-size: 0.75rem;'>📱 {safe_message}</span>"
     else:
         data_source_badge = f"<span style='background: #9e9e9e; color: white; padding: 0.25rem 0.5rem; border-radius: 8px; font-size: 0.75rem;'>📊 Historical estimate</span>"
 
     st.markdown(f"""<div class="ultimate-card" style="border-left: 4px solid {color};">
 <div class="card-body">
-<h4 style="margin: 0 0 0.5rem 0;">🛂 TSA Security Wait Time - {airport_code}</h4>
+<h4 style="margin: 0 0 0.5rem 0;">🛂 TSA Security Wait Time - {safe_airport}</h4>
 <div style="display: flex; justify-content: space-between; align-items: center;">
 <div>
 <p style="margin: 0.25rem 0;">
 <strong>Estimated Wait:</strong> ~{wait_data['wait_time_minutes']} minutes<br>
-<strong>Recommendation:</strong> {wait_data['recommendation']}<br>
+<strong>Recommendation:</strong> {safe_recommendation}<br>
 <span style="font-size: 0.85rem; opacity: 0.8;">{data_source_badge}</span>
 </p>
 </div>
 <div style="text-align: right;">
 <div style="background: {color}; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-weight: bold;">
-{wait_data.get('wait_emoji', '🟡')} {wait_data['wait_level']}
+{safe_emoji} {safe_level}
 </div>
 </div>
 </div>
@@ -3077,6 +3094,11 @@ def render_budget_widget(activities_data, show_sensitive=True, view_mode='michae
     meals_count = len(budget_data.get('confirmed_meals', []))
     meals_total = budget_data.get('confirmed_meals_total', 0)
 
+    # Escape top category
+    import html
+    top_category = budget_data['categories'][0][0] if budget_data['categories'] else 'N/A'
+    safe_top_category = html.escape(top_category)
+
     st.markdown(f"""<div class="ultimate-card" style="border-left: 4px solid #4caf50;">
 <div class="card-body">
 <h4 style="margin: 0 0 0.5rem 0;">💰 Trip Budget Overview</h4>
@@ -3096,7 +3118,7 @@ def render_budget_widget(activities_data, show_sensitive=True, view_mode='michae
 </div>
 <div>
 <strong>Top Category:</strong><br>
-<span style="font-size: 1.0rem;">{budget_data['categories'][0][0] if budget_data['categories'] else 'N/A'}</span><br>
+<span style="font-size: 1.0rem;">{safe_top_category}</span><br>
 <span style="font-size: 0.9rem; color: #666;">{'$' + str(int(budget_data['categories'][0][1])) if budget_data['categories'] else '$0'}</span>
 </div>
 </div>
@@ -5202,15 +5224,26 @@ def render_map_page(activities_data):
                     elif activity['type'] == 'dining' and activity['date'] >= '2025-11-08':
                         john_note = " • 👥 Going Dutch"
 
+                    # Escape all user-provided strings
+                    import html
+                    safe_activity = html.escape(activity['activity'])
+                    safe_time = html.escape(activity['time'])
+                    safe_duration = html.escape(activity.get('duration', ''))
+                    safe_location = html.escape(activity['location']['name'])
+                    safe_notes = html.escape(activity['notes'])
+                    safe_john_note = html.escape(john_note)
+
+                    duration_display = f"• {safe_duration}" if activity.get('duration') else ""
+
                     st.markdown(f"""
                     <div class="ultimate-card" style="border-left: 4px solid {badge_color};">
                         <div class="card-body">
                             <div style="display: flex; justify-content: space-between; align-items: start;">
                                 <div style="flex: 1;">
-                                    <h4 style="margin: 0 0 0.5rem 0;">{activity['activity']}</h4>
-                                    <p style="margin: 0.25rem 0;"><strong>⏰</strong> {activity['time']} {f"• {activity.get('duration', '')}" if activity.get('duration') else ""}</p>
-                                    <p style="margin: 0.25rem 0;"><strong>📍</strong> {activity['location']['name']}</p>
-                                    <p style="margin: 0.25rem 0; font-style: italic; font-size: 0.9rem;">{activity['notes']}{john_note}</p>
+                                    <h4 style="margin: 0 0 0.5rem 0;">{safe_activity}</h4>
+                                    <p style="margin: 0.25rem 0;"><strong>⏰</strong> {safe_time} {duration_display}</p>
+                                    <p style="margin: 0.25rem 0;"><strong>📍</strong> {safe_location}</p>
+                                    <p style="margin: 0.25rem 0; font-style: italic; font-size: 0.9rem;">{safe_notes}{safe_john_note}</p>
                                 </div>
                                 <div style="margin-left: 1rem;">
                                     <span style="background: {badge_color}; color: white; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem; white-space: nowrap;">{badge_text}</span>
@@ -5881,21 +5914,32 @@ def render_full_schedule(df, activities_data, show_sensitive):
                     """, unsafe_allow_html=True)
 
                     # Display all 3 activity options
+                    import html
                     for idx, act_option in enumerate(activity.get('activity_options', [])):
                         phone = act_option.get('phone', 'N/A')
                         booking = act_option.get('booking_url', 'N/A')
 
+                        # Escape all user-provided strings
+                        safe_name = html.escape(act_option['name'])
+                        safe_description = html.escape(act_option.get('description', 'N/A'))
+                        safe_cost_range = html.escape(act_option.get('cost_range', 'FREE'))
+                        safe_duration = html.escape(act_option.get('duration', '1 hour'))
+                        safe_rating = html.escape(act_option.get('rating', 'N/A'))
+                        safe_phone = html.escape(phone)
+                        safe_booking = html.escape(booking) if booking != 'N/A' else 'N/A'
+                        safe_tips = html.escape(act_option.get('tips', 'N/A'))
+
                         st.markdown(f"""
                         <div class="ultimate-card" style="margin: 0.5rem 0 0.5rem 2rem; border-left: 3px solid {'#2196f3' if is_michael_solo else '#4caf50'};">
                             <div class="card-body" style="padding: 1rem;">
-                                <h5 style="margin: 0 0 0.5rem 0;">Option {idx + 1}: {act_option['name']}</h5>
-                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>📝</strong> {act_option.get('description', 'N/A')}</p>
-                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>💰</strong> {act_option.get('cost_range', 'FREE')}</p>
-                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>⏱️</strong> Duration: {act_option.get('duration', '1 hour')}</p>
-                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>⭐</strong> Rating: {act_option.get('rating', 'N/A')}</p>
-                                {f'<p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>📞</strong> {phone}</p>' if phone != 'N/A' else ''}
-                                {f'<p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>🔗</strong> <a href="{booking}" target="_blank">Booking Info</a></p>' if booking != 'N/A' and booking.startswith('http') else ''}
-                                <p style="margin: 0.25rem 0; font-size: 0.9rem; font-style: italic;"><strong>💡</strong> {act_option.get('tips', 'N/A')}</p>
+                                <h5 style="margin: 0 0 0.5rem 0;">Option {idx + 1}: {safe_name}</h5>
+                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>📝</strong> {safe_description}</p>
+                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>💰</strong> {safe_cost_range}</p>
+                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>⏱️</strong> Duration: {safe_duration}</p>
+                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>⭐</strong> Rating: {safe_rating}</p>
+                                {f'<p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>📞</strong> {safe_phone}</p>' if phone != 'N/A' else ''}
+                                {f'<p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>🔗</strong> <a href="{safe_booking}" target="_blank">Booking Info</a></p>' if booking != 'N/A' and booking.startswith('http') else ''}
+                                <p style="margin: 0.25rem 0; font-size: 0.9rem; font-style: italic;"><strong>💡</strong> {safe_tips}</p>
                             </div>
                         </div>
                         """, unsafe_allow_html=True)
@@ -5923,22 +5967,32 @@ def render_full_schedule(df, activities_data, show_sensitive):
                     """, unsafe_allow_html=True)
 
                     # Display all 3 restaurant options
+                    import html
                     restaurant_details_map = get_restaurant_details()
                     for idx, restaurant in enumerate(activity.get('restaurant_options', [])):
                         rest_details = restaurant_details_map.get(restaurant['name'], {})
                         phone = restaurant.get('phone', 'N/A')
                         menu = rest_details.get('menu_url', 'N/A')
 
+                        # Escape all user-provided strings
+                        safe_name = html.escape(restaurant['name'])
+                        safe_description = html.escape(restaurant.get('description', 'N/A'))
+                        safe_cost_range = html.escape(restaurant.get('cost_range', 'N/A'))
+                        safe_dress_code = html.escape(rest_details.get('dress_code', 'Casual'))
+                        safe_phone = html.escape(phone)
+                        safe_menu = html.escape(menu) if menu != 'N/A' else 'N/A'
+                        safe_tips = html.escape(restaurant.get('tips', 'N/A'))
+
                         st.markdown(f"""
                         <div class="ultimate-card" style="margin: 0.5rem 0 0.5rem 2rem; border-left: 3px solid #4caf50;">
                             <div class="card-body" style="padding: 1rem;">
-                                <h5 style="margin: 0 0 0.5rem 0;">Option {idx + 1}: {restaurant['name']}</h5>
-                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>📝</strong> {restaurant.get('description', 'N/A')}</p>
-                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>💰</strong> {restaurant.get('cost_range', 'N/A')}</p>
-                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>👔</strong> {rest_details.get('dress_code', 'Casual')}</p>
-                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>📞</strong> {phone}</p>
-                                {f'<p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>🔗</strong> <a href="{menu}" target="_blank">View Menu</a></p>' if menu != 'N/A' and menu.startswith('http') else ''}
-                                <p style="margin: 0.25rem 0; font-size: 0.9rem; font-style: italic;"><strong>💡</strong> {restaurant.get('tips', 'N/A')}</p>
+                                <h5 style="margin: 0 0 0.5rem 0;">Option {idx + 1}: {safe_name}</h5>
+                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>📝</strong> {safe_description}</p>
+                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>💰</strong> {safe_cost_range}</p>
+                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>👔</strong> {safe_dress_code}</p>
+                                <p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>📞</strong> {safe_phone}</p>
+                                {f'<p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>🔗</strong> <a href="{safe_menu}" target="_blank">View Menu</a></p>' if menu != 'N/A' and menu.startswith('http') else ''}
+                                <p style="margin: 0.25rem 0; font-size: 0.9rem; font-style: italic;"><strong>💡</strong> {safe_tips}</p>
                             </div>
                         </div>
                         """, unsafe_allow_html=True)
@@ -6129,11 +6183,13 @@ def render_budget(df, show_sensitive):
         st.plotly_chart(fig, use_container_width=True)
     
     with col2:
+        import html
         for _, row in category_spending.iterrows():
+            safe_category = html.escape(row['category'])
             st.markdown(f"""
             <div class="ultimate-card">
                 <div class="card-body">
-                    <h4 style="margin: 0 0 0.5rem 0;">{row['category']}</h4>
+                    <h4 style="margin: 0 0 0.5rem 0;">{safe_category}</h4>
                     <p style="margin: 0; font-size: 1.5rem; font-weight: bold; color: #ff6b6b;">${row['cost']:.0f}</p>
                 </div>
             </div>
@@ -6291,9 +6347,12 @@ def render_explore_activities():
     st.markdown("### 📅 Your Free Time (Analyzed from Schedule)")
 
     if schedule_gaps:
+        import html
         gap_html = '<div class="ultimate-card"><div class="card-body">'
         for gap in schedule_gaps:
-            gap_html += f'<p style="margin: 0.5rem 0;"><strong>{gap["description"]}</strong> - {gap["duration_hours"]}h available</p>'
+            safe_description = html.escape(gap["description"])
+            safe_duration = html.escape(str(gap["duration_hours"]))
+            gap_html += f'<p style="margin: 0.5rem 0;"><strong>{safe_description}</strong> - {safe_duration}h available</p>'
         gap_html += '</div></div>'
         st.markdown(gap_html, unsafe_allow_html=True)
     else:
@@ -6531,8 +6590,10 @@ def render_explore_activities():
 
                     # Phone number if available
                     if activity.get('phone') and activity['phone'] != 'N/A':
+                        import html
                         phone = activity['phone']
-                        st.markdown(f'**📞 Phone:** <a href="tel:{phone}" style="color: #2196f3; text-decoration: none;">{phone}</a>', unsafe_allow_html=True)
+                        safe_phone = html.escape(phone)
+                        st.markdown(f'**📞 Phone:** <a href="tel:{safe_phone}" style="color: #2196f3; text-decoration: none;">{safe_phone}</a>', unsafe_allow_html=True)
 
                     # Booking link if available
                     if activity.get('booking_url'):
@@ -7238,16 +7299,23 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                         col = cols[idx % 2]
                         with col:
                             # Build complete HTML card
-                            phone_line = f"<p style='margin: 0.3rem 0; font-size: 0.9rem;'><strong>📞</strong> {option['phone']}</p>" if 'phone' in option else ""
-                            walk_line = f"<p style='margin: 0.3rem 0; font-size: 0.85rem; color: #666;'>🚶 {option['walk_time']}</p>" if 'walk_time' in option else ""
+                            import html
+                            safe_name = html.escape(option['name'])
+                            safe_distance = html.escape(option['distance'])
+                            safe_cost = html.escape(option['cost'])
+                            safe_menu = html.escape(option['menu'])
+                            safe_time = html.escape(option['time'])
+
+                            phone_line = f"<p style='margin: 0.3rem 0; font-size: 0.9rem;'><strong>📞</strong> {html.escape(option['phone'])}</p>" if 'phone' in option else ""
+                            walk_line = f"<p style='margin: 0.3rem 0; font-size: 0.85rem; color: #666;'>🚶 {html.escape(option['walk_time'])}</p>" if 'walk_time' in option else ""
 
                             card_html = f"""<div class="ultimate-card">
 <div class="card-body">
-<h4 style="margin: 0 0 0.5rem 0;">{option['name']}</h4>
-<p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>📍</strong> {option['distance']}</p>
-<p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>💰</strong> {option['cost']}</p>
-<p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>🍽️</strong> {option['menu']}</p>
-<p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>⏰</strong> {option['time']}</p>
+<h4 style="margin: 0 0 0.5rem 0;">{safe_name}</h4>
+<p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>📍</strong> {safe_distance}</p>
+<p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>💰</strong> {safe_cost}</p>
+<p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>🍽️</strong> {safe_menu}</p>
+<p style="margin: 0.3rem 0; font-size: 0.9rem;"><strong>⏰</strong> {safe_time}</p>
 {phone_line}
 {walk_line}
 </div>
@@ -7373,13 +7441,18 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             # Show daily schedule context
             daily_schedule = get_daily_schedule(meal_slot['date'])
             if daily_schedule and len(daily_schedule) > 0:
+                import html
                 schedule_items_html = ""
                 for item in daily_schedule:
-                    schedule_items_html += f"<p style='margin: 0.3rem 0; font-size: 0.9rem;'>{item['icon']} <strong>{item['time']}</strong> - {item['activity']}</p>"
+                    safe_icon = html.escape(item['icon'])
+                    safe_time = html.escape(item['time'])
+                    safe_activity = html.escape(item['activity'])
+                    schedule_items_html += f"<p style='margin: 0.3rem 0; font-size: 0.9rem;'>{safe_icon} <strong>{safe_time}</strong> - {safe_activity}</p>"
 
+                safe_meal_label = html.escape(meal_slot['label'].split('(')[0])
                 st.markdown(f"""
                 <div class="info-box" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin: 1rem 0;">
-                    <h4 style="margin: 0 0 0.5rem 0; color: white;">📅 {meal_slot['label'].split('(')[0]} Schedule</h4>
+                    <h4 style="margin: 0 0 0.5rem 0; color: white;">📅 {safe_meal_label} Schedule</h4>
                     {schedule_items_html}
                     <p style="margin: 0.5rem 0 0 0; font-size: 0.85rem; opacity: 0.9;"><em>💡 Adjust meal time to fit your schedule below</em></p>
                 </div>
@@ -7633,11 +7706,15 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                             # Build links HTML
                             links_html = ""
                             if website_url != "N/A":
-                                links_html += f'<a href="{website_url}" target="_blank" style="color: #2196f3; font-size: 0.85rem; margin-right: 0.5rem;">🌐 Website</a>'
+                                safe_website_url = html.escape(website_url)
+                                links_html += f'<a href="{safe_website_url}" target="_blank" style="color: #2196f3; font-size: 0.85rem; margin-right: 0.5rem;">🌐 Website</a>'
                             if menu_url != "N/A":
-                                links_html += f'<a href="{menu_url}" target="_blank" style="color: #2196f3; font-size: 0.85rem; margin-right: 0.5rem;">📋 Menu</a>'
-                            links_html += f'<a href="{google_url}" target="_blank" style="color: #2196f3; font-size: 0.85rem; margin-right: 0.5rem;">⭐ Google</a>'
-                            links_html += f'<a href="{yelp_url}" target="_blank" style="color: #2196f3; font-size: 0.85rem;">📝 Yelp</a>'
+                                safe_menu_url = html.escape(menu_url)
+                                links_html += f'<a href="{safe_menu_url}" target="_blank" style="color: #2196f3; font-size: 0.85rem; margin-right: 0.5rem;">📋 Menu</a>'
+                            safe_google_url = html.escape(google_url)
+                            safe_yelp_url = html.escape(yelp_url)
+                            links_html += f'<a href="{safe_google_url}" target="_blank" style="color: #2196f3; font-size: 0.85rem; margin-right: 0.5rem;">⭐ Google</a>'
+                            links_html += f'<a href="{safe_yelp_url}" target="_blank" style="color: #2196f3; font-size: 0.85rem;">📝 Yelp</a>'
 
                             border_color = "#4caf50" if is_selected else "#ddd"
                             st.markdown(f"""
