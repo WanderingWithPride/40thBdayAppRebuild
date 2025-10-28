@@ -5448,7 +5448,21 @@ def render_full_schedule(df, activities_data, show_sensitive):
             activity_name = activity.get('activity', '').lower()
 
             # Determine activity type
-            if activity_id == 'spa001' or 'couples massage' in activity_name:
+            # Arrivals and departures
+            if activity_id == 'arr001':  # Michael's Friday arrival
+                activity['activity_type'] = 'michael_solo'
+                activity['activity_type_label'] = '✈️ MICHAEL - Arriving solo'
+            elif activity_id == 'arr002':  # John's Saturday arrival
+                activity['activity_type'] = 'john_arrival'
+                activity['activity_type_label'] = '✈️ JOHN ARRIVES - Meet at hotel lobby'
+            elif activity_id == 'dep001':  # John's Tuesday departure
+                activity['activity_type'] = 'john_departure'
+                activity['activity_type_label'] = '✈️ JOHN DEPARTS - Say goodbye'
+            elif activity_id == 'dep002':  # Michael's Wednesday departure
+                activity['activity_type'] = 'michael_departure'
+                activity['activity_type_label'] = '✈️ MICHAEL - Heading home'
+            # Spa activities
+            elif activity_id == 'spa001' or 'couples massage' in activity_name:
                 activity['activity_type'] = 'shared'
                 activity['activity_type_label'] = '👥 SHARED - Both Together'
             elif activity_id == 'spa002' or (activity_id == 'spa002' and 'hydrafacial' in activity_name):
@@ -5457,6 +5471,7 @@ def render_full_schedule(df, activities_data, show_sensitive):
             elif activity_id == 'spa003' or (activity_id == 'spa003' and 'mani-pedi' in activity_name):
                 activity['activity_type'] = 'john_solo'
                 activity['activity_type_label'] = '🎂 JOHN\'S TREATMENT - Michael has free time'
+            # Photography and special events
             elif 'photography' in activity_name:
                 activity['activity_type'] = 'shared'
                 activity['activity_type_label'] = '👥 SHARED - Individual shots for each'
