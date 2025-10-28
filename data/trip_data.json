@@ -126,6 +126,48 @@
       "created_at": "2025-10-27T21:12:34.694643",
       "updated_at": "2025-10-27T21:12:34.694656"
     },
+    "sun_dinner": {
+      "meal_id": "sun_dinner",
+      "restaurant_options": [
+        {
+          "name": "David's Restaurant & Lounge",
+          "description": "🎂 BIRTHDAY DINNER! Upscale American cuisine with cocktails in downtown historic district. Perfect for special celebrations!",
+          "cost_range": "$35-70 per person",
+          "duration": "2-2.5 hours",
+          "phone": "904-310-6049",
+          "booking_url": "https://www.opentable.com/r/davids-restaurant-and-lounge-fernandina-beach",
+          "tips": "Mention it's a 40th birthday! Request window table. Ask about chef's specials and save room for dessert. Business casual dress code (no shorts/flip-flops). Michael is treating for the birthday celebration!",
+          "rating": "4.8/5"
+        },
+        {
+          "name": "Le Clos",
+          "description": "Romantic French bistro with extensive wine selection and intimate atmosphere",
+          "cost_range": "$40-70 per person",
+          "duration": "2-3 hours",
+          "phone": "904-261-8100",
+          "booking_url": "https://www.opentable.com/r/le-clos-fernandina-beach",
+          "tips": "Reservations required, business casual dress code. Perfect for special occasions with excellent wine list",
+          "rating": "4.8/5"
+        },
+        {
+          "name": "Burlingame",
+          "description": "Charming 1947 cottage with modern twist, seasonal menu with Seafood Gumbo, Blue Crab Cakes, Lamb Bolognese. ✅ NON-SEAFOOD: Lamb, chicken, steaks, pasta",
+          "cost_range": "$35-65 per person",
+          "duration": "2-2.5 hours",
+          "phone": "904-277-3700",
+          "booking_url": "https://www.opentable.com/burlingame",
+          "tips": "Intimate setting, reserve ahead for special occasions. Great meat and pasta options! Highest rated restaurant in area",
+          "rating": "4.9/5"
+        }
+      ],
+      "status": "proposed",
+      "john_vote": null,
+      "final_choice": "David's Restaurant & Lounge",
+      "meal_time": "7:00 PM",
+      "submitted_by": "Michael",
+      "created_at": "2025-10-28T00:00:00.000000",
+      "updated_at": "2025-10-28T00:00:00.000000"
+    },
     "mon_breakfast": {
       "meal_id": "mon_breakfast",
       "restaurant_options": [
@@ -372,6 +414,17 @@
           "phone": "N/A",
           "booking_url": "N/A",
           "tips": "Beach chairs and umbrellas provided in summer season",
+          "rating": "5.0/5",
+          "is_repeatable": true
+        },
+        {
+          "name": "Photography Concierge",
+          "description": "FREE professional photography service for hotel guests! Complimentary family or couples photo sessions to capture special moments. Book a session for birthday celebration photos at the pool, beach, spa, or during any on-property activities",
+          "cost_range": "FREE (hotel guests)",
+          "duration": "30-60 minutes",
+          "phone": "239-449-6125",
+          "booking_url": "ritzcarltonameliaisland.ipoolside.com",
+          "tips": "📞 Call (239) 449-6125 to schedule your complimentary session, or CLICK on poolside app to request. Perfect timing: after spa day (when you're glowing!), before birthday dinner (dressed up), beach sunset, during resort activities. For special events, contact in advance to customize a package.",
           "rating": "5.0/5",
           "is_repeatable": true
         }
