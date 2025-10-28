@@ -32,6 +32,7 @@ import requests
 import json
 import os
 import hashlib
+import bcrypt
 import re
 import base64
 import io
@@ -59,6 +60,24 @@ from data_operations import (
     add_notification, load_notifications, dismiss_notification,
     save_manual_tsa_update, get_latest_manual_tsa_update
 )
+
+# ============================================================================
+# ERROR HANDLING HELPERS
+# ============================================================================
+
+def handle_error(error_msg: str, technical_details: str = None):
+    """Display user-friendly error messages while logging technical details
+
+    Args:
+        error_msg: User-friendly error message to display in the UI
+        technical_details: Technical error details to log (not shown to users)
+    """
+    # Log technical details for debugging (only visible in server logs)
+    if technical_details:
+        print(f"ERROR: {technical_details}")
+
+    # Show user-friendly message
+    st.error(error_msg)
 
 # ============================================================================
 # CONFIGURATION & SETUP
@@ -2121,16 +2140,25 @@ def check_password_ultimate():
         
         with col1:
             if st.button("🔓 Unlock Full Access", use_container_width=True, type="primary"):
-                stored_hash = os.getenv('TRIP_PASSWORD_HASH', 'a5be948874610641149611913c4924e5')
-                input_hash = hashlib.md5(password.encode()).hexdigest()
-                
-                if input_hash == stored_hash:
-                    st.session_state.password_verified = True
-                    st.balloons()
-                    st.success("✅ Access granted! Welcome to your ultimate trip assistant!")
-                    st.rerun()
-                else:
-                    st.error("❌ Incorrect password. Please try again.")
+                # Get password hash from environment variable (NO DEFAULT)
+                stored_hash = os.getenv('TRIP_PASSWORD_HASH')
+
+                if not stored_hash:
+                    st.error("⚠️ Application not configured properly. Contact the trip organizer.")
+                    st.stop()
+
+                try:
+                    # Verify password with bcrypt (secure, salted, slow by design)
+                    if bcrypt.checkpw(password.encode('utf-8'), stored_hash.encode('utf-8')):
+                        st.session_state.password_verified = True
+                        st.balloons()
+                        st.success("✅ Access granted! Welcome to your ultimate trip assistant!")
+                        st.rerun()
+                    else:
+                        st.error("❌ Incorrect password. Please try again.")
+                except Exception as e:
+                    print(f"Password verification error: {e}")
+                    st.error("❌ Authentication error. Please contact support.")
         
         with col2:
             if st.button("👀 Demo Mode", use_container_width=True):
@@ -10078,12 +10106,24 @@ def main():
             with st.expander("🔐 Unlock Full Access"):
                 password_input = st.text_input("Enter password:", type="password", key="unlock_password")
                 if st.button("Unlock", use_container_width=True):
-                    if hashlib.md5(password_input.encode()).hexdigest() == os.getenv('TRIP_PASSWORD_HASH', 'a5be948874610641149611913c4924e5'):
-                        st.session_state['password_verified'] = True
-                        st.success("✅ Access granted!")
-                        st.rerun()
-                    else:
-                        st.error("❌ Incorrect password")
+                    # Get password hash from environment variable (NO DEFAULT)
+                    stored_hash = os.getenv('TRIP_PASSWORD_HASH')
+
+                    if not stored_hash:
+                        st.error("⚠️ Application not configured properly.")
+                        st.stop()
+
+                    try:
+                        # Verify password with bcrypt (secure, salted, slow by design)
+                        if bcrypt.checkpw(password_input.encode('utf-8'), stored_hash.encode('utf-8')):
+                            st.session_state['password_verified'] = True
+                            st.success("✅ Access granted!")
+                            st.rerun()
+                        else:
+                            st.error("❌ Incorrect password")
+                    except Exception as e:
+                        print(f"Password verification error: {e}")
+                        st.error("❌ Authentication error.")
 
         st.markdown("---")
         
