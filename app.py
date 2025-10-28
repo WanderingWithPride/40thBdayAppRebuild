@@ -7737,25 +7737,63 @@ def render_johns_page(df, activities_data, show_sensitive):
             </div>
             """, unsafe_allow_html=True)
 
-            spa_options = [
-                {"name": "Gentleman's Facial", "cost": "$165", "duration": "50 min", "desc": "Designed for men's skin. Addresses shaving irritation and deep cleaning."},
-                {"name": "Aromatherapy Massage", "cost": "$185-245", "duration": "50-80 min", "desc": "Relaxing full-body massage with essential oils."},
-                {"name": "Hot Stone Massage", "cost": "$205", "duration": "80 min", "desc": "Therapeutic massage with heated stones to ease muscle tension."},
-                {"name": "Sports Massage", "cost": "$195", "duration": "50 min", "desc": "Deep tissue massage focused on muscle recovery."},
-            ]
+            # Get full spa services menu
+            spa_services = get_ritz_spa_services()
 
-            for spa in spa_options:
-                st.markdown(f"""
-                <div class="ultimate-card">
-                    <div class="card-body">
-                        <h4 style="margin: 0 0 0.25rem 0;">{spa['name']}</h4>
-                        <p style="margin: 0.25rem 0; color: #666;"><strong>{spa['duration']} • {spa['cost']}</strong></p>
-                        <p style="margin: 0.5rem 0; font-size: 0.9rem;">{spa['desc']}</p>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+            st.markdown(f"""
+            **📞 Booking:** {spa_services['spa_phone']}
+            **🌐 Online:** [{spa_services['reservation_url']}](https://{spa_services['reservation_url']})
+            """)
 
+            st.info(f"💡 **Spa Facility Access:** $25 (resort guests), $75 (non-guests)")
+
+            # Display services by category
+            service_tabs = st.tabs(["💆 Massage", "👤 Facials", "🧖 Body Treatments", "🔬 Advanced Tech", "💅 Nails", "💇 Hair", "🛁 Cabanas"])
+
+            with service_tabs[0]:  # Massage
+                st.markdown("### Massage Treatments")
+                for service_name, details in spa_services['services']['Massage Treatments'].items():
+                    st.markdown(f"**{service_name}** - {details}")
+
+            with service_tabs[1]:  # Facials
+                st.markdown("### Facial Treatments")
+                for service_name, details in spa_services['services']['Facial Treatments'].items():
+                    st.markdown(f"**{service_name}** - {details}")
+
+            with service_tabs[2]:  # Body Treatments
+                st.markdown("### Body Treatments")
+                for service_name, details in spa_services['services']['Body Treatments'].items():
+                    st.markdown(f"**{service_name}** - {details}")
+
+            with service_tabs[3]:  # Advanced Technology
+                st.markdown("### LPG Endermologie (Advanced Technology)")
+                st.caption("Patented technology for body contouring, anti-aging, and wellness")
+                for service_name, details in spa_services['services']['LPG Endermologie (Advanced Technology)'].items():
+                    st.markdown(f"**{service_name}** - {details}")
+                st.markdown("---")
+                st.markdown("### Red Light Therapy")
+                for service_name, details in spa_services['services']['Wellness Technology'].items():
+                    st.markdown(f"**{service_name}** - {details}")
+
+            with service_tabs[4]:  # Nails
+                st.markdown("### Nail Services")
+                for service_name, details in spa_services['services']['Nail Services'].items():
+                    st.markdown(f"**{service_name}** - {details}")
+
+            with service_tabs[5]:  # Hair
+                st.markdown("### Hair Services")
+                for service_name, details in spa_services['services']['Hair Services'].items():
+                    st.markdown(f"**{service_name}** - {details}")
+
+            with service_tabs[6]:  # Cabanas
+                st.markdown("### Spa Pool Cabanas & Daybeds")
+                st.caption("Enjoy spa amenities in privacy with your group")
+                for service_name, details in spa_services['services']['Spa Pool Cabanas & Daybeds'].items():
+                    st.markdown(f"**{service_name}** - {details}")
+
+            st.markdown('---')
             st.markdown('**📞 To Book:** <a href="tel:904-277-1087" style="color: #2196f3; text-decoration: none;">Call spa at 904-277-1087</a>', unsafe_allow_html=True)
+            st.caption("💡 Couples massages must be booked by phone. Ask about LPG Endermologie series packages.")
 
         with subtab3:
             st.markdown("**🏖️ Nearby Activities** (during free time)")
@@ -7985,6 +8023,33 @@ def render_johns_page(df, activities_data, show_sensitive):
             <p style="margin: 0.5rem 0 0 0; opacity: 0.95;">Michael has proposed restaurant options for meals. Vote on which ones work for you!</p>
         </div>
         """, unsafe_allow_html=True)
+
+        # Show complete Ritz-Carlton menus for reference
+        ritz_menus = get_ritz_restaurant_menus()
+        with st.expander("📋 View Complete Ritz-Carlton Restaurant Menus (All Venues)", expanded=False):
+            st.markdown("*Browse full menus to see what food options are available at each restaurant*")
+            menu_tabs = st.tabs(list(ritz_menus.keys()))
+            for idx, (rest_name, menu_data) in enumerate(ritz_menus.items()):
+                with menu_tabs[idx]:
+                    st.markdown(f"**{menu_data.get('hours', 'See restaurant for hours')}**")
+                    st.markdown(f"*Dress Code: {menu_data.get('dress_code', 'N/A')}*")
+                    st.markdown(f"_{menu_data.get('description', '')}_")
+                    if menu_data.get('note'):
+                        st.caption(menu_data['note'])
+                    if menu_data.get('first_call'):
+                        st.info(f"⭐ {menu_data['first_call']}")
+
+                    # Display menu items by category
+                    for category, items in menu_data.get('menu', {}).items():
+                        st.markdown(f"**{category}**")
+                        if isinstance(items, list):
+                            for item in items[:10]:  # Show first 10 items
+                                st.markdown(f"- {item}")
+                            if len(items) > 10:
+                                st.caption(f"...and {len(items) - 10} more items")
+                        else:
+                            st.markdown(f"- {items}")
+                        st.markdown("")
 
         # Refresh button to reload proposals
         if st.button("🔄 Refresh to Check for New Proposals", use_container_width=True):
