@@ -18,5 +18,5 @@ textColor = "#262730"
 font = "sans serif"
 
 [client]
-showErrorDetails = false
+showErrorDetails = true
 toolbarMode = "minimal"

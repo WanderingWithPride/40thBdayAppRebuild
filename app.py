@@ -32,7 +32,6 @@ import requests
 import json
 import os
 import hashlib
-import bcrypt
 import re
 import base64
 import io
@@ -60,24 +59,6 @@ from data_operations import (
     add_notification, load_notifications, dismiss_notification,
     save_manual_tsa_update, get_latest_manual_tsa_update
 )
-
-# ============================================================================
-# ERROR HANDLING HELPERS
-# ============================================================================
-
-def handle_error(error_msg: str, technical_details: str = None):
-    """Display user-friendly error messages while logging technical details
-
-    Args:
-        error_msg: User-friendly error message to display in the UI
-        technical_details: Technical error details to log (not shown to users)
-    """
-    # Log technical details for debugging (only visible in server logs)
-    if technical_details:
-        print(f"ERROR: {technical_details}")
-
-    # Show user-friendly message
-    st.error(error_msg)
 
 # ============================================================================
 # CONFIGURATION & SETUP
@@ -2039,7 +2020,7 @@ def get_optional_activities():
             {"name": "The Sprouting Project", "description": "Monthly farm-to-table dining experience at Omni with garden tour, aquaponic greenhouse, barrel room, apiary", "cost_range": "$75-95 per person", "duration": "2-3 hours", "phone": "904-261-6161", "booking_url": "N/A", "tips": "Unique wellness and culinary experience, book ahead", "rating": "4.9/5"},
         ],
         "ℹ️ Hotel Services You Can Book": [
-            {"name": "In-Room Celebration Package (Birthday)", "description": "PERFECT FOR MICHAEL'S BIRTHDAY! Includes: Balloon bouquet, banner, personalized card, choice of culinary amenity (charcuterie board, vanilla cake, or chocolate cake), choice of champagne/bubbles", "cost_range": "$199 (base) + champagne upgrade", "duration": "N/A", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "⚠️ Must order 2 days in advance! Perfect for birthdays, graduations, bachelor/bachelorette parties. Upgrade champagne options available. Choose balloon colors (up to 3): gold, silver, black, pink, blue, etc.", "rating": "5.0/5"},
+            {"name": "In-Room Celebration Package (Birthday)", "description": "PERFECT FOR JOHN'S BIRTHDAY! Includes: Balloon bouquet, banner, personalized card, choice of culinary amenity (charcuterie board, vanilla cake, or chocolate cake), choice of champagne/bubbles", "cost_range": "$199 (base) + champagne upgrade", "duration": "N/A", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "⚠️ Must order 2 days in advance! Perfect for birthdays, graduations, bachelor/bachelorette parties. Upgrade champagne options available. Choose balloon colors (up to 3): gold, silver, black, pink, blue, etc.", "rating": "5.0/5"},
             {"name": "In-Room Romantic Package", "description": "Perfect for anniversaries, engagements, wedding nights! Includes: Rose petals, flameless tea candles, personalized card, choice of charcuterie or chocolate-covered strawberries, choice of champagne/bubbles", "cost_range": "$245", "duration": "N/A", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "⚠️ Must order 2 days in advance! Creates romantic ambiance with rose petals and candles. Perfect for special romantic occasions.", "rating": "5.0/5"},
             {"name": "Custom Celebration Cakes", "description": "Order custom birthday or celebration cakes in various sizes", "cost_range": "$80 (6-inch/8 guests), $150 (8-inch/16 guests), $200 (10-inch/20 guests), $280 (12-inch/30 guests)", "duration": "N/A", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "Order in advance. Perfect for birthday celebrations. Choose size based on party size.", "rating": "5.0/5"},
             {"name": "Chocolate Covered Strawberries", "description": "Dark chocolate dipped local Florida strawberries with Ritz Carlton logo", "cost_range": "$30", "duration": "N/A - Allow 4 hours for delivery", "phone": "904-277-1100", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "Order before 12:00 PM same day. Romantic treat or sweet snack!", "rating": "5.0/5"},
@@ -2140,25 +2121,16 @@ def check_password_ultimate():
         
         with col1:
             if st.button("🔓 Unlock Full Access", use_container_width=True, type="primary"):
-                # Get password hash from environment variable (NO DEFAULT)
-                stored_hash = os.getenv('TRIP_PASSWORD_HASH')
-
-                if not stored_hash:
-                    st.error("⚠️ Application not configured properly. Contact the trip organizer.")
-                    st.stop()
-
-                try:
-                    # Verify password with bcrypt (secure, salted, slow by design)
-                    if bcrypt.checkpw(password.encode('utf-8'), stored_hash.encode('utf-8')):
-                        st.session_state.password_verified = True
-                        st.balloons()
-                        st.success("✅ Access granted! Welcome to your ultimate trip assistant!")
-                        st.rerun()
-                    else:
-                        st.error("❌ Incorrect password. Please try again.")
-                except Exception as e:
-                    print(f"Password verification error: {e}")
-                    st.error("❌ Authentication error. Please contact support.")
+                stored_hash = os.getenv('TRIP_PASSWORD_HASH', 'a5be948874610641149611913c4924e5')
+                input_hash = hashlib.md5(password.encode()).hexdigest()
+                
+                if input_hash == stored_hash:
+                    st.session_state.password_verified = True
+                    st.balloons()
+                    st.success("✅ Access granted! Welcome to your ultimate trip assistant!")
+                    st.rerun()
+                else:
+                    st.error("❌ Incorrect password. Please try again.")
         
         with col2:
             if st.button("👀 Demo Mode", use_container_width=True):
@@ -10106,24 +10078,12 @@ def main():
             with st.expander("🔐 Unlock Full Access"):
                 password_input = st.text_input("Enter password:", type="password", key="unlock_password")
                 if st.button("Unlock", use_container_width=True):
-                    # Get password hash from environment variable (NO DEFAULT)
-                    stored_hash = os.getenv('TRIP_PASSWORD_HASH')
-
-                    if not stored_hash:
-                        st.error("⚠️ Application not configured properly.")
-                        st.stop()
-
-                    try:
-                        # Verify password with bcrypt (secure, salted, slow by design)
-                        if bcrypt.checkpw(password_input.encode('utf-8'), stored_hash.encode('utf-8')):
-                            st.session_state['password_verified'] = True
-                            st.success("✅ Access granted!")
-                            st.rerun()
-                        else:
-                            st.error("❌ Incorrect password")
-                    except Exception as e:
-                        print(f"Password verification error: {e}")
-                        st.error("❌ Authentication error.")
+                    if hashlib.md5(password_input.encode()).hexdigest() == os.getenv('TRIP_PASSWORD_HASH', 'a5be948874610641149611913c4924e5'):
+                        st.session_state['password_verified'] = True
+                        st.success("✅ Access granted!")
+                        st.rerun()
+                    else:
+                        st.error("❌ Incorrect password")
 
         st.markdown("---")
         
