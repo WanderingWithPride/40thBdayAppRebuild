@@ -315,6 +315,50 @@ def load_completed_activities():
 
 
 # ============================================================================
+# INTERESTED ACTIVITIES
+# ============================================================================
+
+def mark_activity_interested(activity_name):
+    """Mark activity as interested"""
+    try:
+        data = get_trip_data()
+        if 'interested_activities' not in data:
+            data['interested_activities'] = []
+        if activity_name not in data['interested_activities']:
+            data['interested_activities'].append(activity_name)
+            return save_trip_data(f"Mark interested: {activity_name}")
+        return True
+    except Exception as e:
+        print(f"Error marking activity interested: {e}")
+        return False
+
+
+def unmark_activity_interested(activity_name):
+    """Remove activity from interested list"""
+    try:
+        data = get_trip_data()
+        if 'interested_activities' not in data:
+            data['interested_activities'] = []
+        if activity_name in data['interested_activities']:
+            data['interested_activities'].remove(activity_name)
+            return save_trip_data(f"Remove interested: {activity_name}")
+        return True
+    except Exception as e:
+        print(f"Error unmarking activity interested: {e}")
+        return False
+
+
+def load_interested_activities():
+    """Load interested activities"""
+    try:
+        data = get_trip_data()
+        return data.get('interested_activities', [])
+    except Exception as e:
+        print(f"Error loading interested activities: {e}")
+        return []
+
+
+# ============================================================================
 # PACKING PROGRESS
 # ============================================================================
 

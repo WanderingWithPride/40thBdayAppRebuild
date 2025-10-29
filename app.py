@@ -53,6 +53,7 @@ from data_operations import (
     add_alcohol_request, get_alcohol_requests, delete_alcohol_request, mark_alcohol_purchased,
     save_custom_activity, load_custom_activities, delete_custom_activity,
     mark_activity_completed, load_completed_activities,
+    mark_activity_interested, unmark_activity_interested, load_interested_activities,
     update_packing_item, get_packing_progress,
     add_note, get_notes, delete_note,
     save_photo, load_photos, delete_photo,
@@ -150,6 +151,8 @@ def init_session_state():
         st.session_state.completed_activities = load_completed_activities()
     if 'john_preferences' not in st.session_state:
         st.session_state.john_preferences = load_john_preferences()
+    if 'interested_activities' not in st.session_state:
+        st.session_state.interested_activities = load_interested_activities()
     if 'notifications' not in st.session_state:
         st.session_state.notifications = []  # Initialize empty notifications
     if 'photos' not in st.session_state:
