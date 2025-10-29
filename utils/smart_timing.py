@@ -106,15 +106,37 @@ def get_travel_time(origin: Dict, destination: Dict, mode: str = "driving") -> T
         'local': 15  # Default for local destinations
     }
 
+    # Smart default selection: detect if this is an airport route
+    def get_smart_default() -> Tuple[int, str]:
+        """Choose appropriate default based on origin/destination"""
+        origin_name = origin.get('name', '').lower() if origin else ''
+        dest_name = destination.get('name', '').lower() if destination else ''
+
+        # Check if origin is airport
+        is_from_airport = 'airport' in origin_name or 'jax' in origin_name
+        # Check if destination is airport
+        is_to_airport = 'airport' in dest_name or 'jax' in dest_name
+        # Check if origin or destination is hotel
+        is_hotel = any(word in origin_name + dest_name for word in ['hotel', 'ritz', 'resort'])
+
+        if (is_from_airport or is_to_airport) and is_hotel:
+            # Airport <-> Hotel route
+            minutes = default_times['airport_to_hotel']
+            return minutes, f"~{minutes} min"
+        else:
+            # Local route
+            minutes = default_times['local']
+            return minutes, f"~{minutes} min"
+
     if not GOOGLE_ROUTES_AVAILABLE:
-        return default_times['local'], f"~{default_times['local']} min"
+        return get_smart_default()
 
     # Format location strings
     origin_str = _format_location(origin)
     dest_str = _format_location(destination)
 
     if not origin_str or not dest_str:
-        return default_times['local'], f"~{default_times['local']} min"
+        return get_smart_default()
 
     # Get directions from Google
     try:
@@ -140,8 +162,8 @@ def get_travel_time(origin: Dict, destination: Dict, mode: str = "driving") -> T
     except Exception as e:
         print(f"Travel time calculation error: {e}")
 
-    # Fallback to default
-    return default_times['local'], f"~{default_times['local']} min"
+    # Fallback to smart default
+    return get_smart_default()
 
 
 def _format_location(location: Dict) -> Optional[str]:
