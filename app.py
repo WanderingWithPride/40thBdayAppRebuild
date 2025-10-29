@@ -5932,27 +5932,27 @@ def render_full_schedule(df, activities_data, show_sensitive):
                         }
                         day_activities.append(activity_item)
 
-                # Show proposed activities with voting options
+                # Show proposed activities with voting options (only for John's optional activities, not Michael's solo time)
                 elif proposal and proposal['status'] in ['proposed', 'voted']:
-                    activity_label = activity_slot['id'].replace('_', ' ').title()
-                    john_vote = proposal.get('john_vote')
-
                     # Determine if this is Michael's solo time or John's optional activity
                     is_michael_solo = activity_slot['id'] in ['fri_evening', 'mon_morning', 'mon_afternoon', 'mon_evening']
 
-                    # Build notes string to avoid f-string backslash issues
+                    # Skip showing voting activities for Michael's solo time - he can just add custom activities if he wants
                     if is_michael_solo:
-                        notes_text = "3 activity options proposed. Michael's solo time"
-                    else:
-                        vote_text = 'Option ' + str(int(john_vote) + 1) if john_vote is not None else 'Not voted yet'
-                        notes_text = f"3 activity options proposed. John's vote: {vote_text}"
+                        continue
+
+                    activity_label = activity_slot['id'].replace('_', ' ').title()
+                    john_vote = proposal.get('john_vote')
+
+                    vote_text = 'Option ' + str(int(john_vote) + 1) if john_vote is not None else 'Not voted yet'
+                    notes_text = f"3 activity options proposed. John's vote: {vote_text}"
 
                     voting_activity = {
                         'id': f"activity_vote_{activity_slot['id']}",
                         'date': date_str,
                         'time': activity_slot['time'],
-                        'activity': f"🗳️ {activity_label} - {'Michael to choose' if is_michael_solo else 'Voting in Progress'}",
-                        'description': f"{'Michael will pick from 3 options' if is_michael_solo else 'John is voting on activity options'}",
+                        'activity': f"🗳️ {activity_label} - Voting in Progress",
+                        'description': "John is voting on activity options",
                         'type': 'activity',
                         'category': 'Activity',
                         'duration': '1-3 hours',
