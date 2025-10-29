@@ -190,13 +190,15 @@ def _format_location(location: Dict) -> Optional[str]:
 # =============================================================================
 
 def calculate_arrival_flight_timeline(arrival_time: str,
-                                      destination: Dict = None) -> Optional[Dict]:
+                                      destination: Dict = None,
+                                      next_event_time: str = None) -> Optional[Dict]:
     """
     Calculate complete arrival timeline from flight landing to ready for dinner
 
     Args:
         arrival_time: Flight arrival time (e.g., "6:01 PM")
         destination: Destination location (defaults to hotel)
+        next_event_time: Time of next scheduled event (e.g., "8:30 PM") for gap analysis
 
     Returns:
         Dict with complete timeline information
@@ -222,7 +224,7 @@ def calculate_arrival_flight_timeline(arrival_time: str,
 
     total_minutes = FLIGHT_BAGGAGE_CLAIM + travel_minutes + FLIGHT_HOTEL_CHECKIN + FLIGHT_FRESHEN_UP
 
-    return {
+    timeline = {
         'type': 'arrival_flight',
         'flight_lands': arrival_time,
         'stages': [
@@ -262,6 +264,18 @@ def calculate_arrival_flight_timeline(arrival_time: str,
         'total_time': f'~{total_minutes} min',
         'total_minutes': total_minutes
     }
+
+    # Add gap analysis if next event time is provided
+    if next_event_time:
+        gap_analysis = analyze_timing_gap(
+            ready_time.strftime('%I:%M %p'),
+            next_event_time,
+            context='arrival'
+        )
+        if gap_analysis:
+            timeline['gap_analysis'] = gap_analysis
+
+    return timeline
 
 
 # =============================================================================
@@ -707,6 +721,142 @@ def calculate_photography_timeline(session_time: str,
     return timeline
 
 
+def analyze_timing_gap(ready_time: str, next_event_time: str, context: str = "general") -> Optional[Dict]:
+    """
+    Analyze gap between when you're ready and next scheduled event
+
+    Args:
+        ready_time: When you'll be ready (e.g., "8:01 PM")
+        next_event_time: When next event is scheduled (e.g., "8:30 PM")
+        context: Context for recommendations (arrival, spa, activity, etc.)
+
+    Returns:
+        Dict with gap analysis and recommendations
+    """
+    if not ready_time or not next_event_time:
+        return None
+
+    try:
+        ready_dt = datetime.strptime(ready_time, '%I:%M %p')
+        next_dt = datetime.strptime(next_event_time, '%I:%M %p')
+
+        # Calculate gap
+        gap_minutes = int((next_dt - ready_dt).total_seconds() / 60)
+
+        # If next event is earlier or same time, no gap analysis needed
+        if gap_minutes <= 0:
+            return None
+
+        # Generate recommendations based on gap size and context
+        recommendations = []
+
+        if gap_minutes < 15:
+            # Small gap - just timing note
+            return {
+                'gap_minutes': gap_minutes,
+                'gap_display': f"{gap_minutes} min",
+                'status': 'tight',
+                'icon': '⏱️',
+                'message': f"Tight timing - {gap_minutes} min between ready and next event"
+            }
+
+        elif gap_minutes < 30:
+            # 15-30 min gap
+            if context == 'arrival':
+                recommendations = [
+                    "Quick refresh at hotel",
+                    "Drop bags in room",
+                    "Check out restaurant location"
+                ]
+            else:
+                recommendations = [
+                    "Short break",
+                    "Check phone/messages",
+                    "Quick refresh"
+                ]
+
+            return {
+                'gap_minutes': gap_minutes,
+                'gap_display': f"{gap_minutes} min",
+                'status': 'comfortable',
+                'icon': '✅',
+                'message': f"Comfortable {gap_minutes}-min buffer before next event",
+                'recommendations': recommendations
+            }
+
+        elif gap_minutes < 60:
+            # 30-60 min gap
+            if context == 'arrival':
+                recommendations = [
+                    "💡 **Could book dinner earlier** (you're ready 30+ min before scheduled time)",
+                    "Relax at hotel - explore lobby, check out pool",
+                    "Unpack and settle into room",
+                    "Review dinner menu online"
+                ]
+            elif context == 'spa':
+                recommendations = [
+                    "Continue enjoying spa amenities",
+                    "Hydrate and rest in relaxation lounge",
+                    "Light snack if needed"
+                ]
+            else:
+                recommendations = [
+                    "Relax at hotel",
+                    "Explore resort grounds",
+                    "Quick beach walk"
+                ]
+
+            return {
+                'gap_minutes': gap_minutes,
+                'gap_display': f"{gap_minutes} min",
+                'status': 'flexible',
+                'icon': '🕐',
+                'message': f"You have {gap_minutes} minutes before next event",
+                'recommendations': recommendations
+            }
+
+        else:
+            # 60+ min gap
+            hours = gap_minutes // 60
+            mins = gap_minutes % 60
+            time_display = f"{hours}h {mins}m" if mins else f"{hours}h"
+
+            if context == 'arrival':
+                recommendations = [
+                    "💡 **Could book dinner significantly earlier** (1+ hour buffer)",
+                    "Enjoy hotel amenities (pool, hot tub, beach)",
+                    "Fully unpack and settle in",
+                    "Walk around the resort",
+                    "Have drinks at lobby bar"
+                ]
+            elif context == 'spa':
+                recommendations = [
+                    "Extended spa amenity time",
+                    "Lunch or snack",
+                    "Beach or pool time",
+                    "Nap if needed"
+                ]
+            else:
+                recommendations = [
+                    "Beach time",
+                    "Pool or hot tub",
+                    "Explore local area",
+                    "Rest and recharge"
+                ]
+
+            return {
+                'gap_minutes': gap_minutes,
+                'gap_display': time_display,
+                'status': 'generous',
+                'icon': '⏰',
+                'message': f"Generous {time_display} free time before next event",
+                'recommendations': recommendations
+            }
+
+    except:
+        return None
+
+
 def _get_glow_status(minutes_after_facial: float) -> Dict:
     """Determine glow status based on time after facial"""
     if minutes_after_facial < SPA_FACIAL_GLOW_START:
@@ -739,13 +889,14 @@ def _get_glow_status(minutes_after_facial: float) -> Dict:
 # UNIVERSAL SMART TIMING
 # =============================================================================
 
-def calculate_smart_timing(event: Dict, previous_event: Dict = None) -> Optional[Dict]:
+def calculate_smart_timing(event: Dict, previous_event: Dict = None, next_event_time: str = None) -> Optional[Dict]:
     """
     Universal function to calculate smart timing for any event type
 
     Args:
         event: Event dict with 'type', 'time', 'duration', 'location', etc.
         previous_event: Previous event dict (for travel time calculation)
+        next_event_time: Time of next scheduled event (for gap analysis)
 
     Returns:
         Dict with complete smart timing information
@@ -780,7 +931,7 @@ def calculate_smart_timing(event: Dict, previous_event: Dict = None) -> Optional
     )
 
     if is_arrival and event.get('flight_number'):
-        return calculate_arrival_flight_timeline(event_time)
+        return calculate_arrival_flight_timeline(event_time, next_event_time=next_event_time)
 
     elif is_departure and event.get('flight_number'):
         has_precheck = event.get('has_tsa_precheck', True)
