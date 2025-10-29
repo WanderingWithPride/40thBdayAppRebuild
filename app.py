@@ -9702,9 +9702,10 @@ def render_johns_page(df, activities_data, show_sensitive):
         st.markdown("### 📅 Your Day-by-Day Schedule")
 
         # Filter John's relevant activities (Nov 8-11)
+        # Exclude act001 (Backwater Cat Tour) - it's at 9 AM before John arrives at noon
         john_start = '2025-11-08'
         john_end = '2025-11-11'
-        johns_activities = [a for a in activities_data if a['date'] >= john_start and a['date'] <= john_end]
+        johns_activities = [a for a in activities_data if a['date'] >= john_start and a['date'] <= john_end and a.get('id') != 'act001']
 
         # Group by date
         from itertools import groupby
