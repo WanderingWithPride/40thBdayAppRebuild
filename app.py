@@ -1063,11 +1063,11 @@ def get_ultimate_trip_data():
             "departure_time": "3:51 PM",
             "arrival_time": "6:01 PM",
             "estimated_flight_arrival": "6:01 PM",
-            "estimated_hotel_arrival": "8:00 PM",
+            "estimated_hotel_arrival": "7:45 PM",
             "duration": "2h 10m",
             "checked_bags": "2 free bags",
             "what_to_bring": ["ID", "Boarding pass", "Phone charger", "Snacks for flight"],
-            "tips": ["Arrive 2 hours early", "TSA PreCheck available", "Download AA app", "Check in 24 hours early via AA app", "Business class includes complimentary meals", "Allow ~2 hours for baggage claim, rental car, and 45 min drive to hotel"],
+            "tips": ["Arrive 2 hours early", "TSA PreCheck available", "Download AA app", "Check in 24 hours early via AA app", "Business class includes complimentary meals", "Allow ~1.5-2 hours total: baggage claim (30 min) + Uber to Ritz (45 min) + check-in. Hotel arrival ~7:45-8:00 PM, ready for 8:30 PM dinner."],
             "priority": 3
         },
         {
@@ -5799,7 +5799,7 @@ def render_full_schedule(df, activities_data, show_sensitive):
         # Add confirmed meals to the day's activities
         date_str = date.strftime('%Y-%m-%d')
         meal_slots = [
-            {"id": "fri_dinner", "date": "2025-11-07", "time": "7:00 PM"},
+            {"id": "fri_dinner", "date": "2025-11-07", "time": "8:30 PM"},
             {"id": "sat_breakfast", "date": "2025-11-08", "time": "9:00 AM"},
             {"id": "sat_lunch", "date": "2025-11-08", "time": "12:30 PM"},
             {"id": "sun_breakfast", "date": "2025-11-09", "time": "9:00 AM"},
@@ -7475,7 +7475,7 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
     # Define meal slots - Including SOLO meals and meals with John
     meal_slots = [
         # SOLO MEALS (Michael only)
-        {"id": "fri_dinner", "label": "Friday Dinner (Nov 7) - Solo 🧍", "date": "2025-11-07", "time": "7:00 PM", "solo": True},
+        {"id": "fri_dinner", "label": "Friday Dinner (Nov 7) - Solo 🧍", "date": "2025-11-07", "time": "8:30 PM", "solo": True, "notes": "Land 6:01 PM → Uber to Ritz (arrive ~7:45 PM) → Check in & freshen up → Ready 8:30 PM. Make reservation for 8:30-9:00 PM."},
         {"id": "sat_breakfast", "label": "Saturday Breakfast (Nov 8) - Solo 🧍", "date": "2025-11-08", "time": "8:30 AM", "solo": True},
 
         # TOGETHER MEALS (with John)
