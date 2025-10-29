@@ -54,6 +54,7 @@ from data_operations import (
     save_custom_activity, load_custom_activities, delete_custom_activity,
     mark_activity_completed, load_completed_activities,
     mark_activity_interested, unmark_activity_interested, load_interested_activities,
+    mark_activity_done, unmark_activity_done, load_done_activities,
     update_packing_item, get_packing_progress,
     add_note, get_notes, delete_note,
     save_photo, load_photos, delete_photo,
@@ -153,6 +154,8 @@ def init_session_state():
         st.session_state.john_preferences = load_john_preferences()
     if 'interested_activities' not in st.session_state:
         st.session_state.interested_activities = load_interested_activities()
+    if 'done_activities' not in st.session_state:
+        st.session_state.done_activities = load_done_activities()
     if 'notifications' not in st.session_state:
         st.session_state.notifications = []  # Initialize empty notifications
     if 'photos' not in st.session_state:
@@ -1156,7 +1159,7 @@ def get_ultimate_trip_data():
         {
             "id": "spa002",
             "date": "2025-11-09",
-            "time": "12:00 PM",
+            "time": "11:45 AM",
             "activity": "HydraFacial Treatment (for you)",
             "type": "spa",
             "duration": "1 hour",
@@ -2097,7 +2100,7 @@ def get_optional_activities():
             {"name": "Wine & Tasting Tour", "description": "Local guide takes you to best restaurants, bars and hot spots", "cost_range": "$60-90 per person", "duration": "2-3 hours", "phone": "904-556-7594", "booking_url": "N/A", "tips": "Fun way to discover local flavors and meet people", "rating": "4.5/5"},
         ],
         "💆 Your Birthday Spa Day": [
-            {"name": "Birthday Spa Day at Ritz-Carlton", "description": "🎂 YOUR BOOKED TREATMENTS: • 10:00 AM: Men's Muscle Recovery Couples Massage (100 min deep tissue - PERFECT for John's bad back!) - $410 total • 12:00 PM: HydraFacial Treatment (50 min glowing skin) - $245 • 1:30 PM: Mani-Pedi Combo (90 min pampering) - $180 | ✨ FREE AMENITIES INCLUDED: Arrive 30 min early (9:30 AM) to enjoy: • Healing Saltwater Pool • Steam Rooms & Saunas • Relaxation Lounges with healthy snacks & tea • Spa robes, slippers, and all amenities | 📞 Call 904-277-1087 with any questions | 💪 This massage is THERAPEUTIC - great for chronic back pain! Private couples suite with professional draping. | ✨ Want to add more treatments? See 'Complete Spa Menu' below for 60+ services!", "cost_range": "$835 total (already calculated in budget)", "duration": "9:30 AM - 3:30 PM (full spa day)", "phone": "904-277-1087", "booking_url": "https://www.ritzcarlton.com/en/hotels/jaxam-the-ritz-carlton-amelia-island/spa/", "tips": "ARRIVE AT 9:30 AM to enjoy free saltwater pool before your 10:00 AM massage! Mention John's bad back when booking - therapist will focus there. Request firm/deep pressure for maximum relief. Professional draping maintained throughout (you're covered at all times, undress to comfort level). Gratuity (20%) is automatically added. Stay in the relaxation lounges between treatments! See Complete Spa Menu below for additional treatments.", "rating": "5.0/5"},
+            {"name": "Birthday Spa Day at Ritz-Carlton", "description": "🎂 YOUR BOOKED TREATMENTS: • 10:00 AM: Men's Muscle Recovery Couples Massage (100 min deep tissue - PERFECT for John's bad back!) - $410 total • 11:45 AM: HydraFacial Treatment (50 min glowing skin) - $245 • 1:30 PM: Mani-Pedi Combo (90 min pampering) - $180 | ✨ FREE AMENITIES INCLUDED: Arrive 30 min early (9:30 AM) to enjoy: • Healing Saltwater Pool • Steam Rooms & Saunas • Relaxation Lounges with healthy snacks & tea • Spa robes, slippers, and all amenities | 📞 Call 904-277-1087 with any questions | 💪 This massage is THERAPEUTIC - great for chronic back pain! Private couples suite with professional draping. | ✨ Want to add more treatments? See 'Complete Spa Menu' below for 60+ services!", "cost_range": "$835 total (already calculated in budget)", "duration": "9:30 AM - 3:30 PM (full spa day)", "phone": "904-277-1087", "booking_url": "https://www.ritzcarlton.com/en/hotels/jaxam-the-ritz-carlton-amelia-island/spa/", "tips": "ARRIVE AT 9:30 AM to enjoy free saltwater pool before your 10:00 AM massage! Mention John's bad back when booking - therapist will focus there. Request firm/deep pressure for maximum relief. Professional draping maintained throughout (you're covered at all times, undress to comfort level). Gratuity (20%) is automatically added. Stay in the relaxation lounges between treatments! See Complete Spa Menu below for additional treatments.", "rating": "5.0/5"},
         ],
         "💆 Complete Ritz Spa Menu (60+ Services with Pricing)": [
             {"name": "📋 VIEW ALL SPA SERVICES & PRICING", "description": "Complete menu of all Ritz-Carlton Spa services: • Massage (17 options: $185-410) • Facials (16 options: $185-510) • Body Treatments (5 options: $195-515) • LPG Endermologie Advanced Tech (7 options: $325-350) • Nail Services (12 options: $45-245) • Hair Services (6 options: $35-150) • Red Light Therapy ($50) • Spa Pool Cabanas ($150-600) | All actual pricing from poolside app. Call 904-277-1087 to book additional treatments!", "cost_range": "See full menu below", "duration": "15 min - 150 min depending on service", "phone": "904-277-1087", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "📞 Call 904-277-1087 to add any treatments to your birthday spa day or other days! Ask about LPG Endermologie series packages. Spa facility day pass fee: $25 per person (resort guests), $75 per person (non-guests) - grants access to spa amenities like relaxation lounges, steam rooms, spa pools. Couples massages must be booked by phone.", "rating": "5.0/5", "view_full_spa_menu": True},
@@ -3111,17 +3114,30 @@ def calculate_trip_budget(activities_data):
     """
     total_cost = 0
     category_costs = {}
+    flights_cost = 0
+    flights_list = []
 
-    # Add activities
+    # Add activities, separate flights from future costs
     for activity in activities_data:
         cost = activity.get('cost', 0)
         category = activity.get('category', 'Other')
 
         total_cost += cost
 
-        if category not in category_costs:
-            category_costs[category] = 0
-        category_costs[category] += cost
+        # Track flights separately (already paid)
+        if category == 'Transport' and activity.get('flight_number'):
+            flights_cost += cost
+            flights_list.append({
+                'name': activity.get('activity', 'Flight'),
+                'cost': cost,
+                'flight_number': activity.get('flight_number', ''),
+                'date': activity.get('date', '')
+            })
+        else:
+            # Add to category costs for future spending
+            if category not in category_costs:
+                category_costs[category] = 0
+            category_costs[category] += cost
 
     # Add confirmed meals
     confirmed_meals = get_confirmed_meals_budget()
@@ -3159,8 +3175,14 @@ def calculate_trip_budget(activities_data):
             category_costs[category] = 0
         category_costs[category] += cost
 
+    # Calculate future costs (excluding already-paid flights)
+    future_cost = total_cost - flights_cost
+
     return {
         'total': total_cost,
+        'future_costs': future_cost,
+        'already_paid': flights_cost,
+        'flights': flights_list,
         'by_category': category_costs,
         'categories': sorted(category_costs.items(), key=lambda x: x[1], reverse=True),
         'confirmed_meals': confirmed_meals,
@@ -3217,6 +3239,10 @@ def render_budget_widget(activities_data, show_sensitive=True, view_mode='michae
     safe_top_category = html.escape(top_category)
     top_category_amount = int(display_categories[0][1]) if display_categories else 0
 
+    # Calculate already paid and future costs
+    flights_paid = budget_data.get('already_paid', 0)
+    future_costs = budget_data.get('future_costs', 0)
+
     st.markdown(f"""<div class="ultimate-card" style="border-left: 4px solid #4caf50;">
 <div class="card-body">
 <h4 style="margin: 0 0 0.5rem 0;">💰 Trip Budget Overview</h4>
@@ -3226,13 +3252,14 @@ def render_budget_widget(activities_data, show_sensitive=True, view_mode='michae
 <span style="font-size: 1.3rem; color: #4caf50;">${budget_data['total']:,.0f}</span>
 </div>
 <div>
-<strong>{share_label}:</strong><br>
-<span style="font-size: 1.3rem; color: #2196f3;">${display_total:,.0f}</span>
+<strong>✅ Already Paid:</strong><br>
+<span style="font-size: 1.3rem; color: #9e9e9e;">${flights_paid:,.0f}</span><br>
+<span style="font-size: 0.8rem; color: #666;">Flights</span>
 </div>
 <div>
-<strong>Confirmed Meals:</strong><br>
-<span style="font-size: 1.2rem;">{meals_count} meals</span><br>
-<span style="font-size: 0.9rem; color: #666;">${meals_total:,.0f}</span>
+<strong>🎯 Future Costs:</strong><br>
+<span style="font-size: 1.3rem; color: #ff6b6b;">${future_costs:,.0f}</span><br>
+<span style="font-size: 0.8rem; color: #666;">Focus here!</span>
 </div>
 <div>
 <strong>Top Category:</strong><br>
@@ -3246,8 +3273,17 @@ def render_budget_widget(activities_data, show_sensitive=True, view_mode='michae
     # Show category breakdown
     if display_categories:
         with st.expander("📊 See Detailed Breakdown"):
+            # Show already paid flights first
+            if budget_data.get('flights'):
+                st.markdown("**✅ Already Paid (Flights):**")
+                for flight in budget_data['flights']:
+                    if flight['cost'] > 0:
+                        st.markdown(f"- **{flight['name']}** ({flight['flight_number']}): ${flight['cost']:,.2f}")
+                st.markdown("---")
+
+            st.markdown("**🎯 Future Costs by Category:**")
             for category, amount in display_categories:
-                percentage = (amount / display_total * 100) if display_total > 0 else 0
+                percentage = (amount / future_costs * 100) if future_costs > 0 else 0
                 st.markdown(f"**{category}:** ${amount:,.0f} ({percentage:.1f}%)")
 
             # Show confirmed meals details
@@ -6575,50 +6611,69 @@ def render_full_schedule(df, activities_data, show_sensitive):
 
                                     fitting_activities.sort(key=activity_price_sort_key)
 
-                                    # Filter out already interested activities to avoid duplicates across days
+                                    # Filter out interested and done activities
                                     interested = st.session_state.interested_activities
+                                    done = st.session_state.done_activities
                                     fitting_activities = [
                                         a for a in fitting_activities
-                                        if a['name'] not in interested
+                                        if a['name'] not in interested and a['name'] not in done
                                     ]
 
-                                    # Show top 10 activities directly visible
+                                    # Group activities by category
                                     if fitting_activities:
-                                        st.markdown(f"**{min(len(fitting_activities), 10)} activity options sorted by price:**")
-                                        for idx, act in enumerate(fitting_activities[:10]):
-                                            cost = act.get('cost_range', 'N/A')
-                                            is_free = 'FREE' in cost.upper() or 'INCLUDED' in cost.upper() or '$' not in cost
-                                            badge_color = '#4caf50' if is_free else '#2196f3'
-                                            badge_text = '✨ FREE' if is_free else f'💰 {cost}'
+                                        from collections import defaultdict
+                                        activities_by_category = defaultdict(list)
+                                        for act in fitting_activities:
+                                            activities_by_category[act.get('category', 'Other')].append(act)
 
-                                            st.markdown(f"""
-                                            <div style="border-left: 3px solid {badge_color}; padding: 0.75rem; margin: 0.5rem 0; background: white; border-radius: 4px;">
-                                                <div style="display: flex; justify-content: space-between; align-items: start;">
-                                                    <strong style="font-size: 0.95rem;">{html.escape(act['name'])}</strong>
-                                                    <span style="background: {badge_color}; color: white; padding: 0.15rem 0.5rem; border-radius: 8px; font-size: 0.75rem; white-space: nowrap; margin-left: 0.5rem;">{badge_text}</span>
-                                                </div>
-                                                <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #666;">{html.escape(str(act.get('description', 'N/A'))[:120])}...</p>
-                                                <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #888;">⏱️ {html.escape(str(act.get('duration', 'Varies')))} | 📍 {html.escape(act.get('category', 'Activity'))}</p>
-                                            </div>
-                                            """, unsafe_allow_html=True)
+                                        st.markdown(f"**{len(fitting_activities)} activity options grouped by type:**")
 
-                                            if act.get('phone') and act.get('phone') != 'N/A':
-                                                st.caption(f"📞 {act['phone']}")
-                                            if act.get('tips'):
-                                                st.caption(f"💡 {act['tips'][:100]}...")
+                                        # Display each category in a collapsed expander
+                                        for category, cat_activities in activities_by_category.items():
+                                            with st.expander(f"{category} ({len(cat_activities)} activities)", expanded=False):
+                                                for idx, act in enumerate(cat_activities):
+                                                    cost = act.get('cost_range', 'N/A')
+                                                    is_free = 'FREE' in cost.upper() or 'INCLUDED' in cost.upper() or '$' not in cost
+                                                    badge_color = '#4caf50' if is_free else '#2196f3'
+                                                    badge_text = '✨ FREE' if is_free else f'💰 {cost}'
 
-                                            # Interested button
-                                            button_key = f"interested_gap_{act['name']}_{idx}_{date_str}"
-                                            if act['name'] in st.session_state.interested_activities:
-                                                if st.button(f"✓ Interested", key=button_key, type="secondary", help="Remove from interested list"):
-                                                    unmark_activity_interested(act['name'])
-                                                    st.session_state.interested_activities = load_interested_activities()
-                                                    st.rerun()
-                                            else:
-                                                if st.button(f"⭐ Mark Interested", key=button_key, help="Save for later - removes from other days"):
-                                                    mark_activity_interested(act['name'])
-                                                    st.session_state.interested_activities = load_interested_activities()
-                                                    st.rerun()
+                                                    st.markdown(f"""
+                                                    <div style="border-left: 3px solid {badge_color}; padding: 0.75rem; margin: 0.5rem 0; background: white; border-radius: 4px;">
+                                                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                                                            <strong style="font-size: 0.95rem;">{html.escape(act['name'])}</strong>
+                                                            <span style="background: {badge_color}; color: white; padding: 0.15rem 0.5rem; border-radius: 8px; font-size: 0.75rem; white-space: nowrap; margin-left: 0.5rem;">{badge_text}</span>
+                                                        </div>
+                                                        <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #666;">{html.escape(str(act.get('description', 'N/A'))[:120])}...</p>
+                                                        <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #888;">⏱️ {html.escape(str(act.get('duration', 'Varies')))}</p>
+                                                    </div>
+                                                    """, unsafe_allow_html=True)
+
+                                                    if act.get('phone') and act.get('phone') != 'N/A':
+                                                        st.caption(f"📞 {act['phone']}")
+                                                    if act.get('tips'):
+                                                        st.caption(f"💡 {act['tips'][:100]}...")
+
+                                                    # Action buttons - Interested and Done
+                                                    col1, col2 = st.columns(2)
+                                                    with col1:
+                                                        interested_key = f"interested_gap_{act['name']}_{idx}_{date_str}_{category}"
+                                                        if act['name'] in st.session_state.interested_activities:
+                                                            if st.button(f"✓ Interested", key=interested_key, type="secondary", help="Remove from interested list"):
+                                                                unmark_activity_interested(act['name'])
+                                                                st.session_state.interested_activities = load_interested_activities()
+                                                                st.rerun()
+                                                        else:
+                                                            if st.button(f"⭐ Mark Interested", key=interested_key, help="Save for later - removes from other days"):
+                                                                mark_activity_interested(act['name'])
+                                                                st.session_state.interested_activities = load_interested_activities()
+                                                                st.rerun()
+
+                                                    with col2:
+                                                        done_key = f"done_gap_{act['name']}_{idx}_{date_str}_{category}"
+                                                        if st.button(f"✅ Mark as Done", key=done_key, help="Already did this - removes from all future suggestions"):
+                                                            mark_activity_done(act['name'])
+                                                            st.session_state.done_activities = load_done_activities()
+                                                            st.rerun()
                                     else:
                                         st.info("⏰ This gap is shorter - perfect for relaxing at the hotel, beach walk, or pool time!")
                             except:
@@ -6858,31 +6913,70 @@ def render_full_schedule(df, activities_data, show_sensitive):
 
                         fitting_activities.sort(key=activity_price_sort_key)
 
-                        # Show top 8 activities directly visible
+                        # Filter out interested and done activities
+                        interested = st.session_state.interested_activities
+                        done = st.session_state.done_activities
+                        fitting_activities = [
+                            a for a in fitting_activities
+                            if a['name'] not in interested and a['name'] not in done
+                        ]
+
+                        # Group activities by category
                         if fitting_activities:
-                            st.markdown(f"**{min(len(fitting_activities), 8)} alternative activity options sorted by price:**")
-                            for act in fitting_activities[:8]:
-                                cost = act.get('cost_range', 'N/A')
-                                is_free = 'FREE' in cost.upper() or 'INCLUDED' in cost.upper() or '$' not in cost
-                                badge_color = '#4caf50' if is_free else '#2196f3'
-                                badge_text = '✨ FREE' if is_free else f'💰 {cost}'
+                            from collections import defaultdict
+                            activities_by_category = defaultdict(list)
+                            for act in fitting_activities:
+                                activities_by_category[act.get('category', 'Other')].append(act)
 
-                                import html
-                                st.markdown(f"""
-                                <div style="border-left: 3px solid {badge_color}; padding: 0.75rem; margin: 0.5rem 0; background: white; border-radius: 4px;">
-                                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                                        <strong style="font-size: 0.95rem;">{html.escape(act['name'])}</strong>
-                                        <span style="background: {badge_color}; color: white; padding: 0.15rem 0.5rem; border-radius: 8px; font-size: 0.75rem; white-space: nowrap; margin-left: 0.5rem;">{badge_text}</span>
-                                    </div>
-                                    <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #666;">{html.escape(str(act.get('description', 'N/A'))[:120])}...</p>
-                                    <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #888;">⏱️ {html.escape(str(act.get('duration', 'Varies')))} | 📍 {html.escape(act.get('category', 'Activity'))}</p>
-                                </div>
-                                """, unsafe_allow_html=True)
+                            st.markdown(f"**{len(fitting_activities)} alternative activity options grouped by type:**")
 
-                                if act.get('phone') and act.get('phone') != 'N/A':
-                                    st.caption(f"📞 {act['phone']}")
-                                if act.get('tips'):
-                                    st.caption(f"💡 {act['tips'][:100]}...")
+                            # Display each category in a collapsed expander
+                            for category, cat_activities in activities_by_category.items():
+                                with st.expander(f"{category} ({len(cat_activities)} activities)", expanded=False):
+                                    for idx, act in enumerate(cat_activities):
+                                        cost = act.get('cost_range', 'N/A')
+                                        is_free = 'FREE' in cost.upper() or 'INCLUDED' in cost.upper() or '$' not in cost
+                                        badge_color = '#4caf50' if is_free else '#2196f3'
+                                        badge_text = '✨ FREE' if is_free else f'💰 {cost}'
+
+                                        import html
+                                        st.markdown(f"""
+                                        <div style="border-left: 3px solid {badge_color}; padding: 0.75rem; margin: 0.5rem 0; background: white; border-radius: 4px;">
+                                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                                <strong style="font-size: 0.95rem;">{html.escape(act['name'])}</strong>
+                                                <span style="background: {badge_color}; color: white; padding: 0.15rem 0.5rem; border-radius: 8px; font-size: 0.75rem; white-space: nowrap; margin-left: 0.5rem;">{badge_text}</span>
+                                            </div>
+                                            <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #666;">{html.escape(str(act.get('description', 'N/A'))[:120])}...</p>
+                                            <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #888;">⏱️ {html.escape(str(act.get('duration', 'Varies')))}</p>
+                                        </div>
+                                        """, unsafe_allow_html=True)
+
+                                        if act.get('phone') and act.get('phone') != 'N/A':
+                                            st.caption(f"📞 {act['phone']}")
+                                        if act.get('tips'):
+                                            st.caption(f"💡 {act['tips'][:100]}...")
+
+                                        # Action buttons - Interested and Done
+                                        col1, col2 = st.columns(2)
+                                        with col1:
+                                            interested_key = f"interested_meal_{act['name']}_{idx}_{meal_time}_{category}"
+                                            if act['name'] in st.session_state.interested_activities:
+                                                if st.button(f"✓ Interested", key=interested_key, type="secondary", help="Remove from interested list"):
+                                                    unmark_activity_interested(act['name'])
+                                                    st.session_state.interested_activities = load_interested_activities()
+                                                    st.rerun()
+                                            else:
+                                                if st.button(f"⭐ Mark Interested", key=interested_key, help="Save for later - removes from other days"):
+                                                    mark_activity_interested(act['name'])
+                                                    st.session_state.interested_activities = load_interested_activities()
+                                                    st.rerun()
+
+                                        with col2:
+                                            done_key = f"done_meal_{act['name']}_{idx}_{meal_time}_{category}"
+                                            if st.button(f"✅ Mark as Done", key=done_key, help="Already did this - removes from all future suggestions"):
+                                                mark_activity_done(act['name'])
+                                                st.session_state.done_activities = load_done_activities()
+                                                st.rerun()
 
                 # Activity and meal voting removed - use universal suggestion system in free time instead
 
@@ -7291,30 +7385,70 @@ def render_full_schedule(df, activities_data, show_sensitive):
 
                         fitting_activities.sort(key=activity_price_sort_key)
 
-                        # Show top 8 activities directly visible
+                        # Filter out interested and done activities
+                        interested = st.session_state.interested_activities
+                        done = st.session_state.done_activities
+                        fitting_activities = [
+                            a for a in fitting_activities
+                            if a['name'] not in interested and a['name'] not in done
+                        ]
+
+                        # Group activities by category
                         if fitting_activities:
-                            st.markdown(f"**{min(len(fitting_activities), 8)} alternative activity options sorted by price:**")
-                            for act in fitting_activities[:8]:
-                                cost = act.get('cost_range', 'N/A')
-                                is_free = 'FREE' in cost.upper() or 'INCLUDED' in cost.upper() or '$' not in cost
-                                badge_color = '#4caf50' if is_free else '#2196f3'
-                                badge_text = '✨ FREE' if is_free else f'💰 {cost}'
+                            from collections import defaultdict
+                            activities_by_category = defaultdict(list)
+                            for act in fitting_activities:
+                                activities_by_category[act.get('category', 'Other')].append(act)
 
-                                st.markdown(f"""
-                                <div style="border-left: 3px solid {badge_color}; padding: 0.75rem; margin: 0.5rem 0; background: white; border-radius: 4px;">
-                                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                                        <strong style="font-size: 0.95rem;">{html.escape(act['name'])}</strong>
-                                        <span style="background: {badge_color}; color: white; padding: 0.15rem 0.5rem; border-radius: 8px; font-size: 0.75rem; white-space: nowrap; margin-left: 0.5rem;">{badge_text}</span>
-                                    </div>
-                                    <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #666;">{html.escape(str(act.get('description', 'N/A'))[:120])}...</p>
-                                    <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #888;">⏱️ {html.escape(str(act.get('duration', 'Varies')))} | 📍 {html.escape(act.get('category', 'Activity'))}</p>
-                                </div>
-                                """, unsafe_allow_html=True)
+                            st.markdown(f"**{len(fitting_activities)} alternative activity options grouped by type:**")
 
-                                if act.get('phone') and act.get('phone') != 'N/A':
-                                    st.caption(f"📞 {act['phone']}")
-                                if act.get('tips'):
-                                    st.caption(f"💡 {act['tips'][:100]}...")
+                            # Display each category in a collapsed expander
+                            activity_id_str = activity.get('id', 'activity')
+                            for category, cat_activities in activities_by_category.items():
+                                with st.expander(f"{category} ({len(cat_activities)} activities)", expanded=False):
+                                    for idx, act in enumerate(cat_activities):
+                                        cost = act.get('cost_range', 'N/A')
+                                        is_free = 'FREE' in cost.upper() or 'INCLUDED' in cost.upper() or '$' not in cost
+                                        badge_color = '#4caf50' if is_free else '#2196f3'
+                                        badge_text = '✨ FREE' if is_free else f'💰 {cost}'
+
+                                        st.markdown(f"""
+                                        <div style="border-left: 3px solid {badge_color}; padding: 0.75rem; margin: 0.5rem 0; background: white; border-radius: 4px;">
+                                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                                <strong style="font-size: 0.95rem;">{html.escape(act['name'])}</strong>
+                                                <span style="background: {badge_color}; color: white; padding: 0.15rem 0.5rem; border-radius: 8px; font-size: 0.75rem; white-space: nowrap; margin-left: 0.5rem;">{badge_text}</span>
+                                            </div>
+                                            <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #666;">{html.escape(str(act.get('description', 'N/A'))[:120])}...</p>
+                                            <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #888;">⏱️ {html.escape(str(act.get('duration', 'Varies')))}</p>
+                                        </div>
+                                        """, unsafe_allow_html=True)
+
+                                        if act.get('phone') and act.get('phone') != 'N/A':
+                                            st.caption(f"📞 {act['phone']}")
+                                        if act.get('tips'):
+                                            st.caption(f"💡 {act['tips'][:100]}...")
+
+                                        # Action buttons - Interested and Done
+                                        col1, col2 = st.columns(2)
+                                        with col1:
+                                            interested_key = f"interested_sched_{act['name']}_{idx}_{activity_id_str}_{category}"
+                                            if act['name'] in st.session_state.interested_activities:
+                                                if st.button(f"✓ Interested", key=interested_key, type="secondary", help="Remove from interested list"):
+                                                    unmark_activity_interested(act['name'])
+                                                    st.session_state.interested_activities = load_interested_activities()
+                                                    st.rerun()
+                                            else:
+                                                if st.button(f"⭐ Mark Interested", key=interested_key, help="Save for later - removes from other days"):
+                                                    mark_activity_interested(act['name'])
+                                                    st.session_state.interested_activities = load_interested_activities()
+                                                    st.rerun()
+
+                                        with col2:
+                                            done_key = f"done_sched_{act['name']}_{idx}_{activity_id_str}_{category}"
+                                            if st.button(f"✅ Mark as Done", key=done_key, help="Already did this - removes from all future suggestions"):
+                                                mark_activity_done(act['name'])
+                                                st.session_state.done_activities = load_done_activities()
+                                                st.rerun()
 
         # NEW: Show Michael's free time options when John has solo activities
         michael_free_time_activities = [a for a in day_activities if a.get('activity_type') == 'john_solo']
@@ -8440,7 +8574,7 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             "2025-11-09": [  # Sunday - Birthday!
                 {"time": "9:00 AM", "activity": "Room Service Breakfast (already booked)", "icon": "🛎️"},
                 {"time": "10:00 AM", "activity": "Men's Muscle Recovery Couples Massage (100 min - for John's back!)", "icon": "💆"},
-                {"time": "12:00 PM", "activity": "HydraFacial Spa Treatment (50 min)", "icon": "💧"},
+                {"time": "11:45 AM", "activity": "HydraFacial Spa Treatment (50 min)", "icon": "💧"},
                 {"time": "1:30 PM", "activity": "Mani-Pedi Spa Treatment (90 min)", "icon": "💅"},
                 {"time": "7:00 PM", "activity": "Birthday Dinner (already booked)", "icon": "🎂"},
             ],

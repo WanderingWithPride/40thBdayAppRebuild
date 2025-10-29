@@ -314,6 +314,46 @@ def load_completed_activities():
         return []
 
 
+def mark_activity_done(activity_name):
+    """Mark activity as done by name (for optional activities)"""
+    try:
+        data = get_trip_data()
+        if 'done_activities' not in data:
+            data['done_activities'] = []
+        if activity_name not in data['done_activities']:
+            data['done_activities'].append(activity_name)
+            return save_trip_data(f"Mark done: {activity_name}")
+        return True
+    except Exception as e:
+        print(f"Error marking activity done: {e}")
+        return False
+
+
+def unmark_activity_done(activity_name):
+    """Remove activity from done list"""
+    try:
+        data = get_trip_data()
+        if 'done_activities' not in data:
+            data['done_activities'] = []
+        if activity_name in data['done_activities']:
+            data['done_activities'].remove(activity_name)
+            return save_trip_data(f"Remove done: {activity_name}")
+        return True
+    except Exception as e:
+        print(f"Error unmarking activity done: {e}")
+        return False
+
+
+def load_done_activities():
+    """Load done activities"""
+    try:
+        data = get_trip_data()
+        return data.get('done_activities', [])
+    except Exception as e:
+        print(f"Error loading done activities: {e}")
+        return []
+
+
 # ============================================================================
 # INTERESTED ACTIVITIES
 # ============================================================================
