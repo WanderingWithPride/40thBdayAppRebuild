@@ -1,6 +1,7 @@
 """
 Data Operations - Wrapper functions that replace database operations
 Uses GitHub JSON storage instead of SQLite
+Last updated: 2025-10-29 - Added mark_activity_done functionality
 """
 
 import json
