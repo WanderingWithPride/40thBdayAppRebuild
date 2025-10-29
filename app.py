@@ -5779,71 +5779,61 @@ def enrich_activity_with_live_data(activity, date_str, weather_data):
         except:
             pass
 
-    # 3. TIMELINE CALCULATION
-    activity_name_lower = activity.get('activity', '').lower()
-    is_arrival = 'arrival' in activity_name_lower or 'arriving' in activity_name_lower or 'arrives' in activity_name_lower
-    is_departure = 'depart' in activity_name_lower or 'leaving' in activity_name_lower
+    # 3. SMART TIMING CALCULATION - Universal system for all event types
+    try:
+        from utils.smart_timing import calculate_smart_timing
 
-    activity_time = activity.get('time', '')
+        # Calculate smart timing for this event
+        smart_timing = calculate_smart_timing(activity)
 
-    # FOR ARRIVALS: Calculate projected "ready for dinner" time
-    if is_arrival and activity_time and activity_time != 'TBD':
-        try:
-            from datetime import datetime, timedelta
+        if smart_timing:
+            enriched['smart_timing'] = smart_timing
 
-            # Start with flight arrival time
-            arrival_time_obj = datetime.strptime(activity_time, '%I:%M %p')
+            # Backward compatibility: Keep old keys for existing code
+            if smart_timing.get('type') == 'arrival_flight':
+                enriched['arrival_timeline'] = {
+                    'flight_lands': smart_timing['flight_lands'],
+                    'baggage_claim': next((s['duration'] for s in smart_timing['stages'] if 'Baggage' in s['label']), '~30 min'),
+                    'drive_to_hotel': next((s['duration'] for s in smart_timing['stages'] if 'Drive' in s['label']), '~45 min'),
+                    'check_in': next((s['duration'] for s in smart_timing['stages'] if 'Check-in' in s['label']), '~15 min'),
+                    'prep_time': next((s['duration'] for s in smart_timing['stages'] if 'Freshen' in s['label']), '~30 min'),
+                    'at_hotel_by': smart_timing['at_hotel_by'],
+                    'ready_for_dinner_by': smart_timing['ready_for_dinner_by'],
+                    'total_time': smart_timing['total_time']
+                }
+                enriched['projected_end_time'] = smart_timing['ready_for_dinner_by']
 
-            # Add arrival timeline:
-            # - Deplane & baggage claim: 30 min
-            # - Drive to hotel (from airport): 45 min
-            # - Hotel check-in: 15 min
-            # - Freshen up / change for dinner: 30 min
-            baggage_time = 30
-            drive_time = 45
-            checkin_time = 15
-            prep_time = 30
-            total_arrival_minutes = baggage_time + drive_time + checkin_time + prep_time  # 120 minutes total
+            elif smart_timing.get('type') == 'departure_flight':
+                enriched['departure_timeline'] = smart_timing
+                enriched['suggested_departure'] = smart_timing['leave_hotel_by']
 
-            # Intermediate times
-            at_hotel_time = arrival_time_obj + timedelta(minutes=baggage_time + drive_time + checkin_time)
-            ready_time = arrival_time_obj + timedelta(minutes=total_arrival_minutes)
+            elif smart_timing.get('type') == 'spa_treatment':
+                enriched['spa_timeline'] = smart_timing
+                enriched['suggested_arrival'] = smart_timing['arrive_by']
+                if smart_timing.get('glow_window'):
+                    enriched['glow_window'] = smart_timing['glow_window']
 
-            enriched['arrival_timeline'] = {
-                'flight_lands': activity_time,
-                'baggage_claim': f'~{baggage_time} min',
-                'drive_to_hotel': f'~{drive_time} min',
-                'check_in': f'~{checkin_time} min',
-                'prep_time': f'~{prep_time} min',
-                'at_hotel_by': at_hotel_time.strftime('%I:%M %p'),
-                'ready_for_dinner_by': ready_time.strftime('%I:%M %p'),
-                'total_time': f'~{total_arrival_minutes} min'
-            }
-            enriched['projected_end_time'] = ready_time.strftime('%I:%M %p')
-        except:
-            pass
+            elif smart_timing.get('type') == 'meal':
+                enriched['meal_timeline'] = smart_timing
+                enriched['suggested_departure'] = smart_timing['leave_by']
+                enriched['arrival_buffer'] = smart_timing['arrive_by']
 
-    # FOR DEPARTURES & REGULAR ACTIVITIES: Calculate when to leave hotel
-    elif GOOGLE_APIS_AVAILABLE and not is_arrival:
+            elif smart_timing.get('type') == 'activity':
+                enriched['activity_timeline'] = smart_timing
+                enriched['suggested_departure'] = smart_timing['leave_by']
+
+            elif smart_timing.get('type') == 'photography':
+                enriched['photography_timeline'] = smart_timing
+                enriched['suggested_departure'] = smart_timing['leave_by']
+                if smart_timing.get('after_facial'):
+                    enriched['glow_status'] = smart_timing['after_facial']
+    except Exception as e:
+        print(f"Smart timing calculation error: {e}")
+        # Fall back to old traffic calculation if smart timing fails
         try:
             traffic = get_traffic_data(hotel_address, location_address)
             if traffic:
                 enriched['traffic'] = traffic
-
-                if activity_time and activity_time != 'TBD':
-                    try:
-                        from datetime import datetime, timedelta
-                        time_obj = datetime.strptime(activity_time, '%I:%M %p')
-                        travel_minutes = traffic.get('duration_in_traffic', {}).get('value', 0) // 60
-
-                        # Add buffer: 30 min for departures (airport security), 10 min for regular activities
-                        buffer_minutes = 30 if is_departure else 10
-
-                        departure_time = time_obj - timedelta(minutes=travel_minutes + buffer_minutes)
-                        enriched['suggested_departure'] = departure_time.strftime('%I:%M %p')
-                        enriched['travel_time_minutes'] = travel_minutes
-                    except:
-                        pass
         except:
             pass
 
@@ -6434,8 +6424,12 @@ def render_full_schedule(df, activities_data, show_sensitive):
                 activity['activity_type'] = 'shared'
                 activity['activity_type_label'] = '👥 SHARED - Michael treating'
             elif activity.get('is_meal'):
-                activity['activity_type'] = 'shared'
-                activity['activity_type_label'] = '👥 SHARED MEAL'
+                if activity.get('is_solo'):
+                    activity['activity_type'] = 'michael_solo'
+                    activity['activity_type_label'] = '🍽️ SOLO MEAL - Michael only'
+                else:
+                    activity['activity_type'] = 'shared'
+                    activity['activity_type_label'] = '👥 SHARED MEAL'
             else:
                 activity['activity_type'] = 'shared'
                 activity['activity_type_label'] = '👥 SHARED'
@@ -6561,8 +6555,54 @@ def render_full_schedule(df, activities_data, show_sensitive):
                             else:
                                 st.info(alert['message'])
 
-                        # === ARRIVAL TIMELINE (for arrival flights) ===
-                        if live_data.get('arrival_timeline'):
+                        # === SMART TIMING DISPLAY (Universal for all event types) ===
+                        if live_data.get('smart_timing'):
+                            timing = live_data['smart_timing']
+                            timing_type = timing.get('type')
+
+                            # Display timeline stages
+                            if timing.get('stages'):
+                                st.markdown("**⏰ Smart Timeline:**")
+                                for stage in timing['stages']:
+                                    if stage.get('duration'):
+                                        st.markdown(f"- {stage['icon']} **{stage['label']}:** {stage['time']} ({stage['duration']})")
+                                    else:
+                                        st.markdown(f"- {stage['icon']} **{stage['label']}:** {stage['time']}")
+                                    if stage.get('tip'):
+                                        st.caption(f"  💡 {stage['tip']}")
+
+                            # Type-specific highlights
+                            if timing_type == 'arrival_flight':
+                                st.success(f"🍽️ **Ready for dinner by:** {timing['ready_for_dinner_by']} ({timing['total_time']} after landing)")
+
+                            elif timing_type == 'departure_flight':
+                                st.warning(f"⏰ **Start checkout by:** {timing['start_checkout_by']}")
+                                st.success(f"🚗 **Leave hotel by:** {timing['leave_hotel_by']}")
+
+                            elif timing_type == 'spa_treatment':
+                                st.success(f"🧖 **Arrive by:** {timing['arrive_by']} (enjoy amenities before treatment)")
+                                if timing.get('glow_window'):
+                                    glow = timing['glow_window']
+                                    st.info(f"✨ **GLOW WINDOW:** {glow['start_time']} - {glow['end_time']}")
+                                    st.caption(f"   💫 Peak glow at {glow['peak_time']} - {glow['tip']}")
+
+                            elif timing_type == 'meal':
+                                st.success(f"🚗 **Leave by:** {timing['leave_by']}")
+                                st.info(f"🍽️ **Arrive at restaurant:** {timing['arrive_by']} (10 min before reservation)")
+
+                            elif timing_type == 'activity':
+                                st.success(f"🚗 **Leave by:** {timing['leave_by']}")
+                                st.info(f"📍 **Activity ends:** {timing['activity_ends']}")
+
+                            elif timing_type == 'photography':
+                                st.success(f"📸 **Leave for session:** {timing['leave_by']}")
+                                if timing.get('after_facial'):
+                                    facial_info = timing['after_facial']
+                                    glow_status = facial_info.get('glow_status', {})
+                                    st.info(f"{glow_status.get('emoji', '✨')} **Skin Status:** {glow_status.get('message', 'Looking great!')}")
+
+                        # === BACKWARD COMPATIBILITY: Old arrival timeline display ===
+                        elif live_data.get('arrival_timeline'):
                             timeline = live_data['arrival_timeline']
                             st.info(f"✈️ **Flight lands:** {timeline['flight_lands']}")
                             st.markdown(f"""
@@ -6574,7 +6614,7 @@ def render_full_schedule(df, activities_data, show_sensitive):
                             """)
                             st.success(f"🍽️ **Ready for dinner by:** {timeline['ready_for_dinner_by']} ({timeline['total_time']} after landing)")
 
-                        # === REAL-TIME TRAFFIC + SMART DEPARTURE TIME (for regular activities) ===
+                        # === BACKWARD COMPATIBILITY: Old traffic display ===
                         elif live_data.get('traffic'):
                             traffic = live_data['traffic']
                             traffic_emoji = traffic.get('traffic_emoji', '🟢')
@@ -6799,8 +6839,54 @@ def render_full_schedule(df, activities_data, show_sensitive):
                             else:
                                 st.info(alert['message'])
 
-                        # === ARRIVAL TIMELINE (for arrival flights) ===
-                        if live_data.get('arrival_timeline'):
+                        # === SMART TIMING DISPLAY (Universal for all event types) ===
+                        if live_data.get('smart_timing'):
+                            timing = live_data['smart_timing']
+                            timing_type = timing.get('type')
+
+                            # Display timeline stages
+                            if timing.get('stages'):
+                                st.markdown("**⏰ Smart Timeline:**")
+                                for stage in timing['stages']:
+                                    if stage.get('duration'):
+                                        st.markdown(f"- {stage['icon']} **{stage['label']}:** {stage['time']} ({stage['duration']})")
+                                    else:
+                                        st.markdown(f"- {stage['icon']} **{stage['label']}:** {stage['time']}")
+                                    if stage.get('tip'):
+                                        st.caption(f"  💡 {stage['tip']}")
+
+                            # Type-specific highlights
+                            if timing_type == 'arrival_flight':
+                                st.success(f"🍽️ **Ready for dinner by:** {timing['ready_for_dinner_by']} ({timing['total_time']} after landing)")
+
+                            elif timing_type == 'departure_flight':
+                                st.warning(f"⏰ **Start checkout by:** {timing['start_checkout_by']}")
+                                st.success(f"🚗 **Leave hotel by:** {timing['leave_hotel_by']}")
+
+                            elif timing_type == 'spa_treatment':
+                                st.success(f"🧖 **Arrive by:** {timing['arrive_by']} (enjoy amenities before treatment)")
+                                if timing.get('glow_window'):
+                                    glow = timing['glow_window']
+                                    st.info(f"✨ **GLOW WINDOW:** {glow['start_time']} - {glow['end_time']}")
+                                    st.caption(f"   💫 Peak glow at {glow['peak_time']} - {glow['tip']}")
+
+                            elif timing_type == 'meal':
+                                st.success(f"🚗 **Leave by:** {timing['leave_by']}")
+                                st.info(f"🍽️ **Arrive at restaurant:** {timing['arrive_by']} (10 min before reservation)")
+
+                            elif timing_type == 'activity':
+                                st.success(f"🚗 **Leave by:** {timing['leave_by']}")
+                                st.info(f"📍 **Activity ends:** {timing['activity_ends']}")
+
+                            elif timing_type == 'photography':
+                                st.success(f"📸 **Leave for session:** {timing['leave_by']}")
+                                if timing.get('after_facial'):
+                                    facial_info = timing['after_facial']
+                                    glow_status = facial_info.get('glow_status', {})
+                                    st.info(f"{glow_status.get('emoji', '✨')} **Skin Status:** {glow_status.get('message', 'Looking great!')}")
+
+                        # === BACKWARD COMPATIBILITY: Old arrival timeline display ===
+                        elif live_data.get('arrival_timeline'):
                             timeline = live_data['arrival_timeline']
                             st.info(f"✈️ **Flight lands:** {timeline['flight_lands']}")
                             st.markdown(f"""
@@ -6812,7 +6898,7 @@ def render_full_schedule(df, activities_data, show_sensitive):
                             """)
                             st.success(f"🍽️ **Ready for dinner by:** {timeline['ready_for_dinner_by']} ({timeline['total_time']} after landing)")
 
-                        # === REAL-TIME TRAFFIC + SMART DEPARTURE TIME (for regular activities) ===
+                        # === BACKWARD COMPATIBILITY: Old traffic display ===
                         elif live_data.get('traffic'):
                             traffic = live_data['traffic']
                             traffic_emoji = traffic.get('traffic_emoji', '🟢')
