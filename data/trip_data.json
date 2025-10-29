@@ -1015,6 +1015,9 @@
   "completed_activities": [],
   "notifications": [],
   "tsa_updates": [],
-  "last_updated": "2025-10-29T21:06:00.097465",
-  "_test_write": "verification"
+  "last_updated": "2025-10-29T22:14:12.658713",
+  "_test_write": "verification",
+  "interested_activities": [
+    "Peters Point Beach"
+  ]
 }
