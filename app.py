@@ -6019,10 +6019,6 @@ def render_full_schedule(df, activities_data, show_sensitive):
                 activity['activity_type'] = 'shared'
                 activity['activity_type_label'] = '👥 SHARED'
 
-        # NEW: Separate meals from activities
-        meals = [a for a in day_activities if a.get('type') == 'dining' or a.get('is_meal')]
-        non_meal_activities = [a for a in day_activities if a.get('type') != 'dining' and not a.get('is_meal')]
-
         # Check if birthday
         is_birthday = date.month == 11 and date.day == 9
 
@@ -6059,59 +6055,10 @@ def render_full_schedule(df, activities_data, show_sensitive):
         </div>
         """, unsafe_allow_html=True)
 
-        # NEW: Show meals section first
-        if meals:
-            st.markdown("### 🍽️ MEALS")
-            for meal in meals:
-                # Show meal in collapsed expander
-                meal_time = meal.get('time', 'TBD')
-                meal_name = meal.get('activity', 'Meal')
-                meal_status = meal.get('status', 'pending')
-                meal_type_label = meal.get('activity_type_label', '👥 SHARED MEAL')
-
-                # Status emoji
-                status_emoji = "✅" if meal_status in ['confirmed', 'Confirmed'] else "🗳️" if meal.get('is_meal_voting') else "⏳"
-
-                with st.expander(f"{status_emoji} {meal_time} - {meal_name}", expanded=False):
-                    st.markdown(f"**Type:** {meal_type_label}")
-                    if meal.get('description'):
-                        st.markdown(f"**Description:** {meal.get('description')}")
-                    if meal.get('cost'):
-                        cost_display = meal.get('cost') if show_sensitive else "$***"
-                        st.markdown(f"**Cost:** {cost_display}")
-                    if meal.get('notes'):
-                        st.info(mask_info(meal.get('notes', ''), show_sensitive))
-                    if meal.get('booking_url') and meal.get('booking_url') != 'N/A':
-                        st.markdown(f"[📞 Book Now]({meal.get('booking_url')})")
-
-                    # Handle voting meals
-                    if meal.get('is_meal_voting'):
-                        st.markdown("**Restaurant Options:**")
-                        restaurant_details_map = get_restaurant_details()
-                        for idx, restaurant in enumerate(meal.get('restaurant_options', [])):
-                            rest_details = restaurant_details_map.get(restaurant['name'], {})
-                            phone = restaurant.get('phone', 'N/A')
-                            menu = rest_details.get('menu_url', 'N/A')
-
-                            # Display prominent restaurant name and details
-                            st.markdown(f"### 🍽️ Option {idx + 1}: {restaurant['name']}")
-                            st.markdown(f"**Description:** {restaurant.get('description', 'N/A')}")
-
-                            cost_display = restaurant.get('cost_range', 'N/A') if show_sensitive else "$***"
-                            st.markdown(f"**Cost:** {cost_display}")
-                            st.markdown(f"**Dress Code:** {rest_details.get('dress_code', 'Casual')}")
-                            st.markdown(f"**Phone:** {phone}")
-                            if menu != 'N/A' and menu.startswith('http'):
-                                st.markdown(f"**Menu:** [View Menu]({menu})")
-                            if restaurant.get('tips'):
-                                st.info(f"💡 {restaurant.get('tips')}")
-                            st.markdown("---")
-            st.markdown("---")
-
-        # NEW: Show activities section
-        if non_meal_activities:
-            st.markdown("### 🎯 ACTIVITIES")
-            for idx, activity in enumerate(non_meal_activities):
+        # Show all activities and meals chronologically
+        if day_activities:
+            st.markdown("### 📅 TODAY'S SCHEDULE")
+            for idx, activity in enumerate(day_activities):
                 status_class = activity['status'].lower()
                 activity_id = activity.get('id', '')
 
@@ -6167,8 +6114,32 @@ def render_full_schedule(df, activities_data, show_sensitive):
                     else:
                         john_status_badge = '<p style="margin: 0.5rem 0;"><span style="background: #ff9800; color: white; padding: 0.25rem 0.75rem; border-radius: 10px; font-size: 0.85rem;">❓ John: Needs to Decide</span></p>'
 
+                # Special handling for simple meals (not voting)
+                is_meal = activity.get('type') == 'dining' or activity.get('is_meal')
+                if is_meal and not activity.get('is_meal_voting'):
+                    # Simple meal display (confirmed meals)
+                    meal_time = activity.get('time', 'TBD')
+                    meal_name = activity.get('activity', 'Meal')
+                    meal_status = activity.get('status', 'pending')
+                    meal_type_label = activity.get('activity_type_label', '👥 SHARED MEAL')
+
+                    # Status emoji
+                    status_emoji = "✅" if meal_status in ['confirmed', 'Confirmed'] else "⏳"
+
+                    with st.expander(f"{status_emoji} {meal_time} - 🍽️ {meal_name}", expanded=False):
+                        st.markdown(f"**Type:** {meal_type_label}")
+                        if activity.get('description'):
+                            st.markdown(f"**Description:** {activity.get('description')}")
+                        if activity.get('cost'):
+                            cost_display = activity.get('cost') if show_sensitive else "$***"
+                            st.markdown(f"**Cost:** {cost_display}")
+                        if activity.get('notes'):
+                            st.info(mask_info(activity.get('notes', ''), show_sensitive))
+                        if activity.get('booking_url') and activity.get('booking_url') != 'N/A':
+                            st.markdown(f"[📞 Book Now]({activity.get('booking_url')})")
+
                 # Special handling for activity voting
-                if activity.get('is_activity_voting'):
+                elif activity.get('is_activity_voting'):
                     # Display activity voting with all 3 options
                     import html
                     safe_activity_name = html.escape(activity['activity'])
@@ -6362,7 +6333,7 @@ def render_full_schedule(df, activities_data, show_sensitive):
                             st.markdown(f"[📞 Book Now]({activity.get('booking_url')})")
 
         # NEW: Show Michael's free time options when John has solo activities
-        michael_free_time_activities = [a for a in non_meal_activities if a.get('activity_type') == 'john_solo']
+        michael_free_time_activities = [a for a in day_activities if a.get('activity_type') == 'john_solo']
         if michael_free_time_activities:
             st.markdown("---")
             st.markdown("### 🏖️ YOUR FREE TIME OPTIONS")
@@ -6417,7 +6388,7 @@ def render_full_schedule(df, activities_data, show_sensitive):
                 except:
                     pass
 
-        elif not non_meal_activities and not meals:
+        elif not day_activities:
             st.info("No scheduled activities - free day!")
 
         st.markdown("---")
