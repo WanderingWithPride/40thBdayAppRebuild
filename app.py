@@ -7991,8 +7991,24 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                 is_solo = meal_slot.get('solo', False)
                 required_count = 1 if is_solo else 3
 
-                # Filter out used restaurants
-                available_restaurants = [r for r in meal_appropriate_restaurants if r['name'] not in used_restaurants]
+                # Filter out used restaurants (smart filtering for solo vs group meals)
+                if is_solo:
+                    # Solo meals: only filter out CONFIRMED restaurants (places you're actually going)
+                    # Can reuse places that were just options but not picked
+                    confirmed_restaurants = set()
+                    trip_data = get_trip_data()
+                    for m_id, m_proposal in trip_data.get('meal_proposals', {}).items():
+                        if m_proposal.get('status') == 'confirmed':
+                            final_choice = m_proposal.get('final_choice')
+                            options = m_proposal.get('restaurant_options', [])
+                            if isinstance(final_choice, int) and final_choice < len(options):
+                                confirmed_restaurants.add(options[final_choice].get('name'))
+                            elif isinstance(final_choice, str):
+                                confirmed_restaurants.add(final_choice)
+                    available_restaurants = [r for r in meal_appropriate_restaurants if r['name'] not in confirmed_restaurants]
+                else:
+                    # Group meals: avoid ALL previously used restaurants (proposed, voted, confirmed)
+                    available_restaurants = [r for r in meal_appropriate_restaurants if r['name'] not in used_restaurants]
 
                 if len(available_restaurants) < required_count:
                     st.error(f"⚠️ Not enough unique restaurants available! You may need to cancel some previous proposals or pick different options.")
