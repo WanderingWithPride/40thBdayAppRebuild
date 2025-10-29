@@ -5592,6 +5592,145 @@ def render_packing_list():
                         st.rerun()
 
 
+def enrich_activity_with_live_data(activity, date_str, weather_data):
+    """Enrich activity with ALL live API data - maps, traffic, weather, places, etc.
+
+    Returns dict with all dynamic data ready to display
+    """
+    enriched = {}
+
+    # Hotel location (origin for all trips)
+    hotel_address = "The Ritz-Carlton, Amelia Island, 4750 Amelia Island Pkwy, Fernandina Beach, FL 32034"
+
+    location = activity.get('location', {})
+    location_name = location.get('name', '')
+    location_address = location.get('address', location_name)
+
+    if not location_address or location_address == 'N/A':
+        return enriched
+
+    # 1. STATIC MAP
+    if GOOGLE_APIS_AVAILABLE:
+        try:
+            from utils.static_maps import generate_static_map_url
+            enriched['map_url'] = generate_static_map_url(
+                center=location_address,
+                zoom=15,
+                size="600x300",
+                markers=[{'location': location_address, 'color': 'red', 'label': 'A'}]
+            )
+        except:
+            pass
+
+    # 2. STREET VIEW
+    if GOOGLE_APIS_AVAILABLE:
+        try:
+            from utils.street_view import get_street_view_url, get_street_view_metadata
+            metadata = get_street_view_metadata(location_address)
+            if metadata and metadata.get('status') == 'OK':
+                enriched['street_view_url'] = get_street_view_url(location_address, size="600x300")
+        except:
+            pass
+
+    # 3. REAL-TIME TRAFFIC
+    if GOOGLE_APIS_AVAILABLE:
+        try:
+            traffic = get_traffic_data(hotel_address, location_address)
+            if traffic:
+                enriched['traffic'] = traffic
+                # Calculate smart departure time
+                activity_time = activity.get('time', '')
+                if activity_time and activity_time != 'TBD':
+                    try:
+                        from datetime import datetime, timedelta
+                        time_obj = datetime.strptime(activity_time, '%I:%M %p')
+                        travel_minutes = traffic.get('duration_in_traffic', {}).get('value', 0) // 60
+                        buffer_minutes = 10  # Add 10 min buffer
+                        departure_time = time_obj - timedelta(minutes=travel_minutes + buffer_minutes)
+                        enriched['suggested_departure'] = departure_time.strftime('%I:%M %p')
+                        enriched['travel_time_minutes'] = travel_minutes
+                    except:
+                        pass
+        except:
+            pass
+
+    # 4. WEATHER FOR THIS DAY
+    weather_by_date = {}
+    for day in weather_data.get('forecast', []):
+        weather_by_date[day['date']] = day
+
+    day_weather = weather_by_date.get(date_str)
+    if day_weather:
+        enriched['weather'] = day_weather
+
+        # Check for weather alerts
+        if day_weather.get('precipitation', 0) > 30:
+            enriched['weather_alert'] = {
+                'type': 'rain',
+                'severity': 'warning' if day_weather['precipitation'] > 60 else 'info',
+                'message': f"⛈️ {day_weather['precipitation']}% chance of rain - bring umbrella!"
+            }
+        elif day_weather.get('wind', 0) > 15:
+            enriched['weather_alert'] = {
+                'type': 'wind',
+                'severity': 'info',
+                'message': f"💨 Windy conditions ({day_weather['wind']} mph) - dress accordingly"
+            }
+
+    # 5. PLACES API DATA
+    if GOOGLE_APIS_AVAILABLE:
+        try:
+            from utils.google_places import search_nearby_places, get_place_photo_url
+            # Search for this specific place
+            lat = location.get('lat')
+            lon = location.get('lon')
+            if lat and lon:
+                places = search_nearby_places(lat, lon, place_type="restaurant", radius=100, max_results=1)
+                if places and len(places) > 0:
+                    place = places[0]
+                    enriched['places_data'] = {
+                        'rating': place.get('rating'),
+                        'rating_count': place.get('userRatingCount'),
+                        'price_level': place.get('priceLevel'),
+                        'is_open': place.get('currentOpeningHours', {}).get('openNow'),
+                        'phone': place.get('nationalPhoneNumber'),
+                        'website': place.get('websiteUri')
+                    }
+                    # Get photos
+                    photos = place.get('photos', [])
+                    if photos:
+                        enriched['place_photo_url'] = get_place_photo_url(photos[0], max_width=400)
+        except:
+            pass
+
+    # 6. UV INDEX for outdoor activities
+    is_outdoor = activity.get('type') in ['activity', 'beach', 'outdoor']
+    if is_outdoor and day_weather:
+        uv_data = get_uv_data()
+        if uv_data:
+            for day_uv in uv_data.get('daily', []):
+                if day_uv['date'] == date_str:
+                    uv_index = day_uv['uv']
+                    enriched['uv_index'] = uv_index
+                    if uv_index > 6:
+                        enriched['uv_alert'] = f"⚠️ High UV Index ({uv_index}) - wear sunscreen SPF 30+"
+                    break
+
+    # 7. TIDE DATA for beach/water activities
+    if 'beach' in location_name.lower() or 'water' in location_name.lower() or activity.get('type') == 'beach':
+        tide_data = get_tide_data()
+        if tide_data:
+            day_tides = tide_data.get(date_str, [])
+            if day_tides:
+                enriched['tides'] = day_tides[:4]  # Show next 4 tides
+
+    # 8. DIRECTIONS LINK
+    if GOOGLE_APIS_AVAILABLE:
+        from urllib.parse import quote
+        enriched['directions_url'] = f"https://www.google.com/maps/dir/?api=1&origin={quote(hotel_address)}&destination={quote(location_address)}&travelmode=driving"
+
+    return enriched
+
 def render_full_schedule(df, activities_data, show_sensitive):
     """Complete trip schedule - Improved UX with tabs, filters, and clear activity types"""
     st.markdown('<h2 class="fade-in">🗓️ Complete Trip Schedule</h2>', unsafe_allow_html=True)
@@ -6126,12 +6265,79 @@ def render_full_schedule(df, activities_data, show_sensitive):
                     status_emoji = "✅" if meal_status in ['confirmed', 'Confirmed'] else "⏳"
 
                     with st.expander(f"{status_emoji} {meal_time} - 🍽️ {meal_name}", expanded=False):
+                        # Get ALL live data for this meal
+                        live_data = enrich_activity_with_live_data(activity, date_str, weather_data)
+
                         st.markdown(f"**Type:** {meal_type_label}")
+
+                        # === LIVE WEATHER ALERT ===
+                        if live_data.get('weather_alert'):
+                            alert = live_data['weather_alert']
+                            if alert['severity'] == 'warning':
+                                st.warning(alert['message'])
+                            else:
+                                st.info(alert['message'])
+
+                        # === REAL-TIME TRAFFIC + SMART DEPARTURE TIME ===
+                        if live_data.get('traffic'):
+                            traffic = live_data['traffic']
+                            traffic_emoji = traffic.get('traffic_emoji', '🟢')
+                            travel_time = traffic.get('duration_in_traffic', {}).get('text', 'N/A')
+
+                            if live_data.get('suggested_departure'):
+                                st.success(f"🚗 **Leave by {live_data['suggested_departure']}** ({travel_time} with current traffic {traffic_emoji})")
+                            else:
+                                st.info(f"🚗 **Travel Time:** {travel_time} {traffic_emoji}")
+
+                        # === PLACES API DATA (Rating, Hours, Open/Closed) ===
+                        if live_data.get('places_data'):
+                            places = live_data['places_data']
+                            if places.get('rating'):
+                                rating_display = f"⭐ **{places['rating']:.1f}/5"
+                                if places.get('rating_count'):
+                                    rating_display += f" ({places['rating_count']:,} reviews)"
+                                rating_display += "**"
+                                st.markdown(rating_display)
+
+                            if places.get('is_open') is not None:
+                                if places['is_open']:
+                                    st.success("✅ Open Now")
+                                else:
+                                    st.error("🔴 Currently Closed")
+
+                            if show_sensitive and places.get('phone'):
+                                st.markdown(f"**📞 Phone:** {places['phone']}")
+
+                            if places.get('website'):
+                                st.markdown(f"**🌐 Website:** [{places['website']}]({places['website']})")
+
                         if activity.get('description'):
                             st.markdown(f"**Description:** {activity.get('description')}")
                         if activity.get('cost'):
                             cost_display = activity.get('cost') if show_sensitive else "$***"
-                            st.markdown(f"**Cost:** {cost_display}")
+                            st.markdown(f"**💰 Cost:** {cost_display}")
+
+                        # === WEATHER CONDITIONS ===
+                        if live_data.get('weather'):
+                            weather = live_data['weather']
+                            st.markdown(f"**🌦️ Weather:** {weather.get('condition', 'N/A')} | {weather.get('high', 'N/A')}°F | 💧 {weather.get('precipitation', 0)}% rain")
+
+                        # === STATIC MAP ===
+                        if live_data.get('map_url'):
+                            st.image(live_data['map_url'], caption=f"📍 Map: {activity['location']['name']}", use_container_width=True)
+
+                        # === STREET VIEW PHOTO ===
+                        if live_data.get('street_view_url'):
+                            st.image(live_data['street_view_url'], caption=f"📸 Street View: {activity['location']['name']}", use_container_width=True)
+
+                        # === PLACE PHOTO ===
+                        if live_data.get('place_photo_url'):
+                            st.image(live_data['place_photo_url'], caption=f"📷 Photo: {activity['location']['name']}", use_container_width=True)
+
+                        # === DIRECTIONS BUTTON ===
+                        if live_data.get('directions_url'):
+                            st.markdown(f"[🗺️ Get Directions from Hotel]({live_data['directions_url']})")
+
                         if activity.get('notes'):
                             st.info(mask_info(activity.get('notes', ''), show_sensitive))
                         if activity.get('booking_url') and activity.get('booking_url') != 'N/A':
@@ -6273,6 +6479,9 @@ def render_full_schedule(df, activities_data, show_sensitive):
                         expander_title += " ➕"
 
                     with st.expander(expander_title, expanded=expanded):
+                        # Get ALL live data for this activity
+                        live_data = enrich_activity_with_live_data(activity, date_str, weather_data)
+
                         # Activity type badge
                         if activity_type_label:
                             if 'free time' in activity_type_label.lower():
@@ -6286,17 +6495,88 @@ def render_full_schedule(df, activities_data, show_sensitive):
                         else:
                             st.markdown(f"**Status:** {safe_status}")
 
+                        # === LIVE WEATHER ALERT ===
+                        if live_data.get('weather_alert'):
+                            alert = live_data['weather_alert']
+                            if alert['severity'] == 'warning':
+                                st.warning(alert['message'])
+                            else:
+                                st.info(alert['message'])
+
+                        # === REAL-TIME TRAFFIC + SMART DEPARTURE TIME ===
+                        if live_data.get('traffic'):
+                            traffic = live_data['traffic']
+                            traffic_emoji = traffic.get('traffic_emoji', '🟢')
+                            travel_time = traffic.get('duration_in_traffic', {}).get('text', 'N/A')
+
+                            if live_data.get('suggested_departure'):
+                                st.success(f"🚗 **Leave by {live_data['suggested_departure']}** ({travel_time} with current traffic {traffic_emoji})")
+                            else:
+                                st.info(f"🚗 **Travel Time:** {travel_time} {traffic_emoji}")
+
                         # Core details
                         if activity.get('duration'):
-                            st.markdown(f"**Duration:** {activity.get('duration')}")
+                            st.markdown(f"**⏱️ Duration:** {activity.get('duration')}")
 
-                        st.markdown(f"**Location:** {activity['location']['name']}")
+                        st.markdown(f"**📍 Location:** {activity['location']['name']}")
 
-                        if show_sensitive and activity['location'].get('phone') and activity['location'].get('phone') != 'N/A':
+                        # === PLACES API DATA (Rating, Hours, Phone) ===
+                        if live_data.get('places_data'):
+                            places = live_data['places_data']
+                            if places.get('rating'):
+                                rating_display = f"⭐ **{places['rating']:.1f}/5"
+                                if places.get('rating_count'):
+                                    rating_display += f" ({places['rating_count']:,} reviews)"
+                                rating_display += "**"
+                                st.markdown(rating_display)
+
+                            if places.get('is_open') is not None:
+                                if places['is_open']:
+                                    st.success("✅ Open Now")
+                                else:
+                                    st.error("🔴 Currently Closed")
+
+                            if show_sensitive and places.get('phone'):
+                                st.markdown(f"**📞 Phone:** {places['phone']}")
+
+                            if places.get('website'):
+                                st.markdown(f"**🌐 Website:** [{places['website']}]({places['website']})")
+                        elif show_sensitive and activity['location'].get('phone') and activity['location'].get('phone') != 'N/A':
                             phone = activity['location'].get('phone')
-                            st.markdown(f"**Phone:** {phone}")
+                            st.markdown(f"**📞 Phone:** {phone}")
 
-                        st.markdown(f"**Cost:** {safe_cost}")
+                        st.markdown(f"**💰 Cost:** {safe_cost}")
+
+                        # === WEATHER CONDITIONS ===
+                        if live_data.get('weather'):
+                            weather = live_data['weather']
+                            st.markdown(f"**🌦️ Weather:** {weather.get('condition', 'N/A')} | {weather.get('high', 'N/A')}°F | 💧 {weather.get('precipitation', 0)}% rain")
+
+                        # === UV INDEX WARNING ===
+                        if live_data.get('uv_alert'):
+                            st.warning(live_data['uv_alert'])
+
+                        # === TIDE TIMES (for beach/water activities) ===
+                        if live_data.get('tides'):
+                            st.markdown("**🌊 Tide Times:**")
+                            for tide in live_data['tides']:
+                                st.markdown(f"- {tide['time']}: {tide['type'].title()} ({tide['height']} ft)")
+
+                        # === STATIC MAP ===
+                        if live_data.get('map_url'):
+                            st.image(live_data['map_url'], caption=f"📍 Map: {activity['location']['name']}", use_container_width=True)
+
+                        # === STREET VIEW PHOTO ===
+                        if live_data.get('street_view_url'):
+                            st.image(live_data['street_view_url'], caption=f"📸 Street View: {activity['location']['name']}", use_container_width=True)
+
+                        # === PLACE PHOTO ===
+                        if live_data.get('place_photo_url'):
+                            st.image(live_data['place_photo_url'], caption=f"📷 Photo: {activity['location']['name']}", use_container_width=True)
+
+                        # === DIRECTIONS BUTTON ===
+                        if live_data.get('directions_url'):
+                            st.markdown(f"[🗺️ Get Directions from Hotel]({live_data['directions_url']})")
 
                         # Notes
                         if activity.get('notes'):
