@@ -6434,8 +6434,12 @@ def render_full_schedule(df, activities_data, show_sensitive):
                 activity['activity_type'] = 'shared'
                 activity['activity_type_label'] = '👥 SHARED - Michael treating'
             elif activity.get('is_meal'):
-                activity['activity_type'] = 'shared'
-                activity['activity_type_label'] = '👥 SHARED MEAL'
+                if activity.get('is_solo'):
+                    activity['activity_type'] = 'michael_solo'
+                    activity['activity_type_label'] = '🍽️ SOLO MEAL - Michael only'
+                else:
+                    activity['activity_type'] = 'shared'
+                    activity['activity_type_label'] = '👥 SHARED MEAL'
             else:
                 activity['activity_type'] = 'shared'
                 activity['activity_type_label'] = '👥 SHARED'
