@@ -89,6 +89,12 @@ try:
         generate_trip_map,
         generate_static_map_url
     )
+    from utils.flight_tracking import (
+        get_flight_status,
+        get_historical_performance,
+        render_flight_status_card,
+        get_flight_alerts
+    )
     GOOGLE_APIS_AVAILABLE = True
 except ImportError as e:
     print(f"⚠️ Google API utilities not available: {e}")
@@ -1055,6 +1061,8 @@ def get_ultimate_trip_data():
             "notes": "American Airlines AA2434 - Departure 3:51 PM from DCA, Arrival 6:01 PM JAX. Business Class (R), Seat 1D. 2h 10m flight. Confirmation: IDLLZA",
             "confirmation_code": "IDLLZA",
             "flight_number": "AA2434",
+            "departure_airport": "DCA",
+            "arrival_airport": "JAX",
             "seat": "1D",
             "class": "Business (R)",
             "ticket_number": "0012283037156",
@@ -1252,6 +1260,8 @@ def get_ultimate_trip_data():
             "category": "Transport",
             "notes": "AA1586 to DCA departs 11:05 AM. John will take Uber from hotel at 8:20am (45min drive) to arrive by 9:05am (2 hours before flight).",
             "flight_number": "AA1586",
+            "departure_airport": "JAX",
+            "arrival_airport": "DCA",
             "what_to_bring": ["ID", "Boarding pass"],
             "tips": ["Check traffic before leaving", "Allow 45 min drive", "Arrive 2 hours early for domestic flight"],
             "flight_departure_time": "11:05 AM",
@@ -1277,6 +1287,8 @@ def get_ultimate_trip_data():
             "notes": "AA5590 (operated by PSA Airlines as American Eagle) departs 2:39 PM from JAX, arrives 4:40 PM at DCA. Business Class (I), Seat 1A. Checkout by 11am, leave hotel by 12:30pm (45min drive + 2hr early arrival buffer). Confirmation: IDLLZA",
             "confirmation_code": "IDLLZA",
             "flight_number": "AA5590",
+            "departure_airport": "JAX",
+            "arrival_airport": "DCA",
             "operated_by": "PSA Airlines as American Eagle",
             "seat": "1A",
             "class": "Business (I)",
@@ -5729,6 +5741,44 @@ def enrich_activity_with_live_data(activity, date_str, weather_data):
         from urllib.parse import quote
         enriched['directions_url'] = f"https://www.google.com/maps/dir/?api=1&origin={quote(hotel_address)}&destination={quote(location_address)}&travelmode=driving"
 
+    # 9. FLIGHT TRACKING for transport activities
+    if activity.get('type') == 'transport' or 'flight' in location_name.lower() or 'airport' in location_name.lower():
+        flight_number = activity.get('flight_number')
+        if flight_number:
+            try:
+                # Get historical performance
+                airline = flight_number[:2] if len(flight_number) >= 4 else 'AA'
+                departure_airport = activity.get('departure_airport', 'DCA')
+                arrival_airport = activity.get('arrival_airport', 'JAX')
+                route = f"{departure_airport}-{arrival_airport}"
+
+                historical = get_historical_performance(airline, flight_number[2:], route)
+                enriched['flight_performance'] = historical
+
+                # Get flight alerts
+                flight_data = {
+                    'flight_number': flight_number,
+                    'departure_airport': departure_airport,
+                    'arrival_airport': arrival_airport,
+                    'date': date_str
+                }
+                alerts = get_flight_alerts(flight_data)
+                if alerts:
+                    enriched['flight_alerts'] = alerts
+
+                # Get real-time status (if close to flight date)
+                from datetime import datetime
+                flight_date = datetime.strptime(date_str, '%Y-%m-%d')
+                days_until_flight = (flight_date - datetime.now()).days
+
+                if -1 <= days_until_flight <= 7:  # Within a week of flight
+                    status = get_flight_status(flight_number, date_str)
+                    if status and status.get('status') == 'success':
+                        enriched['flight_status'] = status
+            except Exception as e:
+                print(f"Flight tracking error: {e}")
+                pass
+
     return enriched
 
 def render_full_schedule(df, activities_data, show_sensitive):
@@ -6561,6 +6611,75 @@ def render_full_schedule(df, activities_data, show_sensitive):
                             st.markdown("**🌊 Tide Times:**")
                             for tide in live_data['tides']:
                                 st.markdown(f"- {tide['time']}: {tide['type'].title()} ({tide['height']} ft)")
+
+                        # === FLIGHT TRACKING (for flights/transport) ===
+                        if live_data.get('flight_performance'):
+                            st.markdown("---")
+                            st.markdown("### ✈️ Flight Performance & Tracking")
+
+                            perf = live_data['flight_performance']
+
+                            col1, col2, col3 = st.columns(3)
+                            with col1:
+                                on_time = perf['on_time_rate']
+                                color = "🟢" if on_time >= 80 else "🟡" if on_time >= 70 else "🔴"
+                                st.metric("On-Time Rate", f"{on_time:.1f}%")
+                                st.markdown(f"{color} Historical")
+
+                            with col2:
+                                cancel = perf['cancellation_rate']
+                                color = "🟢" if cancel <= 2 else "🟡" if cancel <= 4 else "🔴"
+                                st.metric("Cancel Rate", f"{cancel:.1f}%")
+                                st.markdown(f"{color} Risk")
+
+                            with col3:
+                                delay = perf['average_delay']
+                                color = "🟢" if delay <= 10 else "🟡" if delay <= 20 else "🔴"
+                                st.metric("Avg Delay", f"{delay} min")
+                                st.markdown(f"{color} When Delayed")
+
+                            if perf.get('note'):
+                                st.info(f"💡 {perf['note']}")
+
+                            if perf.get('weather_risk'):
+                                st.warning("⚠️ Route includes weather-prone airports")
+
+                        # Flight alerts
+                        if live_data.get('flight_alerts'):
+                            for alert in live_data['flight_alerts']:
+                                if alert['severity'] == 'warning':
+                                    st.warning(f"{alert['message']}\n\n💡 {alert['recommendation']}")
+                                else:
+                                    st.info(f"{alert['message']}\n\n💡 {alert['recommendation']}")
+
+                        # Real-time flight status
+                        if live_data.get('flight_status'):
+                            st.markdown("---")
+                            st.markdown("### 📡 Live Flight Status")
+                            status_data = live_data['flight_status']
+
+                            status = status_data.get('flight_status', 'unknown')
+                            status_emoji = {
+                                'scheduled': '🟢',
+                                'active': '✈️',
+                                'landed': '✅',
+                                'cancelled': '🔴',
+                                'delayed': '🟡'
+                            }.get(status, '⚪')
+
+                            st.markdown(f"**Status:** {status_emoji} {status.upper()}")
+
+                            dep = status_data.get('departure', {})
+                            if dep.get('gate'):
+                                st.markdown(f"**Departure Gate:** {dep['gate']}")
+                            if dep.get('delay'):
+                                st.warning(f"⏱️ Departure Delay: {dep['delay']} minutes")
+
+                            arr = status_data.get('arrival', {})
+                            if arr.get('gate'):
+                                st.markdown(f"**Arrival Gate:** {arr['gate']}")
+                            if arr.get('delay'):
+                                st.warning(f"⏱️ Arrival Delay: {arr['delay']} minutes")
 
                         # === STATIC MAP ===
                         if live_data.get('map_url'):
