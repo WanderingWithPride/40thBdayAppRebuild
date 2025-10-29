@@ -382,7 +382,7 @@
       "status": "confirmed",
       "john_vote": null,
       "final_choice": 0,
-      "meal_time": null,
+      "meal_time": "07:30 AM",
       "submitted_by": "Michael",
       "is_solo": true,
       "created_at": "2025-10-29T17:34:49.529165",
