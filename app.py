@@ -3263,12 +3263,17 @@ def render_budget_widget(activities_data, show_sensitive=True, view_mode='michae
                     for meal in budget_data['confirmed_meals']:
                         st.markdown(f"- **{meal['name']}**: ${meal['cost_per_person']:.0f}/person × 2 = ${meal['total_cost']:.0f}")
 
-            # Show confirmed activities details (only for Michael's view - he pays for all activities)
-            if view_mode != 'john' and budget_data.get('confirmed_activities'):
+            # Show confirmed activities details
+            if budget_data.get('confirmed_activities'):
                 st.markdown("---")
-                st.markdown("**🎯 Confirmed Activities:**")
-                for activity in budget_data['confirmed_activities']:
-                    st.markdown(f"- **{activity['name']}**: ${activity['cost_per_person']:.0f}/person × 2 = ${activity['total_cost']:.0f}")
+                if view_mode == 'john':
+                    st.markdown("**🎯 Your Share of Activities (Michael Treats):**")
+                    for activity in budget_data['confirmed_activities']:
+                        st.markdown(f"- **{activity['name']}**: ${activity['cost_per_person']:.0f}/person (Michael paying)")
+                else:
+                    st.markdown("**🎯 Confirmed Activities:**")
+                    for activity in budget_data['confirmed_activities']:
+                        st.markdown(f"- **{activity['name']}**: ${activity['cost_per_person']:.0f}/person × 2 = ${activity['total_cost']:.0f}")
 
             # Show confirmed alcohol details
             if budget_data.get('confirmed_alcohol'):
@@ -5680,7 +5685,7 @@ def render_map_page(activities_data):
                 with st.spinner("Generating map image..."):
                     map_url = generate_trip_map(
                         hotel_location={'lat': 30.6074, 'lon': -81.4493, 'name': 'Hotel'},
-                        activities=[{'location': m} for m in markers[:10]],  # Limit to 10 markers
+                        activities=[{'location': m} for m in markers],  # Show all activities with location data
                         size="800x600"
                     )
 
@@ -9360,33 +9365,25 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             available_activities = filter_activities_by_duration(available_activities, available_hours)
 
         # Sort activities: prioritize simple, quick beach activities at Ritz (no commute!)
-        def activity_priority(activity):
-            """Return priority score - lower is better (shows first)"""
-            name = activity.get('name', '')
-            cost = activity.get('cost_range', '')
-            duration_str = activity.get('duration', '')
+        def activity_price_sort(activity):
+            """Sort activities by price - FREE first, then ascending by price
+            Returns tuple (is_paid, price) for sorting - free activities come first (False < True)
+            """
+            cost_str = activity.get('cost_range', '')
 
-            # Priority 1: Free beach activities at Ritz (no commute, instant access!)
-            beach_activities = ['Beach Walk', 'Sunset Viewing', 'Sunrise Viewing', 'Seashell Hunting',
-                              'Beach Reading', 'Beach Photography', 'Beach Meditation', 'Beach Journaling',
-                              'Watch Dolphins', 'Tide Pool Exploring', 'Cloud Watching', 'Sandcastle Building']
-            if any(ba in name for ba in beach_activities):
-                return 0
+            # Check if it's free
+            if 'FREE' in cost_str.upper() or 'INCLUDED' in cost_str.upper():
+                return (False, 0)  # Free activities first
 
-            # Priority 2: Quick activities at the Ritz (pools, hot tub, etc)
-            ritz_activities = ['Resort Pool', 'Hot Tub', 'Beach Bonfire', 'Beach Volleyball',
-                             'Fitness Center', 'FREE Bike', 'Two Resort Pools']
-            if any(ra in name for ra in ritz_activities):
-                return 1
+            # If no dollar sign, treat as free
+            if '$' not in cost_str:
+                return (False, 0)
 
-            # Priority 3: Short free/cheap activities nearby
-            if 'FREE' in cost or '$' not in cost:
-                return 2
+            # Parse the price
+            price = parse_cost_range(cost_str)
+            return (True, price)  # Paid activities sorted by price
 
-            # Priority 4: Paid activities that require travel
-            return 3
-
-        available_activities.sort(key=activity_priority)
+        available_activities.sort(key=activity_price_sort)
 
         # Check if there's a pre-scheduled activity from the itinerary for this slot
         scheduled_activity = scheduled_activities.get(activity_slot['id'])
@@ -9527,7 +9524,7 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                 st.session_state[selection_key] = []
 
             st.markdown(f"**Select 3 activities for this time slot ({len(st.session_state[selection_key])}/3):**")
-            st.markdown("🏖️ **Beach activities at Ritz** (no commute!) are listed first, followed by hotel activities, then off-site options.")
+            st.markdown("💰 **Activities sorted by price** - FREE options first, then by ascending price. Decide on the day based on available time and budget!")
 
             # Show activities in a grid
             cols = st.columns(3)
@@ -9541,13 +9538,11 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                     safe_desc = html.escape(activity.get('description', '')[:60])
                     safe_cost = html.escape(activity.get('cost_range', 'N/A'))
 
-                    # Determine if this is a Ritz beach/hotel activity
-                    priority = activity_priority(activity)
+                    # Determine if this is free or paid
+                    cost_str = activity.get('cost_range', '')
                     badge = ""
-                    if priority == 0:
-                        badge = '<span style="background: #2196f3; color: white; padding: 0.15rem 0.4rem; border-radius: 8px; font-size: 0.7rem; margin-left: 0.3rem;">🏖️ AT RITZ</span>'
-                    elif priority == 1:
-                        badge = '<span style="background: #ff9800; color: white; padding: 0.15rem 0.4rem; border-radius: 8px; font-size: 0.7rem; margin-left: 0.3rem;">🏨 ON-SITE</span>'
+                    if 'FREE' in cost_str.upper() or 'INCLUDED' in cost_str.upper() or '$' not in cost_str:
+                        badge = '<span style="background: #4caf50; color: white; padding: 0.15rem 0.4rem; border-radius: 8px; font-size: 0.7rem; margin-left: 0.3rem;">✨ FREE</span>'
 
                     border_color = "#4caf50" if is_selected else "#ddd"
                     st.markdown(f"""

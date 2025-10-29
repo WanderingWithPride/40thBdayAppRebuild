@@ -58,7 +58,7 @@ def generate_static_map_url(center: str, zoom: int = 12, size: str = "600x400",
 
 
 def generate_trip_map(hotel_location: str, activities: List[Dict],
-                      size: str = "800x600") -> str:
+                      size: str = "800x600", max_markers: int = 50) -> str:
     """
     Generate a static map showing all trip locations
 
@@ -66,6 +66,7 @@ def generate_trip_map(hotel_location: str, activities: List[Dict],
         hotel_location: Hotel address or coordinates
         activities: List of activity dictionaries with 'name' and 'location'
         size: Image size
+        max_markers: Maximum number of activity markers to show (default 50)
 
     Returns:
         Static map URL
@@ -79,8 +80,23 @@ def generate_trip_map(hotel_location: str, activities: List[Dict],
         'label': 'H'
     })
 
-    # Add activity markers
-    for idx, activity in enumerate(activities[:10]):  # Max 10 markers
+    # Add activity markers - show all activities with location data (up to max_markers)
+    # Filter to only activities that have valid location data
+    activities_with_location = []
+    for activity in activities:
+        location = activity.get('location', '')
+        if isinstance(location, dict):
+            lat = location.get('lat', 0)
+            lon = location.get('lon', 0)
+            if lat and lon:
+                location = f"{lat},{lon}"
+
+        # Only include activities with valid location data
+        if location and location.strip() and location != '0,0':
+            activities_with_location.append(activity)
+
+    # Limit to max_markers to avoid URL length issues
+    for idx, activity in enumerate(activities_with_location[:max_markers]):
         location = activity.get('location', '')
         if isinstance(location, dict):
             lat = location.get('lat', 0)
@@ -88,10 +104,24 @@ def generate_trip_map(hotel_location: str, activities: List[Dict],
             location = f"{lat},{lon}"
 
         if location:
+            # Use different colors for variety and easier distinction
+            # First 9 get numbers, rest get letters
+            if idx < 9:
+                label = str(idx + 1)
+                color = 'blue'
+            elif idx < 35:
+                # Use letters A-Z for markers 10-35
+                label = chr(65 + (idx - 9))
+                color = 'green'
+            else:
+                # No label for 36+, just different color
+                label = ''
+                color = 'purple'
+
             markers.append({
                 'location': location,
-                'color': 'blue',
-                'label': str(idx + 1)
+                'color': color,
+                'label': label
             })
 
     return generate_static_map_url(
