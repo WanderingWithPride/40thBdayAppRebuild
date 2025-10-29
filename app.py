@@ -6562,8 +6562,8 @@ def render_full_schedule(df, activities_data, show_sensitive):
                                     # Get all activities and filter/sort
                                     all_activities_dict = get_optional_activities()
                                     all_activities_list = []
-                                    # Skip dining categories - these are NOT activities
-                                    skip_categories = ['🍽️ Ritz-Carlton Special Dining Experiences', '🍺 Bars & Nightlife', '🍷 Wine & Spirits']
+                                    # Skip ONLY private dining rooms - bars/nightlife ARE activities!
+                                    skip_categories = ['🍽️ Ritz-Carlton Special Dining Experiences']
                                     for category, activities in all_activities_dict.items():
                                         if category in skip_categories:
                                             continue
@@ -6844,8 +6844,8 @@ def render_full_schedule(df, activities_data, show_sensitive):
                         # Get all activities and filter/sort
                         all_activities_dict = get_optional_activities()
                         all_activities_list = []
-                        # Skip dining categories - these are NOT activities
-                        skip_categories = ['🍽️ Ritz-Carlton Special Dining Experiences', '🍺 Bars & Nightlife', '🍷 Wine & Spirits']
+                        # Skip ONLY private dining rooms - bars/nightlife ARE activities!
+                        skip_categories = ['🍽️ Ritz-Carlton Special Dining Experiences']
                         for category, activities in all_activities_dict.items():
                             if category in skip_categories:
                                 continue
@@ -7330,8 +7330,8 @@ def render_full_schedule(df, activities_data, show_sensitive):
                         # Get all activities and filter/sort
                         all_activities_dict = get_optional_activities()
                         all_activities_list = []
-                        # Skip dining categories - these are NOT activities
-                        skip_categories = ['🍽️ Ritz-Carlton Special Dining Experiences', '🍺 Bars & Nightlife', '🍷 Wine & Spirits']
+                        # Skip ONLY private dining rooms - bars/nightlife ARE activities!
+                        skip_categories = ['🍽️ Ritz-Carlton Special Dining Experiences']
                         for category, activities in all_activities_dict.items():
                             if category in skip_categories:
                                 continue
