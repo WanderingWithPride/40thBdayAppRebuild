@@ -1165,9 +1165,9 @@ def get_ultimate_trip_data():
                 "phone": "904-277-1087"
             },
             "status": "URGENT",
-            "cost": 195,
+            "cost": 245,
             "category": "Spa",
-            "notes": "Advanced HydraFacial for glowing skin - perfect before birthday dinner! Want me to book one for you at the same time? You'd pay for yours ($195). Otherwise you can relax at pool/beach. Call 904-277-1087 to book.",
+            "notes": "Advanced HydraFacial for glowing skin - perfect before birthday dinner! Want me to book one for you at the same time? You'd pay for yours ($245). Otherwise you can relax at pool/beach. Call 904-277-1087 to book.",
             "what_to_bring": ["Clean face (no makeup)", "Hair tie if needed", "Arrive on time from massage"],
             "tips": ["Immediate results - perfect timing before dinner!", "Ask about serums for your skin type", "Hydrating and gentle"],
             "booking_url": "https://www.ritzcarlton.com/en/hotels/jaxam-the-ritz-carlton-amelia-island/spa/",
@@ -1188,9 +1188,9 @@ def get_ultimate_trip_data():
                 "phone": "904-277-1087"
             },
             "status": "URGENT",
-            "cost": 150,
+            "cost": 180,
             "category": "Spa",
-            "notes": "Complete mani-pedi combo with everything! Want me to book one for you at the same time? You'd pay for yours ($150). Otherwise you can relax at pool/beach while I'm getting pampered. Call 904-277-1087 to book. Perfect timing after facial!",
+            "notes": "Complete mani-pedi combo with everything! Want me to book one for you at the same time? You'd pay for yours ($180). Otherwise you can relax at pool/beach while I'm getting pampered. Call 904-277-1087 to book. Perfect timing after facial!",
             "what_to_bring": ["Flip flops", "Let nails dry before dinner prep", "Choose neutral or birthday colors!"],
             "tips": ["Includes sugar scrub and paraffin treatment", "Takes about 2 hours total", "Perfect for birthday photos!", "Schedule gives you time before getting ready for dinner at 7pm"],
             "booking_url": "https://www.ritzcarlton.com/en/hotels/jaxam-the-ritz-carlton-amelia-island/spa/",
@@ -6536,7 +6536,8 @@ def render_full_schedule(df, activities_data, show_sensitive):
                 activity_id = activity.get('id', '')
                 john_status_badge = ""
 
-                if activity_id in ['act001', 'spa002', 'spa003']:  # Activities John can opt into
+                # NOTE: act001 removed - it's a solo activity before John arrives
+                if activity_id in ['spa002', 'spa003']:  # Activities John can opt into
                     pref_key = f"activity_opt_in_{activity_id}"
                     status = john_prefs.get(pref_key, "not_decided")
                     if status == "interested":
@@ -9828,7 +9829,8 @@ def render_johns_page(df, activities_data, show_sensitive):
                     pref_key = ""
 
                     # Check if this activity needs opt-in
-                    if activity_id in ['act001', 'spa002', 'spa003']:  # Activities John can opt into
+                    # NOTE: act001 removed - it's a solo activity before John arrives
+                    if activity_id in ['spa002', 'spa003']:  # Activities John can opt into
                         needs_optin = True
                         pref_key = f"activity_opt_in_{activity_id}"
 
@@ -10537,7 +10539,8 @@ def render_johns_page(df, activities_data, show_sensitive):
         """, unsafe_allow_html=True)
 
         # Get opt-in activities from the schedule
-        optin_activities = [a for a in activities_data if a.get('id') in ['act001', 'spa002', 'spa003']]
+        # NOTE: act001 (Backwater Cat Eco Tour) removed - it's a solo activity before John arrives at noon
+        optin_activities = [a for a in activities_data if a.get('id') in ['spa002', 'spa003']]
 
         if optin_activities:
             for activity in optin_activities:
