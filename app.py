@@ -3389,6 +3389,21 @@ def detect_meal_gaps(activities_data):
 
     return missing_meals
 
+def parse_time_for_sorting(time_str):
+    """Convert time string like '9:00 AM' or '12:30 PM' to minutes from midnight for proper sorting"""
+    try:
+        # Handle 'TBD' or empty times
+        if not time_str or time_str == 'TBD':
+            return 9999  # Put TBD times at the end
+
+        # Parse the time string
+        time_obj = datetime.strptime(time_str.strip(), '%I:%M %p')
+        # Convert to minutes from midnight
+        return time_obj.hour * 60 + time_obj.minute
+    except (ValueError, AttributeError):
+        # If parsing fails, return a large number to put it at the end
+        return 9999
+
 def detect_conflicts(activities_data):
     """Detect scheduling conflicts (overlaps, tight timings, impossible logistics)
 
@@ -3397,8 +3412,8 @@ def detect_conflicts(activities_data):
     """
     conflicts = []
 
-    # Sort activities by date and time
-    sorted_activities = sorted(activities_data, key=lambda x: (x['date'], x.get('time', '12:00 PM')))
+    # Sort activities by date and time (chronologically, not alphabetically!)
+    sorted_activities = sorted(activities_data, key=lambda x: (x['date'], parse_time_for_sorting(x.get('time', '12:00 PM'))))
 
     for i in range(len(sorted_activities) - 1):
         current = sorted_activities[i]
@@ -5775,22 +5790,6 @@ def render_full_schedule(df, activities_data, show_sensitive):
         selected_date = day_map.get(selected_day_filter)
         if selected_date:
             dates = [d for d in dates if d == selected_date]
-
-    # Helper function to convert time strings to sortable format
-    def parse_time_for_sorting(time_str):
-        """Convert time string like '9:00 AM' or '12:30 PM' to minutes from midnight for proper sorting"""
-        try:
-            # Handle 'TBD' or empty times
-            if not time_str or time_str == 'TBD':
-                return 9999  # Put TBD times at the end
-
-            # Parse the time string
-            time_obj = datetime.strptime(time_str.strip(), '%I:%M %p')
-            # Convert to minutes from midnight
-            return time_obj.hour * 60 + time_obj.minute
-        except (ValueError, AttributeError):
-            # If parsing fails, return a large number to put it at the end
-            return 9999
 
     # Show days with improved UX
     for date in dates:
