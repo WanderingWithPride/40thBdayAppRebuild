@@ -23,7 +23,7 @@ if github_token:
     try:
         response = requests.get(
             'https://api.github.com/user',
-            headers={'Authorization': f'token {github_token}'},
+            headers={'Authorization': f'Bearer {github_token}'},
             timeout=5
         )
         if response.status_code == 200:

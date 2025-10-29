@@ -181,7 +181,7 @@ def load_data_from_github():
     try:
         url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/contents/{GITHUB_DATA_PATH}"
         headers = {
-            "Authorization": f"token {GITHUB_TOKEN}",
+            "Authorization": f"Bearer {GITHUB_TOKEN}",
             "Accept": "application/vnd.github.v3+json"
         }
         response = requests.get(url, headers=headers, timeout=10)
@@ -198,6 +198,15 @@ def load_data_from_github():
             return data
         elif response.status_code == 404:
             # File doesn't exist - initialize
+            return init_empty_data()
+        elif response.status_code == 401:
+            error_msg = "GitHub authentication failed (401). Please check your GITHUB_TOKEN."
+            try:
+                error_details = response.json()
+                print(f"❌ {error_msg} Details: {error_details}")
+            except:
+                print(f"❌ {error_msg}")
+            st.warning(f"{error_msg} Using default data.")
             return init_empty_data()
         else:
             st.warning(f"Could not load data from GitHub (status {response.status_code}). Using default data.")
@@ -219,12 +228,23 @@ def save_data_to_github(data, commit_message="Update trip data"):
     try:
         url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/contents/{GITHUB_DATA_PATH}"
         headers = {
-            "Authorization": f"token {GITHUB_TOKEN}",
+            "Authorization": f"Bearer {GITHUB_TOKEN}",
             "Accept": "application/vnd.github.v3+json"
         }
 
         # Get current file SHA (needed for update)
         response = requests.get(url, headers=headers, timeout=10)
+
+        if response.status_code == 401:
+            error_msg = "GitHub authentication failed (401). Cannot save data. Please check your GITHUB_TOKEN."
+            try:
+                error_details = response.json()
+                print(f"❌ {error_msg} Details: {error_details}")
+            except:
+                print(f"❌ {error_msg}")
+            st.error(error_msg)
+            return False
+
         sha = response.json()['sha'] if response.status_code == 200 else None
 
         # Encode content
@@ -244,6 +264,15 @@ def save_data_to_github(data, commit_message="Update trip data"):
 
         if response.status_code in [200, 201]:
             return True
+        elif response.status_code == 401:
+            error_msg = "GitHub authentication failed (401). Cannot save data. Please check your GITHUB_TOKEN."
+            try:
+                error_details = response.json()
+                print(f"❌ {error_msg} Details: {error_details}")
+            except:
+                print(f"❌ {error_msg}")
+            st.error(error_msg)
+            return False
         else:
             st.error(f"Failed to save to GitHub: {response.status_code} - {response.text}")
             return False
