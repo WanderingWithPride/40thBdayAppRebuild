@@ -6401,6 +6401,7 @@ def render_full_schedule(df, activities_data, show_sensitive):
         for activity in day_activities:
             activity_id = activity.get('id', '')
             activity_name = activity.get('activity', '').lower()
+            activity_type = activity.get('type', '')
 
             # Determine activity type
             # Arrivals and departures
@@ -6432,13 +6433,24 @@ def render_full_schedule(df, activities_data, show_sensitive):
                 activity['activity_type_label'] = '👥 SHARED - Individual shots for each'
             elif 'birthday dinner' in activity_name or activity_id == 'din001':
                 activity['activity_type'] = 'shared'
-                activity['activity_type_label'] = '👥 SHARED - Michael treating'
-            elif activity.get('is_meal'):
-                activity['activity_type'] = 'shared'
-                activity['activity_type_label'] = '👥 SHARED MEAL'
-            else:
+                activity['activity_type_label'] = '🎂 BIRTHDAY DINNER - Michael treating'
+            # Solo activities (before John arrives or activities marked as solo)
+            elif 'solo' in activity_name or activity.get('category') == 'Solo Activity':
+                activity['activity_type'] = 'michael_solo'
+                activity['activity_type_label'] = '👤 MICHAEL SOLO'
+            # Regular dining - just show it's a meal, don't assume "shared"
+            elif activity_type == 'dining' or activity.get('is_meal'):
+                activity['activity_type'] = 'dining'
+                activity['activity_type_label'] = '🍽️ Dining'
+            # Default for other shared activities
+            elif date.strftime('%Y-%m-%d') >= '2025-11-08' and date.strftime('%Y-%m-%d') <= '2025-11-11':
+                # Activities between John's arrival (Nov 8) and departure (Nov 11)
                 activity['activity_type'] = 'shared'
                 activity['activity_type_label'] = '👥 SHARED'
+            else:
+                # Solo activities before John arrives or after he leaves
+                activity['activity_type'] = 'michael_solo'
+                activity['activity_type_label'] = '👤 MICHAEL SOLO'
 
         # Check if birthday
         is_birthday = date.month == 11 and date.day == 9
