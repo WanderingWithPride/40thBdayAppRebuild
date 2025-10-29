@@ -74,7 +74,7 @@ The app now supports **PostgreSQL** for persistent cloud storage. When you add a
 
 After setup:
 1. Go to your live app
-2. Log in (password: 28008985)
+2. Log in (use your configured password)
 3. Create a meal or activity proposal
 4. Wait for Streamlit Cloud to restart (or manually reboot)
 5. Check if the proposal still shows up → ✅ Success!

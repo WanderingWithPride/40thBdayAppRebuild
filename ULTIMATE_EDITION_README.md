@@ -112,7 +112,7 @@
 - **Metric cards** with large numbers
 
 ### 🔐 9. Enhanced Security
-- **Same password** (28008985)
+- **Password protection** enabled
 - **Better data masking**
 - **Secure session** management
 - **Demo mode** for safe sharing
@@ -276,7 +276,7 @@ streamlit run app.py
 ```
 
 Then open: **http://localhost:8501**
-Password: **28008985**
+Password: **[Set your own password]**
 
 ### With Real Weather
 1. Get free API key from [OpenWeather](https://openweathermap.org/api)

@@ -5,7 +5,7 @@ The COMPLETE trip companion with EVERYTHING you need!
 
 ✨ Features:
 - Interactive maps of all locations
-- Real-time weather integration  
+- Real-time weather integration
 - Smart packing list generator
 - Today/Now contextual view
 - Photo gallery and memories
@@ -15,7 +15,7 @@ The COMPLETE trip companion with EVERYTHING you need!
 - Booking management
 - And SO much more!
 
-🔐 Security: Password protected (28008985)
+🔐 Security: Password protected
 📱 Mobile: Fully responsive
 🚀 Performance: Cached and optimized
 

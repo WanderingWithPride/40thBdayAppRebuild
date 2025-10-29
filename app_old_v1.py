@@ -1,4 +1,9 @@
 """
+⚠️ DEPRECATED BACKUP FILE - DO NOT USE ⚠️
+This is an old backup version. Use app.py for current version.
+Passwords and sensitive data in this file are outdated.
+===============================================================
+
 40th Birthday Trip Assistant - Streamlit Deployment Version
 =========================================================
 Complete deployment-ready application with all enhanced features

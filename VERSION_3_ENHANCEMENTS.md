@@ -252,7 +252,7 @@ Locations with auto-save:
 
 ### Environment Variables
 ```bash
-TRIP_PASSWORD_HASH=a5be948874610641149611913c4924e5  # Password: 28008985
+TRIP_PASSWORD_HASH=your_password_hash_here          # Generate with: echo -n "yourpassword" | md5sum
 OPENWEATHER_API_KEY=your_key_here                   # Get from openweathermap.org
 DB_FILE=trip_data.db                                # Database file location
 ```

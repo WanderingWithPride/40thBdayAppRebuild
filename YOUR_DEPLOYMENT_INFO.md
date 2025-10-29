@@ -2,7 +2,7 @@
 
 ## 🔐 **YOUR APP PASSWORD**
 
-**Password:** `28008985`
+**Password:** `[Contact repository owner for password]`
 
 **MD5 Hash:** `a5be948874610641149611913c4924e5`
 
@@ -46,7 +46,7 @@ railway variables set TRIP_PASSWORD_HASH=a5be948874610641149611913c4924e5
 
 ## 🔒 **Security**
 
-- Your app password is: **28008985**
+- Your app password is: **[Contact repository owner]**
 - Keep this password secure
 - Only share with people who need access
 - Your personal data is protected by this password
@@ -61,7 +61,7 @@ Your app is ready to deploy with password protection!
 1. Upload to GitLab/GitHub (private repo)
 2. Deploy to Streamlit Cloud
 3. Set the environment variable above
-4. Access your app with password: **28008985**
+4. Access your app with your configured password
 
 ---
 

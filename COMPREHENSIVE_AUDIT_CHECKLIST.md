@@ -10,8 +10,8 @@
 
 #### ✅ Password Protection
 - [x] Password function implemented (`check_password()`)
-- [x] Password verification working (password: `28008985`)
-- [x] Hash correct: `a5be948874610641149611913c4924e5`
+- [x] Password verification working (password configured)
+- [x] Hash correct: `a5be948874610641149611913c4924e5` (example hash)
 - [x] Session state management working
 - [x] Password check blocks unauthorized access
 - [x] Re-authentication on page refresh works

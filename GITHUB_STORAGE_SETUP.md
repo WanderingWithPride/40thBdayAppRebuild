@@ -44,7 +44,7 @@ Your app now stores all data (meal proposals, activity votes, preferences, etc.)
 ### Step 3: Test It!
 
 1. Open your live app
-2. Log in (password: 28008985)
+2. Log in with your configured password
 3. Go to **Travel Dashboard**
 4. Create a meal or activity proposal
 5. Go to your GitHub repo → Check `data/trip_data.json`

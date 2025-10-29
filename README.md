@@ -107,7 +107,7 @@ Your comprehensive Amelia Island adventure companion - a beautiful, feature-rich
 - Custom notifications
 
 ### 🔒 **Security & Privacy**
-- Password protection (default: 28008985)
+- Password protection (contact repository owner for password)
 - Public view mode (hides sensitive data)
 - Atomic file operations (no data corruption)
 - Automatic backups (last 20 saves)
@@ -148,7 +148,7 @@ Your comprehensive Amelia Island adventure companion - a beautiful, feature-rich
 
 5. **Open in browser**
    - Navigate to `http://localhost:8501`
-   - **Password**: `28008985`
+   - **Password**: Contact repository owner for password
 
 ---
 
@@ -501,7 +501,7 @@ pip check
 ```
 
 **Password not working:**
-- Default password: `28008985`
+- Contact repository owner for password
 - If changed, verify MD5 hash matches
 - Clear browser cache/cookies
 

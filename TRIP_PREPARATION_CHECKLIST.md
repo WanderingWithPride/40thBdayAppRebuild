@@ -16,7 +16,7 @@ NOW ────▶ 2 WEEKS OUT ────▶ 1 WEEK OUT ────▶ 3 DAY
 
 ### App Setup
 - [ ] Access trip planner app
-- [ ] Test login with password: 28008985
+- [ ] Test login with your password (contact admin if needed)
 - [ ] Bookmark app on phone home screen
 - [ ] Share app link with John
 - [ ] Verify all features work

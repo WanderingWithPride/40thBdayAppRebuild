@@ -84,7 +84,7 @@ In your Streamlit Cloud dashboard:
 # GitHub Token (for data persistence)
 GITHUB_TOKEN = "your_github_token_here"
 
-# Password hash (current password is "28008985")
+# Password hash (set your own password, then generate MD5 hash)
 TRIP_PASSWORD_HASH = "a5be948874610641149611913c4924e5"
 
 # Weather API (RECOMMENDED)

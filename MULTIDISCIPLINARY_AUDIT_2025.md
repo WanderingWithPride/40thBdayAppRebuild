@@ -600,14 +600,13 @@ if bcrypt.checkpw(password.encode(), stored_hash):
 
 #### **2. Password in Plain Text (env.example)**
 ```
-Problem: env.example contains actual password (line 13)
+Problem: env.example should not contain actual passwords
 File: env.example
-Line 13: # Password is "28008985"
 
-Issue: Anyone with repo access knows password
+Issue: Exposing passwords in example files creates security risks
 
 Fix:
-- Remove password from env.example
+- Remove actual passwords from env.example
 - Use unique password per client
 - Add password generation in setup wizard
 ```

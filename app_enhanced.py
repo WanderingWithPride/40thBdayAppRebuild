@@ -1,4 +1,9 @@
 """
+⚠️ DEPRECATED BACKUP FILE - DO NOT USE ⚠️
+This is an old backup version. Use app.py for current version.
+Passwords and sensitive data in this file are outdated.
+===============================================================
+
 🎂 40th Birthday Trip Assistant - ENHANCED VERSION 2.0
 =====================================================
 Complete trip companion with real-time data, interactive maps, smart features!

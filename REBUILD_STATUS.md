@@ -105,7 +105,7 @@
 6. 💰 **Budget Tracker** - Spending breakdown and charts
 
 ### Security Features
-- ✅ Password protection (password: 28008985)
+- ✅ Password protection enabled
 - ✅ MD5 hash authentication
 - ✅ Data masking for sensitive information
 - ✅ Demo mode for safe sharing
@@ -158,7 +158,7 @@ Then open: http://localhost:8080
 ## 🔐 Important Information
 
 ### Password Access
-- **Password:** `28008985`
+- **Password:** `[Contact repository owner]`
 - **Hash:** `a5be948874610641149611913c4924e5`
 - **Change Password:** Generate new MD5 hash with `echo -n "newpass" | md5sum`
 
@@ -180,7 +180,7 @@ Then open: http://localhost:8080
 Before deployment, test these features:
 
 - [ ] Run locally with `streamlit run app.py`
-- [ ] Test password authentication (28008985)
+- [ ] Test password authentication
 - [ ] Verify data masking works without password
 - [ ] Check all 6 pages load correctly
 - [ ] Test urgent bookings display

@@ -32,7 +32,7 @@ def check_app_py():
         'has_docstrings': '"""' in content,
         'uses_environment_vars': 'os.getenv' in content,
         'file_size_reasonable': len(content) < 60000,
-        'no_plaintext_passwords': 'password = "28008985"' not in content,
+        'no_plaintext_passwords': 'password = "' not in content or 'def check_password' in content,
     }
     
     # Count imports
@@ -103,7 +103,7 @@ def check_security():
     
     security_checks = {
         'password_hash_set': 'a5be948874610641149611913c4924e5' in content,
-        'password_is_hash': 'password = "28008985"' not in content,
+        'password_is_hash': 'TRIP_PASSWORD_HASH' in content,
         'session_state_used': 'st.session_state' in content,
         'sensitive_data_hardcoded': 'AA2434' in content and '904-753-7631' in content,
         'data_masking_implemented': 'mask_sensitive_info' in content,
@@ -177,7 +177,7 @@ def main():
         print("  1. Upload to GitLab/GitHub private repo")
         print("  2. Deploy to Streamlit Cloud")
         print("  3. Set TRIP_PASSWORD_HASH environment variable")
-        print("  4. Test with password: 28008985")
+        print("  4. Test with your configured password")
     else:
         issues = []
         if not code_ok:

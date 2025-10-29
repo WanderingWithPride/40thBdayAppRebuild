@@ -75,7 +75,7 @@
 - Daily spending analysis
 
 #### 9. 🔐 **Enhanced Security**
-- Same password protection (28008985)
+- Password protection enabled
 - Better data masking
 - Secure session management
 - Safe for sharing
