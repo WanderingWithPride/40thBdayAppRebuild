@@ -7991,8 +7991,13 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                 is_solo = meal_slot.get('solo', False)
                 required_count = 1 if is_solo else 3
 
-                # Filter out used restaurants
-                available_restaurants = [r for r in meal_appropriate_restaurants if r['name'] not in used_restaurants]
+                # Filter out used restaurants (but allow reuse for solo meals)
+                if is_solo:
+                    # Solo meals can reuse restaurants - you're eating alone!
+                    available_restaurants = meal_appropriate_restaurants
+                else:
+                    # Group meals should avoid duplicates
+                    available_restaurants = [r for r in meal_appropriate_restaurants if r['name'] not in used_restaurants]
 
                 if len(available_restaurants) < required_count:
                     st.error(f"⚠️ Not enough unique restaurants available! You may need to cancel some previous proposals or pick different options.")
