@@ -5779,26 +5779,55 @@ def enrich_activity_with_live_data(activity, date_str, weather_data):
         except:
             pass
 
-    # 3. REAL-TIME TRAFFIC (skip for arrivals - you're already traveling!)
+    # 3. TIMELINE CALCULATION
     activity_name_lower = activity.get('activity', '').lower()
     is_arrival = 'arrival' in activity_name_lower or 'arriving' in activity_name_lower or 'arrives' in activity_name_lower
+    is_departure = 'depart' in activity_name_lower or 'leaving' in activity_name_lower
 
-    # Only calculate traffic for activities you need to DRIVE TO (not arrivals)
-    if GOOGLE_APIS_AVAILABLE and not is_arrival:
+    activity_time = activity.get('time', '')
+
+    # FOR ARRIVALS: Calculate projected "ready by" time
+    if is_arrival and activity_time and activity_time != 'TBD':
+        try:
+            from datetime import datetime, timedelta
+
+            # Start with flight arrival time
+            arrival_time_obj = datetime.strptime(activity_time, '%I:%M %p')
+
+            # Add arrival timeline:
+            # - Deplane & baggage claim: 30 min
+            # - Drive to hotel (from airport): 45 min
+            # - Hotel check-in: 15 min
+            total_arrival_minutes = 30 + 45 + 15  # 90 minutes total
+
+            ready_time = arrival_time_obj + timedelta(minutes=total_arrival_minutes)
+
+            enriched['arrival_timeline'] = {
+                'flight_lands': activity_time,
+                'baggage_claim': '~30 min',
+                'drive_to_hotel': '~45 min',
+                'check_in': '~15 min',
+                'ready_by': ready_time.strftime('%I:%M %p'),
+                'total_time': '~90 min'
+            }
+            enriched['projected_end_time'] = ready_time.strftime('%I:%M %p')
+        except:
+            pass
+
+    # FOR DEPARTURES & REGULAR ACTIVITIES: Calculate when to leave hotel
+    elif GOOGLE_APIS_AVAILABLE and not is_arrival:
         try:
             traffic = get_traffic_data(hotel_address, location_address)
             if traffic:
                 enriched['traffic'] = traffic
-                # Calculate smart departure time
-                activity_time = activity.get('time', '')
+
                 if activity_time and activity_time != 'TBD':
                     try:
                         from datetime import datetime, timedelta
                         time_obj = datetime.strptime(activity_time, '%I:%M %p')
                         travel_minutes = traffic.get('duration_in_traffic', {}).get('value', 0) // 60
 
-                        # Add buffer: 10 min for regular activities, 30 min for departures
-                        is_departure = 'depart' in activity_name_lower or 'leaving' in activity_name_lower
+                        # Add buffer: 30 min for departures (airport security), 10 min for regular activities
                         buffer_minutes = 30 if is_departure else 10
 
                         departure_time = time_obj - timedelta(minutes=travel_minutes + buffer_minutes)
@@ -6523,8 +6552,20 @@ def render_full_schedule(df, activities_data, show_sensitive):
                             else:
                                 st.info(alert['message'])
 
-                        # === REAL-TIME TRAFFIC + SMART DEPARTURE TIME ===
-                        if live_data.get('traffic'):
+                        # === ARRIVAL TIMELINE (for arrival flights) ===
+                        if live_data.get('arrival_timeline'):
+                            timeline = live_data['arrival_timeline']
+                            st.info(f"✈️ **Flight lands:** {timeline['flight_lands']}")
+                            st.markdown(f"""
+                            **Arrival Process:**
+                            - 🛄 Baggage claim: {timeline['baggage_claim']}
+                            - 🚗 Drive to hotel: {timeline['drive_to_hotel']}
+                            - 🏨 Check-in: {timeline['check_in']}
+                            """)
+                            st.success(f"⏰ **Ready by:** {timeline['ready_by']} ({timeline['total_time']} after landing)")
+
+                        # === REAL-TIME TRAFFIC + SMART DEPARTURE TIME (for regular activities) ===
+                        elif live_data.get('traffic'):
                             traffic = live_data['traffic']
                             traffic_emoji = traffic.get('traffic_emoji', '🟢')
                             travel_time = traffic.get('duration_in_traffic', {}).get('text', 'N/A')
@@ -6748,8 +6789,20 @@ def render_full_schedule(df, activities_data, show_sensitive):
                             else:
                                 st.info(alert['message'])
 
-                        # === REAL-TIME TRAFFIC + SMART DEPARTURE TIME ===
-                        if live_data.get('traffic'):
+                        # === ARRIVAL TIMELINE (for arrival flights) ===
+                        if live_data.get('arrival_timeline'):
+                            timeline = live_data['arrival_timeline']
+                            st.info(f"✈️ **Flight lands:** {timeline['flight_lands']}")
+                            st.markdown(f"""
+                            **Arrival Process:**
+                            - 🛄 Baggage claim: {timeline['baggage_claim']}
+                            - 🚗 Drive to hotel: {timeline['drive_to_hotel']}
+                            - 🏨 Check-in: {timeline['check_in']}
+                            """)
+                            st.success(f"⏰ **Ready by:** {timeline['ready_by']} ({timeline['total_time']} after landing)")
+
+                        # === REAL-TIME TRAFFIC + SMART DEPARTURE TIME (for regular activities) ===
+                        elif live_data.get('traffic'):
                             traffic = live_data['traffic']
                             traffic_emoji = traffic.get('traffic_emoji', '🟢')
                             travel_time = traffic.get('duration_in_traffic', {}).get('text', 'N/A')
