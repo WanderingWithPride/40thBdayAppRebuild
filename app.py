@@ -3263,10 +3263,16 @@ def detect_meal_gaps(activities_data):
         List of missing meals with suggested times
     """
     from collections import defaultdict
+    import json
 
     # Load trip data to check meal_proposals
-    trip_data = load_trip_data()
-    meal_proposals = trip_data.get('meal_proposals', {})
+    try:
+        with open('data/trip_data.json', 'r') as f:
+            trip_data = json.load(f)
+        meal_proposals = trip_data.get('meal_proposals', {})
+    except:
+        # If file doesn't exist or can't be read, assume no meal proposals
+        meal_proposals = {}
 
     # Create mapping of meal_id to date and meal type
     # meal_ids like "sat_dinner", "sun_lunch", "mon_breakfast"
