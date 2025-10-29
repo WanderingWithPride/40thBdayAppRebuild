@@ -6319,15 +6319,15 @@ def render_full_schedule(df, activities_data, show_sensitive):
                         'id': f"meal_vote_{meal_slot['id']}",
                         'date': date_str,
                         'time': display_time,
-                        'activity': f"🗳️ {meal_label} - Voting in Progress",
-                        'description': 'John is voting on restaurant options',
+                        'activity': f"{meal_label}",
+                        'description': 'Browse restaurant options and pick your favorite',
                         'type': 'dining',
                         'category': 'Dining',
                         'duration': '1-2 hours',
-                        'cost': 'TBD',
-                        'status': 'pending',
-                        'notes': f"3 restaurant options proposed. John's vote: {'Option ' + str(int(john_vote) + 1) if john_vote is not None else 'Not voted yet'}",
-                        'location': {'name': 'TBD - Awaiting vote', 'address': ''},
+                        'cost': 'Varies',
+                        'status': 'optional',
+                        'notes': f"Multiple restaurant options available. Choose based on preference and budget.",
+                        'location': {'name': 'Multiple options available', 'address': ''},
                         'is_meal_voting': True,
                         'meal_slot_id': meal_slot['id'],
                         'restaurant_options': proposal['restaurant_options']
@@ -6403,15 +6403,15 @@ def render_full_schedule(df, activities_data, show_sensitive):
                         'id': f"activity_vote_{activity_slot['id']}",
                         'date': date_str,
                         'time': activity_slot['time'],
-                        'activity': f"🗳️ {activity_label} - Voting in Progress",
-                        'description': "John is voting on activity options",
+                        'activity': f"{activity_label}",
+                        'description': "Browse activity options and decide on the day",
                         'type': 'activity',
                         'category': 'Activity',
-                        'duration': '1-3 hours',
-                        'cost': 'TBD',
-                        'status': 'pending',
-                        'notes': notes_text,
-                        'location': {'name': 'TBD - Awaiting choice', 'address': ''},
+                        'duration': 'Flexible',
+                        'cost': 'Varies',
+                        'status': 'optional',
+                        'notes': f"Multiple activity options available. Sorted by price (free first).",
+                        'location': {'name': 'Multiple options available', 'address': ''},
                         'is_activity_voting': True,
                         'activity_slot_id': activity_slot['id'],
                         'activity_options': proposal['activity_options']
@@ -6742,16 +6742,16 @@ def render_full_schedule(df, activities_data, show_sensitive):
                     safe_time_display = html.escape(time_display)
                     is_michael_solo = activity.get('activity_slot_id') in ['fri_evening', 'mon_morning', 'mon_afternoon', 'mon_evening']
 
-                    status_text = 'MICHAEL TO PICK' if is_michael_solo else 'PENDING VOTE'
-                    description_text = 'Michael will choose from 3 activity options below:' if is_michael_solo else 'John is voting on 3 activity options below:'
-                    border_color = '#2196f3' if is_michael_solo else '#ff9800'
+                    status_text = 'ACTIVITY OPTIONS'
+                    description_text = 'Browse options below - pick as many or few as you want on the day!'
+                    border_color = '#4caf50'
 
-                    st.markdown(f"""<div class="timeline-item pending" style="margin: 1rem 0;">
+                    st.markdown(f"""<div class="timeline-item" style="margin: 1rem 0;">
 <div class="ultimate-card" style="border-left: 4px solid {border_color};">
 <div class="card-body">
 <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-<h4 style="margin: 0;">{safe_activity_name}</h4>
-<span class="status-pending">{status_text}</span>
+<h4 style="margin: 0;">💡 {safe_activity_name} - Activity Options</h4>
+<span class="status-optional" style="background: #4caf50; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.85rem; font-weight: 600;">{status_text}</span>
 </div>
 <p style="margin: 0.5rem 0;"><b>🕐 {safe_time_display}</b></p>
 <p style="margin: 0.5rem 0; color: #666;">{description_text}</p>
@@ -6798,15 +6798,15 @@ def render_full_schedule(df, activities_data, show_sensitive):
                     safe_activity_name = html.escape(activity['activity'])
                     safe_time_display = html.escape(time_display)
 
-                    st.markdown(f"""<div class="timeline-item pending" style="margin: 1rem 0;">
-<div class="ultimate-card" style="border-left: 4px solid #ff9800;">
+                    st.markdown(f"""<div class="timeline-item" style="margin: 1rem 0;">
+<div class="ultimate-card" style="border-left: 4px solid #4caf50;">
 <div class="card-body">
 <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-<h4 style="margin: 0;">{safe_activity_name}</h4>
-<span class="status-pending">PENDING VOTE</span>
+<h4 style="margin: 0;">🍽️ {safe_activity_name} - Restaurant Options</h4>
+<span class="status-optional" style="background: #4caf50; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.85rem; font-weight: 600;">DINING OPTIONS</span>
 </div>
 <p style="margin: 0.5rem 0;"><b>🕐 {safe_time_display}</b></p>
-<p style="margin: 0.5rem 0; color: #666;">John is voting on 3 restaurant options below:</p>
+<p style="margin: 0.5rem 0; color: #666;">Browse restaurant options - pick your favorite!</p>
 </div>
 </div>
 </div>""", unsafe_allow_html=True)
