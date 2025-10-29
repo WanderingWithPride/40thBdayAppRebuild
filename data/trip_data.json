@@ -342,6 +342,18 @@
       "activity_slot_id": "sat_evening",
       "activity_options": [
         {
+          "name": "Sunset Beach Selfies",
+          "description": "Catch golden hour on the beach! Perfect lighting for photos and selfies. Capture the sunset, take fun shots, create memories",
+          "cost_range": "FREE",
+          "duration": "30min-1 hour",
+          "phone": "N/A",
+          "booking_url": "N/A",
+          "tips": "Sunset timing is perfect for amazing photos. Ocean backdrop + golden light = Instagram gold!",
+          "rating": "5.0/5",
+          "is_repeatable": true,
+          "time_preference": "evening"
+        },
+        {
           "name": "Two Resort Pools",
           "description": "Multiple pools including one with kids splash pad",
           "cost_range": "FREE (hotel guests)",
@@ -386,6 +398,29 @@
     "sun_afternoon": {
       "activity_slot_id": "sun_afternoon",
       "activity_options": [
+        {
+          "name": "Casual Beach Day & Seashell Hunting",
+          "description": "Relaxed beach time with umbrella and chairs. Walk the shoreline collecting seashells, sand dollars, and unique finds. Perfect for low-key beach enjoyment!",
+          "cost_range": "FREE (hotel guests)",
+          "duration": "2-4 hours (flexible)",
+          "phone": "N/A",
+          "booking_url": "N/A",
+          "tips": "Best shelling at low tide! November is great season for shells. Bring a bag for your finds. No premium seating needed - just pure beach relaxation",
+          "rating": "5.0/5",
+          "is_repeatable": true,
+          "time_preference": "any"
+        },
+        {
+          "name": "Beach Selfie & Photo Session (DIY)",
+          "description": "Bring your phones and capture memories! Find scenic beach spots, take fun selfies with ocean backdrop, candid friend shots, and Instagram-worthy moments",
+          "cost_range": "FREE",
+          "duration": "30min-1 hour (or longer!)",
+          "phone": "N/A",
+          "booking_url": "N/A",
+          "tips": "Best lighting during golden hour (late afternoon). Use burst mode for action shots. Try different poses and locations along the 1.5-mile beach!",
+          "rating": "5.0/5",
+          "is_repeatable": true
+        },
         {
           "name": "Private Beach Cabanas",
           "description": "Reserve private poolside or beachside cabanas for ultimate luxury",
@@ -490,6 +525,18 @@
       "activity_slot_id": "mon_morning",
       "activity_options": [
         {
+          "name": "Morning Beach Walk & Seashell Hunt",
+          "description": "Early morning stroll along 1.5 miles of private beach. Perfect tide pools and shelling opportunities. Peaceful start to the day!",
+          "cost_range": "FREE (hotel guests)",
+          "duration": "1-2 hours",
+          "phone": "N/A",
+          "booking_url": "N/A",
+          "tips": "Morning is best for shell finding! Ocean is calm, beaches less crowded. Great for photos with morning light",
+          "rating": "5.0/5",
+          "is_repeatable": true,
+          "time_preference": "morning"
+        },
+        {
           "name": "Plantation Artists' Guild & Gallery",
           "description": "Local artists featuring paintings, pottery, jewelry, and crafts",
           "cost_range": "FREE to browse",
@@ -533,6 +580,18 @@
     "mon_afternoon": {
       "activity_slot_id": "mon_afternoon",
       "activity_options": [
+        {
+          "name": "Relaxed Beach Afternoon",
+          "description": "No agenda beach time! Bring a book, take selfies, walk the beach, collect shells, or just relax with ocean views. Your time, your pace",
+          "cost_range": "FREE (hotel guests)",
+          "duration": "2-4 hours (as long as you want!)",
+          "phone": "N/A",
+          "booking_url": "N/A",
+          "tips": "Grab beach chairs from resort. Perfect for just chilling without structured activities. Tide pools are amazing for exploring",
+          "rating": "5.0/5",
+          "is_repeatable": true,
+          "time_preference": "afternoon"
+        },
         {
           "name": "Fort Clinch State Park Trails",
           "description": "6-mile loop trail of moderate difficulty along marshes with beach access, gateway to Great Florida Birding Trail",
@@ -662,6 +721,143 @@
       "submitted_by": "Michael",
       "created_at": "2025-10-27T23:23:37.221380",
       "updated_at": "2025-10-27T23:23:37.221390"
+    },
+    "sat_morning": {
+      "activity_slot_id": "sat_morning",
+      "activity_options": [
+        {
+          "name": "Sunrise Beach Walk & Shell Collecting",
+          "description": "Start your trip with a peaceful sunrise walk on the private beach. Best time for seashell hunting when tide is low!",
+          "cost_range": "FREE (hotel guests)",
+          "duration": "1-2 hours",
+          "phone": "N/A",
+          "booking_url": "N/A",
+          "tips": "Sunrise is around 6:45 AM in November. Perfect solo time before John arrives. Beach is yours!",
+          "rating": "5.0/5",
+          "is_repeatable": true,
+          "time_preference": "morning"
+        },
+        {
+          "name": "Morning Beach Selfies & Photos",
+          "description": "Get those dating profile shots in morning light! Beach is quiet, lighting is soft, and you have time to experiment with poses",
+          "cost_range": "FREE",
+          "duration": "30min-1 hour",
+          "phone": "N/A",
+          "booking_url": "N/A",
+          "tips": "Use timer mode or video screenshots. Morning light is flattering. Try beach, dunes, and resort backgrounds",
+          "rating": "5.0/5",
+          "is_repeatable": true
+        },
+        {
+          "name": "Resort Pool Relaxation",
+          "description": "Enjoy quiet pool time before crowds arrive. Perfect way to ease into vacation mode",
+          "cost_range": "FREE (hotel guests)",
+          "duration": "Flexible",
+          "phone": "N/A",
+          "booking_url": "N/A",
+          "tips": "Pools open early and are peaceful in the morning. Great for a quick dip or lounge time",
+          "rating": "4.9/5",
+          "is_repeatable": true
+        }
+      ],
+      "status": "proposed",
+      "john_vote": null,
+      "final_choice": null,
+      "activity_time": "2025-11-08",
+      "date": "Morning (Michael solo)",
+      "submitted_by": "Michael",
+      "created_at": "2025-10-29T03:56:51.983223",
+      "updated_at": "2025-10-29T03:56:51.983239"
+    },
+    "tue_morning": {
+      "activity_slot_id": "tue_morning",
+      "activity_options": [
+        {
+          "name": "Final Beach Walk & Memory Photos",
+          "description": "Last chance for beach time! Walk the shore one more time, take final photos, collect a few more shells",
+          "cost_range": "FREE (hotel guests)",
+          "duration": "1-2 hours",
+          "phone": "N/A",
+          "booking_url": "N/A",
+          "tips": "Savor the last morning. Take photos to remember the trip. Maybe find that perfect shell!",
+          "rating": "5.0/5",
+          "is_repeatable": true,
+          "time_preference": "morning"
+        },
+        {
+          "name": "Pool & Hot Tub Farewell",
+          "description": "One last relaxing session at the resort pools before heading home",
+          "cost_range": "FREE (hotel guests)",
+          "duration": "Flexible",
+          "phone": "N/A",
+          "booking_url": "N/A",
+          "tips": "Peaceful way to end the trip. Reflect on all the memories made!",
+          "rating": "4.9/5",
+          "is_repeatable": true
+        },
+        {
+          "name": "Downtown Coffee & Last Minute Shopping",
+          "description": "Grab coffee in historic downtown and do any last-minute gift shopping or exploring",
+          "cost_range": "$5-20",
+          "duration": "1-2 hours",
+          "phone": "N/A",
+          "booking_url": "N/A",
+          "tips": "Perfect if you need to grab souvenirs or just want one last taste of Amelia Island charm",
+          "rating": "4.7/5"
+        }
+      ],
+      "status": "proposed",
+      "john_vote": null,
+      "final_choice": null,
+      "activity_time": "2025-11-11",
+      "date": "Morning (Michael solo)",
+      "submitted_by": "Michael",
+      "created_at": "2025-10-29T03:56:51.983246",
+      "updated_at": "2025-10-29T03:56:51.983248"
+    },
+    "tue_afternoon": {
+      "activity_slot_id": "tue_afternoon",
+      "activity_options": [
+        {
+          "name": "Last Beach Day Before Departure",
+          "description": "Maximize your last hours! Beach chair, book, maybe a final swim. Whatever you want - it is YOUR time",
+          "cost_range": "FREE (hotel guests)",
+          "duration": "2-4 hours",
+          "phone": "N/A",
+          "booking_url": "N/A",
+          "tips": "Depending on flight time, you might have a few hours. Make the most of it!",
+          "rating": "5.0/5",
+          "is_repeatable": true
+        },
+        {
+          "name": "Explore Historic District",
+          "description": "Walk through Victorian-era downtown, browse shops, grab a coffee, soak in the charm",
+          "cost_range": "FREE (browsing)",
+          "duration": "1-3 hours",
+          "phone": "N/A",
+          "booking_url": "N/A",
+          "tips": "Centre Street is the main drag with shops, galleries, and cafes",
+          "rating": "4.7/5"
+        },
+        {
+          "name": "Relaxed Packing & Prep",
+          "description": "Take your time packing, relax in room, enjoy last moments before heading to airport",
+          "cost_range": "FREE",
+          "duration": "As needed",
+          "phone": "N/A",
+          "booking_url": "N/A",
+          "tips": "No stress! Build in buffer time for relaxed departure",
+          "rating": "4.5/5"
+        }
+      ],
+      "status": "proposed",
+      "john_vote": null,
+      "final_choice": null,
+      "activity_time": "2025-11-11",
+      "date": "Afternoon (Michael solo)",
+      "submitted_by": "Michael",
+      "created_at": "2025-10-29T03:56:51.983251",
+      "updated_at": "2025-10-29T03:56:51.983252"
     }
   },
   "john_preferences": {

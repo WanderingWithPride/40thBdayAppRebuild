@@ -31,6 +31,11 @@ if github_token:
             print(f"   ✅ SUCCESS - Connected as: {user.get('login', 'Unknown')}")
         else:
             print(f"   ❌ FAILED - Status: {response.status_code}")
+            try:
+                error_details = response.json()
+                print(f"   ❌ Details: {error_details}")
+            except:
+                pass
     except Exception as e:
         print(f"   ❌ ERROR: {e}")
 else:
