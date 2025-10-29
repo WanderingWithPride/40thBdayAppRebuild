@@ -358,6 +358,29 @@
       "is_solo": true,
       "created_at": "2025-10-29T17:28:56.301425",
       "updated_at": "2025-10-29T17:28:56.301433"
+    },
+    "sat_breakfast": {
+      "meal_id": "sat_breakfast",
+      "restaurant_options": [
+        {
+          "name": "Tortuga Jacks",
+          "description": "Baja Mexican upstairs at Sliders, oceanfront sunrise breakfast, only non-resort beachfront breakfast",
+          "cost_range": "$12-25 per person",
+          "duration": "1-1.5 hours",
+          "phone": "904-277-3662",
+          "booking_url": "N/A",
+          "tips": "Sunrise breakfast to watch dawn over ocean",
+          "rating": "4.4/5"
+        }
+      ],
+      "status": "confirmed",
+      "john_vote": null,
+      "final_choice": 0,
+      "meal_time": null,
+      "submitted_by": "Michael",
+      "is_solo": true,
+      "created_at": "2025-10-29T17:34:49.529165",
+      "updated_at": "2025-10-29T17:34:49.529173"
     }
   },
   "activity_proposals": {
@@ -917,6 +940,6 @@
   "completed_activities": [],
   "notifications": [],
   "tsa_updates": [],
-  "last_updated": "2025-10-29T17:29:55.679387",
+  "last_updated": "2025-10-29T17:34:49.529184",
   "_test_write": "verification"
 }
