@@ -6562,7 +6562,11 @@ def render_full_schedule(df, activities_data, show_sensitive):
                                     # Get all activities and filter/sort
                                     all_activities_dict = get_optional_activities()
                                     all_activities_list = []
+                                    # Skip dining categories - these are NOT activities
+                                    skip_categories = ['🍽️ Ritz-Carlton Special Dining Experiences', '🍺 Bars & Nightlife', '🍷 Wine & Spirits']
                                     for category, activities in all_activities_dict.items():
+                                        if category in skip_categories:
+                                            continue
                                         for act in activities:
                                             act['category'] = category
                                             all_activities_list.append(act)
@@ -6594,8 +6598,13 @@ def render_full_schedule(df, activities_data, show_sensitive):
                                     # Sort by price (free first, then ascending)
                                     def activity_price_sort_key(act):
                                         cost_str = act.get('cost_range', '')
-                                        if 'FREE' in cost_str.upper() or 'INCLUDED' in cost_str.upper() or '$' not in cost_str:
+                                        # Check if truly free
+                                        if 'FREE' in cost_str.upper() or 'INCLUDED' in cost_str.upper():
                                             return (False, 0)
+                                        # If no dollar sign AND not "Contact for pricing", might be free
+                                        if '$' not in cost_str and 'contact' not in cost_str.lower() and 'pricing' not in cost_str.lower():
+                                            return (False, 0)
+                                        # Otherwise it's paid
                                         return (True, parse_cost_range(cost_str))
 
                                     fitting_activities.sort(key=activity_price_sort_key)
@@ -6835,7 +6844,11 @@ def render_full_schedule(df, activities_data, show_sensitive):
                         # Get all activities and filter/sort
                         all_activities_dict = get_optional_activities()
                         all_activities_list = []
+                        # Skip dining categories - these are NOT activities
+                        skip_categories = ['🍽️ Ritz-Carlton Special Dining Experiences', '🍺 Bars & Nightlife', '🍷 Wine & Spirits']
                         for category, activities in all_activities_dict.items():
+                            if category in skip_categories:
+                                continue
                             for act in activities:
                                 act['category'] = category
                                 all_activities_list.append(act)
@@ -6868,8 +6881,13 @@ def render_full_schedule(df, activities_data, show_sensitive):
                         # Sort by price
                         def activity_price_sort_key(act):
                             cost_str = act.get('cost_range', '')
-                            if 'FREE' in cost_str.upper() or 'INCLUDED' in cost_str.upper() or '$' not in cost_str:
+                            # Check if truly free
+                            if 'FREE' in cost_str.upper() or 'INCLUDED' in cost_str.upper():
                                 return (False, 0)
+                            # If no dollar sign AND not "Contact for pricing", might be free
+                            if '$' not in cost_str and 'contact' not in cost_str.lower() and 'pricing' not in cost_str.lower():
+                                return (False, 0)
+                            # Otherwise it's paid
                             return (True, parse_cost_range(cost_str))
 
                         fitting_activities.sort(key=activity_price_sort_key)
@@ -7312,7 +7330,11 @@ def render_full_schedule(df, activities_data, show_sensitive):
                         # Get all activities and filter/sort
                         all_activities_dict = get_optional_activities()
                         all_activities_list = []
+                        # Skip dining categories - these are NOT activities
+                        skip_categories = ['🍽️ Ritz-Carlton Special Dining Experiences', '🍺 Bars & Nightlife', '🍷 Wine & Spirits']
                         for category, activities in all_activities_dict.items():
+                            if category in skip_categories:
+                                continue
                             for act in activities:
                                 act['category'] = category
                                 all_activities_list.append(act)
@@ -7347,8 +7369,13 @@ def render_full_schedule(df, activities_data, show_sensitive):
                         # Sort by price (free first, then ascending)
                         def activity_price_sort_key(act):
                             cost_str = act.get('cost_range', '')
-                            if 'FREE' in cost_str.upper() or 'INCLUDED' in cost_str.upper() or '$' not in cost_str:
+                            # Check if truly free
+                            if 'FREE' in cost_str.upper() or 'INCLUDED' in cost_str.upper():
                                 return (False, 0)
+                            # If no dollar sign AND not "Contact for pricing", might be free
+                            if '$' not in cost_str and 'contact' not in cost_str.lower() and 'pricing' not in cost_str.lower():
+                                return (False, 0)
+                            # Otherwise it's paid
                             return (True, parse_cost_range(cost_str))
 
                         fitting_activities.sort(key=activity_price_sort_key)
