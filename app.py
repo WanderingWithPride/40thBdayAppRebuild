@@ -3195,17 +3195,27 @@ def render_budget_widget(activities_data, show_sensitive=True, view_mode='michae
     if view_mode == 'john':
         display_total = johns_share
         share_label = "Your Share"
+        # John's categories: only Dining and Alcohol (he splits these 50/50)
+        johns_categories = {}
+        if meals_split > 0:
+            johns_categories['Dining'] = meals_split
+        if alcohol_split > 0:
+            johns_categories['Alcohol'] = alcohol_split
+        display_categories = sorted(johns_categories.items(), key=lambda x: x[1], reverse=True)
     else:
         display_total = michaels_share
         share_label = "Your Total"
+        # Michael's categories: everything (full budget breakdown)
+        display_categories = budget_data['categories']
 
     meals_count = len(budget_data.get('confirmed_meals', []))
     meals_total = budget_data.get('confirmed_meals_total', 0)
 
     # Escape top category
     import html
-    top_category = budget_data['categories'][0][0] if budget_data['categories'] else 'N/A'
+    top_category = display_categories[0][0] if display_categories else 'N/A'
     safe_top_category = html.escape(top_category)
+    top_category_amount = int(display_categories[0][1]) if display_categories else 0
 
     st.markdown(f"""<div class="ultimate-card" style="border-left: 4px solid #4caf50;">
 <div class="card-body">
@@ -3227,28 +3237,34 @@ def render_budget_widget(activities_data, show_sensitive=True, view_mode='michae
 <div>
 <strong>Top Category:</strong><br>
 <span style="font-size: 1.0rem;">{safe_top_category}</span><br>
-<span style="font-size: 0.9rem; color: #666;">{'$' + str(int(budget_data['categories'][0][1])) if budget_data['categories'] else '$0'}</span>
+<span style="font-size: 0.9rem; color: #666;">${top_category_amount}</span>
 </div>
 </div>
 </div>
 </div>""", unsafe_allow_html=True)
 
     # Show category breakdown
-    if budget_data['categories']:
+    if display_categories:
         with st.expander("📊 See Detailed Breakdown"):
-            for category, amount in budget_data['categories']:
-                percentage = (amount / budget_data['total'] * 100) if budget_data['total'] > 0 else 0
+            for category, amount in display_categories:
+                percentage = (amount / display_total * 100) if display_total > 0 else 0
                 st.markdown(f"**{category}:** ${amount:,.0f} ({percentage:.1f}%)")
 
             # Show confirmed meals details
             if budget_data.get('confirmed_meals'):
                 st.markdown("---")
-                st.markdown("**🍽️ Confirmed Meals:**")
-                for meal in budget_data['confirmed_meals']:
-                    st.markdown(f"- **{meal['name']}**: ${meal['cost_per_person']:.0f}/person × 2 = ${meal['total_cost']:.0f}")
+                if view_mode == 'john':
+                    st.markdown("**🍽️ Your Share of Meals (Going Dutch):**")
+                    for meal in budget_data['confirmed_meals']:
+                        your_share = meal['cost_per_person']
+                        st.markdown(f"- **{meal['name']}**: ${your_share:.0f} (your half)")
+                else:
+                    st.markdown("**🍽️ Confirmed Meals:**")
+                    for meal in budget_data['confirmed_meals']:
+                        st.markdown(f"- **{meal['name']}**: ${meal['cost_per_person']:.0f}/person × 2 = ${meal['total_cost']:.0f}")
 
-            # Show confirmed activities details
-            if budget_data.get('confirmed_activities'):
+            # Show confirmed activities details (only for Michael's view - he pays for all activities)
+            if view_mode != 'john' and budget_data.get('confirmed_activities'):
                 st.markdown("---")
                 st.markdown("**🎯 Confirmed Activities:**")
                 for activity in budget_data['confirmed_activities']:
@@ -3257,11 +3273,18 @@ def render_budget_widget(activities_data, show_sensitive=True, view_mode='michae
             # Show confirmed alcohol details
             if budget_data.get('confirmed_alcohol'):
                 st.markdown("---")
-                st.markdown("**🍺 Alcohol/Drinks (Split 50/50):**")
-                for item in budget_data['confirmed_alcohol']:
-                    quantity_str = f" - {item['quantity']}" if item.get('quantity') else ""
-                    split_cost = item['total_cost'] / 2
-                    st.markdown(f"- **{item['name']}**{quantity_str}: ${item['total_cost']:.2f} (${split_cost:.2f} each)")
+                if view_mode == 'john':
+                    st.markdown("**🍺 Your Share of Drinks (Split 50/50):**")
+                    for item in budget_data['confirmed_alcohol']:
+                        quantity_str = f" - {item['quantity']}" if item.get('quantity') else ""
+                        split_cost = item['total_cost'] / 2
+                        st.markdown(f"- **{item['name']}**{quantity_str}: ${split_cost:.2f} (your half)")
+                else:
+                    st.markdown("**🍺 Alcohol/Drinks (Split 50/50):**")
+                    for item in budget_data['confirmed_alcohol']:
+                        quantity_str = f" - {item['quantity']}" if item.get('quantity') else ""
+                        split_cost = item['total_cost'] / 2
+                        st.markdown(f"- **{item['name']}**{quantity_str}: ${item['total_cost']:.2f} (${split_cost:.2f} each)")
 
 
 # ============================================================================
