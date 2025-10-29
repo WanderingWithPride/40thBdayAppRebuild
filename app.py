@@ -6805,6 +6805,78 @@ def render_full_schedule(df, activities_data, show_sensitive):
                         if activity.get('booking_url') and activity.get('booking_url') != 'N/A':
                             st.markdown(f"[📞 Book Now]({activity.get('booking_url')})")
 
+                        # Show activity suggestions for this meal time slot
+                        st.markdown("---")
+                        st.markdown("**💡 Or... Other Things You Could Do During This Time:**")
+
+                        # Get all activities and filter/sort
+                        all_activities_dict = get_optional_activities()
+                        all_activities_list = []
+                        for category, activities in all_activities_dict.items():
+                            for act in activities:
+                                act['category'] = category
+                                all_activities_list.append(act)
+
+                        # Filter by duration (meals are usually 1-2 hours)
+                        def parse_duration_hours(duration_str):
+                            """Parse duration string to hours"""
+                            if not duration_str:
+                                return 2
+                            duration_str = str(duration_str).lower()
+                            if 'all day' in duration_str or 'full day' in duration_str:
+                                return 8
+                            if 'flexible' in duration_str:
+                                return 1
+                            import re
+                            numbers = re.findall(r'(\d+(?:\.\d+)?)', duration_str)
+                            if numbers:
+                                return float(numbers[0])
+                            return 2
+
+                        # Get duration of current activity (meals are ~1.5-2 hours)
+                        current_duration_hours = parse_duration_hours(activity.get('duration', '1.5 hours'))
+
+                        # Filter activities that fit
+                        fitting_activities = [
+                            a for a in all_activities_list
+                            if parse_duration_hours(a.get('duration', '')) <= current_duration_hours + 0.5
+                        ]
+
+                        # Sort by price
+                        def activity_price_sort_key(act):
+                            cost_str = act.get('cost_range', '')
+                            if 'FREE' in cost_str.upper() or 'INCLUDED' in cost_str.upper() or '$' not in cost_str:
+                                return (False, 0)
+                            return (True, parse_cost_range(cost_str))
+
+                        fitting_activities.sort(key=activity_price_sort_key)
+
+                        # Show top 8 activities
+                        if fitting_activities:
+                            with st.expander(f"💡 Browse {min(len(fitting_activities), 8)} Alternative Activities (sorted by price)", expanded=False):
+                                for act in fitting_activities[:8]:
+                                    cost = act.get('cost_range', 'N/A')
+                                    is_free = 'FREE' in cost.upper() or 'INCLUDED' in cost.upper() or '$' not in cost
+                                    badge_color = '#4caf50' if is_free else '#2196f3'
+                                    badge_text = '✨ FREE' if is_free else f'💰 {cost}'
+
+                                    import html
+                                    st.markdown(f"""
+                                    <div style="border-left: 3px solid {badge_color}; padding: 0.75rem; margin: 0.5rem 0; background: white; border-radius: 4px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                                            <strong style="font-size: 0.95rem;">{html.escape(act['name'])}</strong>
+                                            <span style="background: {badge_color}; color: white; padding: 0.15rem 0.5rem; border-radius: 8px; font-size: 0.75rem; white-space: nowrap; margin-left: 0.5rem;">{badge_text}</span>
+                                        </div>
+                                        <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #666;">{html.escape(str(act.get('description', 'N/A'))[:120])}...</p>
+                                        <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #888;">⏱️ {html.escape(str(act.get('duration', 'Varies')))} | 📍 {html.escape(act.get('category', 'Activity'))}</p>
+                                    </div>
+                                    """, unsafe_allow_html=True)
+
+                                    if act.get('phone') and act.get('phone') != 'N/A':
+                                        st.caption(f"📞 {act['phone']}")
+                                    if act.get('tips'):
+                                        st.caption(f"💡 {act['tips'][:100]}...")
+
                 # Special handling for activity voting
                 elif activity.get('is_activity_voting'):
                     # Display activity voting with all 3 options
@@ -7209,6 +7281,79 @@ def render_full_schedule(df, activities_data, show_sensitive):
                         # Booking link
                         if activity.get('booking_url') and activity.get('booking_url') != 'N/A' and activity.get('booking_url').startswith('http'):
                             st.markdown(f"[📞 Book Now]({activity.get('booking_url')})")
+
+                        # Show activity suggestions for this time slot
+                        st.markdown("---")
+                        st.markdown("**💡 Or... Other Things You Could Do During This Time:**")
+
+                        # Get all activities and filter/sort
+                        all_activities_dict = get_optional_activities()
+                        all_activities_list = []
+                        for category, activities in all_activities_dict.items():
+                            for act in activities:
+                                act['category'] = category
+                                all_activities_list.append(act)
+
+                        # Filter by duration (if activity fits in the time slot)
+                        def parse_duration_hours(duration_str):
+                            """Parse duration string to hours"""
+                            if not duration_str:
+                                return 2  # Default 2 hours
+                            duration_str = str(duration_str).lower()
+                            if 'all day' in duration_str or 'full day' in duration_str:
+                                return 8
+                            if 'flexible' in duration_str:
+                                return 1
+                            # Extract numbers
+                            import re
+                            numbers = re.findall(r'(\d+(?:\.\d+)?)', duration_str)
+                            if numbers:
+                                return float(numbers[0])
+                            return 2
+
+                        # Get duration of current activity
+                        current_duration_str = activity.get('duration', '2 hours')
+                        current_duration_hours = parse_duration_hours(current_duration_str)
+
+                        # Filter activities that fit in the same time window
+                        fitting_activities = [
+                            a for a in all_activities_list
+                            if parse_duration_hours(a.get('duration', '')) <= current_duration_hours + 0.5
+                        ]
+
+                        # Sort by price (free first, then ascending)
+                        def activity_price_sort_key(act):
+                            cost_str = act.get('cost_range', '')
+                            if 'FREE' in cost_str.upper() or 'INCLUDED' in cost_str.upper() or '$' not in cost_str:
+                                return (False, 0)
+                            return (True, parse_cost_range(cost_str))
+
+                        fitting_activities.sort(key=activity_price_sort_key)
+
+                        # Show top 8 activities in a compact format
+                        if fitting_activities:
+                            with st.expander(f"💡 Browse {min(len(fitting_activities), 8)} Alternative Activities (sorted by price)", expanded=False):
+                                for act in fitting_activities[:8]:
+                                    cost = act.get('cost_range', 'N/A')
+                                    is_free = 'FREE' in cost.upper() or 'INCLUDED' in cost.upper() or '$' not in cost
+                                    badge_color = '#4caf50' if is_free else '#2196f3'
+                                    badge_text = '✨ FREE' if is_free else f'💰 {cost}'
+
+                                    st.markdown(f"""
+                                    <div style="border-left: 3px solid {badge_color}; padding: 0.75rem; margin: 0.5rem 0; background: white; border-radius: 4px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                                            <strong style="font-size: 0.95rem;">{html.escape(act['name'])}</strong>
+                                            <span style="background: {badge_color}; color: white; padding: 0.15rem 0.5rem; border-radius: 8px; font-size: 0.75rem; white-space: nowrap; margin-left: 0.5rem;">{badge_text}</span>
+                                        </div>
+                                        <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #666;">{html.escape(str(act.get('description', 'N/A'))[:120])}...</p>
+                                        <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #888;">⏱️ {html.escape(str(act.get('duration', 'Varies')))} | 📍 {html.escape(act.get('category', 'Activity'))}</p>
+                                    </div>
+                                    """, unsafe_allow_html=True)
+
+                                    if act.get('phone') and act.get('phone') != 'N/A':
+                                        st.caption(f"📞 {act['phone']}")
+                                    if act.get('tips'):
+                                        st.caption(f"💡 {act['tips'][:100]}...")
 
         # NEW: Show Michael's free time options when John has solo activities
         michael_free_time_activities = [a for a in day_activities if a.get('activity_type') == 'john_solo']
