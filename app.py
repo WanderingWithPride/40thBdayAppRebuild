@@ -1332,20 +1332,20 @@ def get_smart_packing_list():
             {"item": "Emergency contacts list", "checked": False, "priority": "high"},
             {"item": "Car rental info (if applicable)", "checked": False, "priority": "medium"},
         ],
-        "👗 Clothing": [
-            {"item": "Casual daytime outfits (4-5)", "checked": False, "priority": "high"},
-            {"item": "Birthday dinner outfit (nice!)", "checked": False, "priority": "high"},
-            {"item": "Business casual outfit for David's", "checked": False, "priority": "high"},
-            {"item": "Swimsuit(s)", "checked": False, "priority": "high"},
-            {"item": "Beach cover-up", "checked": False, "priority": "medium"},
-            {"item": "Light jacket or cardigan", "checked": False, "priority": "high"},
-            {"item": "Comfortable walking shoes", "checked": False, "priority": "high"},
-            {"item": "Sandals / flip-flops", "checked": False, "priority": "high"},
-            {"item": "Nice shoes for dinner", "checked": False, "priority": "medium"},
-            {"item": "Pajamas / sleepwear", "checked": False, "priority": "medium"},
-            {"item": "Underwear (6-7 days)", "checked": False, "priority": "high"},
-            {"item": "Socks (if needed)", "checked": False, "priority": "medium"},
-            {"item": "Workout clothes (if using gym)", "checked": False, "priority": "low"},
+        "👔 CLOTHING - WHAT TO ACTUALLY PACK": [
+            {"item": "🔥 SMART CASUAL (Lagniappe Fri): Button-down or polo + dark jeans/chinos + leather shoes/nice sneakers", "checked": False, "priority": "high"},
+            {"item": "🏖️ VERY CASUAL (Tortuga Jacks Sat breakfast): T-shirt + shorts + flip-flops", "checked": False, "priority": "high"},
+            {"item": "👕 DAYTIME CASUAL: 3-4 t-shirts/polos + shorts/jeans for exploring, beach, activities", "checked": False, "priority": "high"},
+            {"item": "👟 Comfortable walking shoes/sneakers", "checked": False, "priority": "high"},
+            {"item": "👡 Sandals / flip-flops for beach", "checked": False, "priority": "high"},
+            {"item": "👞 Leather shoes or nice sneakers for dinners", "checked": False, "priority": "high"},
+            {"item": "🩱 Swimsuit(s) - 2 recommended", "checked": False, "priority": "high"},
+            {"item": "🏖️ Beach cover-up or tank top", "checked": False, "priority": "medium"},
+            {"item": "🧥 Light jacket/windbreaker (boat tour + November evenings)", "checked": False, "priority": "high"},
+            {"item": "🩲 Underwear (6-7 pairs)", "checked": False, "priority": "high"},
+            {"item": "🧦 Socks (3-4 pairs if wearing closed shoes)", "checked": False, "priority": "medium"},
+            {"item": "😴 Pajamas / sleepwear", "checked": False, "priority": "medium"},
+            {"item": "💪 Workout clothes (if using gym/running)", "checked": False, "priority": "low"},
         ],
         "🏖️ Beach Essentials": [
             {"item": "Sunscreen SPF 50+ (MUST HAVE!)", "checked": False, "priority": "critical"},
@@ -8801,16 +8801,16 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                             dress_code_raw = rest_details.get('dress_code', 'Casual')
                             safe_dress = html.escape(dress_code_raw)
 
-                            # Dress code definitions for hover tooltips
+                            # Dress code definitions with SPECIFIC outfit examples for planning
                             dress_code_definitions = {
-                                "Resort Elegant": "Dressy resort wear - Collared shirts, slacks, dresses, skirts. Jackets optional. NO shorts, t-shirts, flip-flops, or athletic wear.",
-                                "Business Casual": "Collared shirts, slacks, khakis, dresses, skirts. NO shorts, t-shirts, flip-flops, or overly casual wear.",
-                                "Smart Casual": "Neat, polished casual - Nice jeans OK, collared shirts, blouses, dress shoes. Avoid athletic wear and flip-flops.",
-                                "Resort Casual": "Relaxed resort wear - Nice shorts OK, polo shirts, sundresses, sandals. Clean and put-together but comfortable.",
-                                "Casual": "Comfortable everyday wear - Jeans, t-shirts, shorts, casual dresses, sandals all fine.",
-                                "Very Casual": "Any comfortable clothing - Beach attire, athletic wear, flip-flops all welcome.",
-                                "Beachwear/Casual": "Beach-friendly casual - Swimsuit cover-ups, shorts, tank tops, flip-flops all perfectly fine.",
-                                "Any": "No dress code - Wear whatever makes you comfortable!"
+                                "Resort Elegant": "**UPSCALE EVENING:** Button-down shirt (can do short sleeves) + dress pants/chinos + leather shoes/loafers. OR: Polo shirt + nice slacks + dress shoes. Optional blazer/sport coat looks great. NO shorts, t-shirts, sneakers, flip-flops. Think: date night elevated.",
+                                "Business Casual": "**POLISHED DINNER:** Long-sleeve button-down or polo + chinos/dress pants + leather shoes/loafers. Can add blazer for David's birthday dinner. NO shorts, t-shirts, sneakers, flip-flops. Think: nice dinner out.",
+                                "Smart Casual": "**NEAT & STYLISH:** Button-down shirt (can leave untucked) or nice polo + dark jeans or chinos + leather shoes/nice sneakers. Can do short sleeves. NO athletic wear, flip-flops, or gym clothes. Think: upscale casual restaurant.",
+                                "Resort Casual": "**RELAXED RESORT:** Polo or casual button-down + nice shorts or jeans + boat shoes/loafers/clean sneakers. Can even do a nice t-shirt. Sandals OK if nice. Think: daytime resort dining.",
+                                "Casual": "**EVERYDAY COMFORTABLE:** Jeans + t-shirt/polo + sneakers/sandals totally fine. Shorts OK. Just look put-together. Think: lunch spot, coffee shop.",
+                                "Very Casual": "**ANYTHING GOES:** T-shirt + shorts + flip-flops perfectly fine. Gym clothes OK. Literally whatever you're comfortable in. Think: beach shack, pizza joint.",
+                                "Beachwear/Casual": "**BEACH VIBES:** Tank top or t-shirt + board shorts/swim trunks + flip-flops totally fine. Swimsuit with cover-up OK. Think: literally coming from the beach.",
+                                "Any": "**NO DRESS CODE:** Wear absolutely anything - beachwear, gym clothes, whatever you want. Zero judgment!"
                             }
 
                             # Find matching dress code definition
