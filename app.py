@@ -5987,8 +5987,25 @@ def render_full_schedule(df, activities_data, show_sensitive):
                     # Handle voting meals
                     if meal.get('is_meal_voting'):
                         st.markdown("**Restaurant Options:**")
+                        restaurant_details_map = get_restaurant_details()
                         for idx, restaurant in enumerate(meal.get('restaurant_options', [])):
-                            st.markdown(f"**Option {idx + 1}:** {restaurant['name']} - {restaurant.get('description', '')}")
+                            rest_details = restaurant_details_map.get(restaurant['name'], {})
+                            phone = restaurant.get('phone', 'N/A')
+                            menu = rest_details.get('menu_url', 'N/A')
+
+                            # Display prominent restaurant name and details
+                            st.markdown(f"### 🍽️ Option {idx + 1}: {restaurant['name']}")
+                            st.markdown(f"**Description:** {restaurant.get('description', 'N/A')}")
+
+                            cost_display = restaurant.get('cost_range', 'N/A') if show_sensitive else "$***"
+                            st.markdown(f"**Cost:** {cost_display}")
+                            st.markdown(f"**Dress Code:** {rest_details.get('dress_code', 'Casual')}")
+                            st.markdown(f"**Phone:** {phone}")
+                            if menu != 'N/A' and menu.startswith('http'):
+                                st.markdown(f"**Menu:** [View Menu]({menu})")
+                            if restaurant.get('tips'):
+                                st.info(f"💡 {restaurant.get('tips')}")
+                            st.markdown("---")
             st.markdown("---")
 
         # NEW: Show activities section
