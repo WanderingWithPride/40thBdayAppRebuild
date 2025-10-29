@@ -730,16 +730,37 @@ def calculate_smart_timing(event: Dict, previous_event: Dict = None) -> Optional
     """
     event_type = event.get('type', '').lower()
     event_time = event.get('time', '')
+    event_activity = event.get('activity', '').lower()
+    event_notes = event.get('notes', '').lower()
 
     # Get locations
     event_location = event.get('location')
     previous_location = previous_event.get('location') if previous_event else None
 
     # Route to appropriate calculator
-    if 'arrival' in event_type or event.get('is_arrival'):
+    # Check for arrival flights: type, activity name, or has arrival time field
+    is_arrival = (
+        'arrival' in event_type or
+        'arrival' in event_activity or
+        'arrives' in event_activity or
+        'arriving' in event_activity or
+        event.get('is_arrival') or
+        event.get('arrival_time')  # Has arrival_time field
+    )
+
+    # Check for departure flights: type, activity name, or notes
+    is_departure = (
+        'departure' in event_type or
+        'depart' in event_activity or
+        'leaving' in event_activity or
+        event.get('is_departure') or
+        event.get('departure_time')  # Has departure_time field
+    )
+
+    if is_arrival and event.get('flight_number'):
         return calculate_arrival_flight_timeline(event_time)
 
-    elif 'departure' in event_type or event.get('is_departure'):
+    elif is_departure and event.get('flight_number'):
         has_precheck = event.get('has_tsa_precheck', True)
         return calculate_departure_flight_timeline(event_time, has_precheck)
 
