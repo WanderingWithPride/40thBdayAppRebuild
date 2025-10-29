@@ -433,6 +433,29 @@
       "is_solo": true,
       "created_at": "2025-10-29T21:05:21.905443",
       "updated_at": "2025-10-29T21:05:21.905454"
+    },
+    "wed_breakfast": {
+      "meal_id": "wed_breakfast",
+      "restaurant_options": [
+        {
+          "name": "Aloha Bagel and Deli",
+          "description": "Bright cheerful bagel shop with delicious bagels, sandwiches, salads, sweets, party platters. Breakfast served all day",
+          "cost_range": "$8-15 per person",
+          "duration": "30min-1 hour",
+          "phone": "904-277-3073",
+          "booking_url": "https://aloha-bagel.com",
+          "tips": "Open till 2pm, breakfast all day, very popular",
+          "rating": "4.7/5"
+        }
+      ],
+      "status": "confirmed",
+      "john_vote": null,
+      "final_choice": 0,
+      "meal_time": null,
+      "submitted_by": "Michael",
+      "is_solo": true,
+      "created_at": "2025-10-29T21:06:00.097436",
+      "updated_at": "2025-10-29T21:06:00.097450"
     }
   },
   "activity_proposals": {
@@ -992,6 +1015,6 @@
   "completed_activities": [],
   "notifications": [],
   "tsa_updates": [],
-  "last_updated": "2025-10-29T21:05:21.905465",
+  "last_updated": "2025-10-29T21:06:00.097465",
   "_test_write": "verification"
 }
