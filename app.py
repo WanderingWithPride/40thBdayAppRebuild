@@ -3264,6 +3264,37 @@ def detect_meal_gaps(activities_data):
     """
     from collections import defaultdict
 
+    # Load trip data to check meal_proposals
+    trip_data = load_trip_data()
+    meal_proposals = trip_data.get('meal_proposals', {})
+
+    # Create mapping of meal_id to date and meal type
+    # meal_ids like "sat_dinner", "sun_lunch", "mon_breakfast"
+    meal_id_to_date = {
+        'fri': '2025-11-07',
+        'sat': '2025-11-08',
+        'sun': '2025-11-09',
+        'mon': '2025-11-10',
+        'tue': '2025-11-11',
+        'wed': '2025-11-12'
+    }
+
+    # Track meals from meal_proposals (confirmed or voted)
+    proposal_meals = defaultdict(lambda: {'breakfast': False, 'lunch': False, 'dinner': False})
+    for meal_id, proposal in meal_proposals.items():
+        # Only count confirmed or voted meals (not just proposed)
+        if proposal.get('status') in ['confirmed', 'voted']:
+            # Parse meal_id like "sat_dinner" -> day="sat", meal="dinner"
+            parts = meal_id.split('_')
+            if len(parts) >= 2:
+                day_abbr = parts[0]
+                meal_type = '_'.join(parts[1:])  # Handle cases like "sun_dinner"
+
+                if day_abbr in meal_id_to_date:
+                    date_str = meal_id_to_date[day_abbr]
+                    if meal_type in ['breakfast', 'lunch', 'dinner']:
+                        proposal_meals[date_str][meal_type] = True
+
     # Group activities by date
     days = defaultdict(list)
     for activity in activities_data:
@@ -3276,7 +3307,7 @@ def detect_meal_gaps(activities_data):
         date_obj = pd.to_datetime(date_str)
         day_name = date_obj.strftime('%A, %B %d')
 
-        # Check for meals
+        # Check for meals from activities
         meals_found = {
             'breakfast': False,
             'lunch': False,
@@ -3302,6 +3333,16 @@ def detect_meal_gaps(activities_data):
                         meals_found['dinner'] = True
             except:
                 pass
+
+        # Merge meals from proposals
+        for meal_type in ['breakfast', 'lunch', 'dinner']:
+            if proposal_meals[date_str][meal_type]:
+                meals_found[meal_type] = True
+
+        # Check for hardcoded/locked meals (like room service breakfast on birthday)
+        if date_str == '2025-11-09' and not meals_found['breakfast']:
+            # Sunday Nov 9 breakfast is locked as room service
+            meals_found['breakfast'] = True
 
         # Report missing meals
         if not meals_found['breakfast']:
