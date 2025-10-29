@@ -6600,10 +6600,17 @@ def render_full_schedule(df, activities_data, show_sensitive):
 
                                     fitting_activities.sort(key=activity_price_sort_key)
 
+                                    # Filter out already interested activities to avoid duplicates across days
+                                    interested = st.session_state.interested_activities
+                                    fitting_activities = [
+                                        a for a in fitting_activities
+                                        if a['name'] not in interested
+                                    ]
+
                                     # Show top 10 activities directly visible
                                     if fitting_activities:
                                         st.markdown(f"**{min(len(fitting_activities), 10)} activity options sorted by price:**")
-                                        for act in fitting_activities[:10]:
+                                        for idx, act in enumerate(fitting_activities[:10]):
                                             cost = act.get('cost_range', 'N/A')
                                             is_free = 'FREE' in cost.upper() or 'INCLUDED' in cost.upper() or '$' not in cost
                                             badge_color = '#4caf50' if is_free else '#2196f3'
@@ -6624,6 +6631,19 @@ def render_full_schedule(df, activities_data, show_sensitive):
                                                 st.caption(f"📞 {act['phone']}")
                                             if act.get('tips'):
                                                 st.caption(f"💡 {act['tips'][:100]}...")
+
+                                            # Interested button
+                                            button_key = f"interested_gap_{act['name']}_{idx}_{date_str}"
+                                            if act['name'] in st.session_state.interested_activities:
+                                                if st.button(f"✓ Interested", key=button_key, type="secondary", help="Remove from interested list"):
+                                                    unmark_activity_interested(act['name'])
+                                                    st.session_state.interested_activities = load_interested_activities()
+                                                    st.rerun()
+                                            else:
+                                                if st.button(f"⭐ Mark Interested", key=button_key, help="Save for later - removes from other days"):
+                                                    mark_activity_interested(act['name'])
+                                                    st.session_state.interested_activities = load_interested_activities()
+                                                    st.rerun()
                                     else:
                                         st.info("⏰ This gap is shorter - perfect for relaxing at the hotel, beach walk, or pool time!")
                             except:
