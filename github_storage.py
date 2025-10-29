@@ -320,4 +320,10 @@ def get_trip_data():
 
 def save_trip_data(commit_message="Update trip data"):
     """Save current trip data to GitHub"""
-    return save_data_to_github(st.session_state.trip_data, commit_message)
+    # Defensive check for trip_data existence
+    trip_data = st.session_state.get('trip_data')
+    if trip_data is None:
+        print("❌ ERROR: trip_data not loaded in session state")
+        st.error("Trip data not loaded. Please refresh the page.")
+        return False
+    return save_data_to_github(trip_data, commit_message)

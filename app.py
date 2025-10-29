@@ -148,6 +148,8 @@ def init_session_state():
         st.session_state.notifications = []  # Initialize empty notifications
     if 'photos' not in st.session_state:
         st.session_state.photos = []  # Initialize empty photos
+    if 'notes' not in st.session_state:
+        st.session_state.notes = get_notes()  # Load notes from database
     if 'packing_list' not in st.session_state:
         # Load packing progress from database and convert to simple format
         packing_progress = get_packing_progress()
@@ -9730,253 +9732,263 @@ def render_johns_page(df, activities_data, show_sensitive):
 
 def render_birthday_page():
     """Birthday Special Features - 40th Birthday Celebration Tools"""
-    st.markdown('<h2 class="fade-in">🎂 40th Birthday Celebration</h2>', unsafe_allow_html=True)
+    try:
+        st.markdown('<h2 class="fade-in">🎂 40th Birthday Celebration</h2>', unsafe_allow_html=True)
 
-    st.markdown("""
-    <div class="card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; text-align: center;">
-        <h1 style="margin: 0; color: white; font-size: 3rem;">🎉 HAPPY 40TH BIRTHDAY! 🎉</h1>
-        <p style="margin: 0.5rem 0 0 0; font-size: 1.2rem; opacity: 0.95;">November 10, 2025</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # Birthday countdown - use .date() for consistent day counting
-    birthday_date = TRIP_CONFIG['birthday_date']
-    days_until_birthday = (birthday_date.date() - datetime.now().date()).days
-
-    if days_until_birthday > 0:
-        st.markdown(f"""
-        <div class="metric-card">
-            <h3 style="margin: 0; text-align: center;">🎂 Birthday Countdown</h3>
-            <h1 style="margin: 0.5rem 0 0 0; text-align: center; color: #ff6b6b; font-size: 3rem;">
-                {days_until_birthday} Days
-            </h1>
-            <p style="margin: 0.5rem 0 0 0; text-align: center;">Until the big 4-0!</p>
-        </div>
-        """, unsafe_allow_html=True)
-    elif days_until_birthday == 0:
-        st.balloons()
         st.markdown("""
-        <div class="metric-card" style="background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);">
-            <h1 style="margin: 0; text-align: center; color: #d63031; font-size: 3rem;">🎉 TODAY IS THE DAY! 🎉</h1>
-            <p style="margin: 0.5rem 0 0 0; text-align: center; font-size: 1.2rem;">Happy 40th Birthday!</p>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        days_since = abs(days_until_birthday)
-        st.markdown(f"""
-        <div class="metric-card">
-            <h3 style="margin: 0; text-align: center;">✨ Birthday Memory</h3>
-            <p style="margin: 0.5rem 0 0 0; text-align: center; font-size: 1.2rem;">
-                {days_since} days since your amazing 40th birthday!
-            </p>
+        <div class="card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; text-align: center;">
+            <h1 style="margin: 0; color: white; font-size: 3rem;">🎉 HAPPY 40TH BIRTHDAY! 🎉</h1>
+            <p style="margin: 0.5rem 0 0 0; font-size: 1.2rem; opacity: 0.95;">November 10, 2025</p>
         </div>
         """, unsafe_allow_html=True)
 
-    st.markdown("---")
+        # Birthday countdown - use .date() for consistent day counting
+        birthday_date = TRIP_CONFIG['birthday_date']
+        days_until_birthday = (birthday_date.date() - datetime.now().date()).days
 
-    # Tabs for different birthday features
-    tab1, tab2, tab3, tab4 = st.tabs(["🎁 Celebration Checklist", "💭 40 Reflections", "🎊 Birthday Wishes", "🎯 Bucket List"])
+        if days_until_birthday > 0:
+            st.markdown(f"""
+            <div class="metric-card">
+                <h3 style="margin: 0; text-align: center;">🎂 Birthday Countdown</h3>
+                <h1 style="margin: 0.5rem 0 0 0; text-align: center; color: #ff6b6b; font-size: 3rem;">
+                    {days_until_birthday} Days
+                </h1>
+                <p style="margin: 0.5rem 0 0 0; text-align: center;">Until the big 4-0!</p>
+            </div>
+            """, unsafe_allow_html=True)
+        elif days_until_birthday == 0:
+            st.balloons()
+            st.markdown("""
+            <div class="metric-card" style="background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);">
+                <h1 style="margin: 0; text-align: center; color: #d63031; font-size: 3rem;">🎉 TODAY IS THE DAY! 🎉</h1>
+                <p style="margin: 0.5rem 0 0 0; text-align: center; font-size: 1.2rem;">Happy 40th Birthday!</p>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            days_since = abs(days_until_birthday)
+            st.markdown(f"""
+            <div class="metric-card">
+                <h3 style="margin: 0; text-align: center;">✨ Birthday Memory</h3>
+                <p style="margin: 0.5rem 0 0 0; text-align: center; font-size: 1.2rem;">
+                    {days_since} days since your amazing 40th birthday!
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
 
-    with tab1:
-        st.markdown("### 🎁 Birthday Celebration Checklist")
-        st.markdown("Make sure you don't miss any special birthday moments!")
+        st.markdown("---")
 
-        celebration_items = [
-            {"item": "Birthday breakfast in bed", "category": "morning"},
-            {"item": "Spa day pampering", "category": "daytime"},
-            {"item": "Take a birthday photo at the beach", "category": "daytime"},
-            {"item": "Birthday dinner at Café Karibo", "category": "evening"},
-            {"item": "Birthday cake and candles", "category": "evening"},
-            {"item": "Toast with champagne", "category": "evening"},
-            {"item": "Make a birthday wish", "category": "evening"},
-            {"item": "Capture a birthday selfie", "category": "anytime"},
-            {"item": "Write in your birthday journal", "category": "anytime"},
-            {"item": "Call family to say thanks", "category": "anytime"}
-        ]
+        # Tabs for different birthday features
+        tab1, tab2, tab3, tab4 = st.tabs(["🎁 Celebration Checklist", "💭 40 Reflections", "🎊 Birthday Wishes", "🎯 Bucket List"])
 
-        # Group by category
-        for category in ["morning", "daytime", "evening", "anytime"]:
-            category_name = category.capitalize()
-            st.markdown(f"#### {category_name}")
+        with tab1:
+            st.markdown("### 🎁 Birthday Celebration Checklist")
+            st.markdown("Make sure you don't miss any special birthday moments!")
 
-            items_in_category = [item for item in celebration_items if item['category'] == category]
+            celebration_items = [
+                {"item": "Birthday breakfast in bed", "category": "morning"},
+                {"item": "Spa day pampering", "category": "daytime"},
+                {"item": "Take a birthday photo at the beach", "category": "daytime"},
+                {"item": "Birthday dinner at Café Karibo", "category": "evening"},
+                {"item": "Birthday cake and candles", "category": "evening"},
+                {"item": "Toast with champagne", "category": "evening"},
+                {"item": "Make a birthday wish", "category": "evening"},
+                {"item": "Capture a birthday selfie", "category": "anytime"},
+                {"item": "Write in your birthday journal", "category": "anytime"},
+                {"item": "Call family to say thanks", "category": "anytime"}
+            ]
 
-            for idx, item in enumerate(items_in_category):
-                col1, col2 = st.columns([0.9, 0.1])
+            # Group by category
+            for category in ["morning", "daytime", "evening", "anytime"]:
+                category_name = category.capitalize()
+                st.markdown(f"#### {category_name}")
 
-                with col1:
-                    st.markdown(f"**{item['item']}**")
+                items_in_category = [item for item in celebration_items if item['category'] == category]
 
-                with col2:
-                    item_id = f"birthday_{category}_{idx}"
-                    is_checked = st.session_state.packing_list.get(item_id, False)
-                    checked = st.checkbox("✓", value=is_checked, key=f"bday_check_{item_id}", label_visibility="collapsed")
+                for idx, item in enumerate(items_in_category):
+                    col1, col2 = st.columns([0.9, 0.1])
 
-                    if checked != is_checked:
-                        st.session_state.packing_list[item_id] = checked
-                        update_packing_item(item_id, checked)
-                        st.rerun()
+                    with col1:
+                        st.markdown(f"**{item['item']}**")
 
-    with tab2:
-        st.markdown("### 💭 40th Birthday Reflections")
-        st.markdown("Take a moment to reflect on this milestone!")
+                    with col2:
+                        item_id = f"birthday_{category}_{idx}"
+                        is_checked = st.session_state.packing_list.get(item_id, False)
+                        checked = st.checkbox("✓", value=is_checked, key=f"bday_check_{item_id}", label_visibility="collapsed")
 
-        reflection_prompts = [
-            "What are you most proud of from your first 40 years?",
-            "What lesson has been most valuable to learn?",
-            "What are you most grateful for as you turn 40?",
-            "What are you most excited about for the next chapter?",
-            "If you could give advice to your younger self, what would it be?",
-            "What does turning 40 mean to you?",
-            "What's one thing you want to accomplish in your 40s?",
-            "Who has made the biggest impact on your life?",
-            "What's your favorite memory from your 30s?",
-            "How do you want to celebrate life moving forward?"
-        ]
+                        if checked != is_checked:
+                            st.session_state.packing_list[item_id] = checked
+                            update_packing_item(item_id, checked)
+                            st.rerun()
 
-        selected_prompt = st.selectbox("Choose a reflection prompt:", reflection_prompts)
+        with tab2:
+            st.markdown("### 💭 40th Birthday Reflections")
+            st.markdown("Take a moment to reflect on this milestone!")
 
-        reflection_text = st.text_area(
-            "Your reflection:",
-            placeholder="Write your thoughts here...",
-            height=150,
-            key="reflection_input"
-        )
+            reflection_prompts = [
+                "What are you most proud of from your first 40 years?",
+                "What lesson has been most valuable to learn?",
+                "What are you most grateful for as you turn 40?",
+                "What are you most excited about for the next chapter?",
+                "If you could give advice to your younger self, what would it be?",
+                "What does turning 40 mean to you?",
+                "What's one thing you want to accomplish in your 40s?",
+                "Who has made the biggest impact on your life?",
+                "What's your favorite memory from your 30s?",
+                "How do you want to celebrate life moving forward?"
+            ]
 
-        if st.button("💾 Save Reflection", type="primary", use_container_width=True):
-            if reflection_text.strip():
-                add_note(
-                    datetime.now().strftime('%Y-%m-%d'),
-                    f"**{selected_prompt}**\n\n{reflection_text}",
-                    'reflection'
-                )
-                st.session_state.notes = get_notes()
-                st.success("✅ Reflection saved!")
-                add_notification("New Reflection", "40th birthday reflection saved", "success")
-                st.rerun()
+            selected_prompt = st.selectbox("Choose a reflection prompt:", reflection_prompts)
+
+            reflection_text = st.text_area(
+                "Your reflection:",
+                placeholder="Write your thoughts here...",
+                height=150,
+                key="reflection_input"
+            )
+
+            if st.button("💾 Save Reflection", type="primary", use_container_width=True):
+                if reflection_text.strip():
+                    add_note(
+                        datetime.now().strftime('%Y-%m-%d'),
+                        f"**{selected_prompt}**\n\n{reflection_text}",
+                        'reflection'
+                    )
+                    st.session_state.notes = get_notes()
+                    st.success("✅ Reflection saved!")
+                    add_notification("New Reflection", "40th birthday reflection saved", "success")
+                    st.rerun()
+                else:
+                    st.warning("Please write your reflection first!")
+
+            # Display saved reflections
+            st.markdown("---")
+            st.markdown("#### Your Reflections")
+            reflections = [n for n in st.session_state.get('notes', []) if isinstance(n, dict) and n.get('type') == 'reflection']
+
+            if reflections:
+                for reflection in reflections:
+                    parts = reflection['content'].split('\n\n', 1)
+                    prompt = parts[0].replace('**', '')
+                    response = parts[1] if len(parts) > 1 else ""
+
+                    st.markdown(f"""
+                    <div class="card" style="margin-bottom: 1rem; background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+                        <h4 style="margin: 0 0 0.5rem 0;">💭 {prompt}</h4>
+                        <p style="margin: 0;">{response}</p>
+                    </div>
+                    """, unsafe_allow_html=True)
             else:
-                st.warning("Please write your reflection first!")
+                st.info("💭 No reflections yet. Start writing your thoughts!")
 
-        # Display saved reflections
-        st.markdown("---")
-        st.markdown("#### Your Reflections")
-        reflections = [n for n in st.session_state.notes if n['type'] == 'reflection']
+        with tab3:
+            st.markdown("### 🎊 Birthday Wishes Collection")
+            st.markdown("Collect birthday wishes from friends and family!")
 
-        if reflections:
-            for reflection in reflections:
-                parts = reflection['content'].split('\n\n', 1)
-                prompt = parts[0].replace('**', '')
-                response = parts[1] if len(parts) > 1 else ""
+            # Add a wish (for others to fill in)
+            with st.expander("✍️ Add a Birthday Wish", expanded=True):
+                wisher_name = st.text_input("Your name:", placeholder="John")
+                wish_message = st.text_area(
+                    "Birthday message:",
+                    placeholder="Happy 40th birthday! Wishing you...",
+                    height=100
+                )
 
-                st.markdown(f"""
-                <div class="card" style="margin-bottom: 1rem; background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
-                    <h4 style="margin: 0 0 0.5rem 0;">💭 {prompt}</h4>
-                    <p style="margin: 0;">{response}</p>
-                </div>
-                """, unsafe_allow_html=True)
-        else:
-            st.info("💭 No reflections yet. Start writing your thoughts!")
-
-    with tab3:
-        st.markdown("### 🎊 Birthday Wishes Collection")
-        st.markdown("Collect birthday wishes from friends and family!")
-
-        # Add a wish (for others to fill in)
-        with st.expander("✍️ Add a Birthday Wish", expanded=True):
-            wisher_name = st.text_input("Your name:", placeholder="John")
-            wish_message = st.text_area(
-                "Birthday message:",
-                placeholder="Happy 40th birthday! Wishing you...",
-                height=100
-            )
-
-            if st.button("💌 Save Wish", type="primary", use_container_width=True):
-                if wisher_name.strip() and wish_message.strip():
-                    add_note(
-                        datetime.now().strftime('%Y-%m-%d'),
-                        f"**From {wisher_name}:**\n\n{wish_message}",
-                        'wish'
-                    )
-                    st.session_state.notes = get_notes()
-                    st.success("✅ Birthday wish saved!")
-                    add_notification("New Wish", f"Birthday wish from {wisher_name}", "success")
-                    st.rerun()
-                else:
-                    st.warning("Please fill in both name and message!")
-
-        # Display wishes
-        st.markdown("---")
-        wishes = [n for n in st.session_state.notes if n['type'] == 'wish']
-
-        if wishes:
-            st.markdown(f"#### 💌 You have {len(wishes)} birthday wishes!")
-
-            for wish in wishes:
-                parts = wish['content'].split('\n\n', 1)
-                from_line = parts[0].replace('**', '').replace('From ', '')
-                message = parts[1] if len(parts) > 1 else ""
-
-                st.markdown(f"""
-                <div class="card" style="margin-bottom: 1rem; background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);">
-                    <h4 style="margin: 0 0 0.5rem 0;">💌 {from_line}</h4>
-                    <p style="margin: 0; font-style: italic;">"{message}"</p>
-                </div>
-                """, unsafe_allow_html=True)
-        else:
-            st.info("💌 No birthday wishes yet!")
-
-    with tab4:
-        st.markdown("### 🎯 40 Before 50 Bucket List")
-        st.markdown("What do you want to accomplish in your 40s?")
-
-        # Add bucket list item
-        with st.expander("➕ Add Bucket List Item", expanded=True):
-            bucket_item = st.text_input("I want to...", placeholder="Travel to Japan")
-            bucket_category = st.selectbox(
-                "Category:",
-                ["Travel", "Career", "Health", "Relationships", "Learning", "Adventure", "Creative", "Other"]
-            )
-
-            if st.button("⭐ Add to Bucket List", type="primary", use_container_width=True):
-                if bucket_item.strip():
-                    add_note(
-                        datetime.now().strftime('%Y-%m-%d'),
-                        f"**[{bucket_category}]** {bucket_item}",
-                        'bucket_list'
-                    )
-                    st.session_state.notes = get_notes()
-                    st.success("✅ Added to bucket list!")
-                    add_notification("Bucket List", f"New goal: {bucket_item}", "info")
-                    st.rerun()
-                else:
-                    st.warning("Please enter a bucket list item!")
-
-        # Display bucket list
-        st.markdown("---")
-        bucket_items = [n for n in st.session_state.notes if n['type'] == 'bucket_list']
-
-        if bucket_items:
-            st.markdown(f"#### 🎯 Your 40 Before 50 ({len(bucket_items)} items)")
-
-            for item in bucket_items:
-                col1, col2 = st.columns([0.9, 0.1])
-
-                with col1:
-                    st.markdown(f"{item['content']}")
-
-                with col2:
-                    item_id = f"bucket_{item['id']}"
-                    is_done = st.session_state.packing_list.get(item_id, False)
-                    done = st.checkbox("✓", value=is_done, key=f"bucket_check_{item['id']}", label_visibility="collapsed")
-
-                    if done != is_done:
-                        st.session_state.packing_list[item_id] = done
-                        update_packing_item(item_id, done)
-                        if done:
-                            st.balloons()
+                if st.button("💌 Save Wish", type="primary", use_container_width=True):
+                    if wisher_name.strip() and wish_message.strip():
+                        add_note(
+                            datetime.now().strftime('%Y-%m-%d'),
+                            f"**From {wisher_name}:**\n\n{wish_message}",
+                            'wish'
+                        )
+                        st.session_state.notes = get_notes()
+                        st.success("✅ Birthday wish saved!")
+                        add_notification("New Wish", f"Birthday wish from {wisher_name}", "success")
                         st.rerun()
-        else:
-            st.info("🎯 No bucket list items yet. Start dreaming big!")
+                    else:
+                        st.warning("Please fill in both name and message!")
+
+            # Display wishes
+            st.markdown("---")
+            wishes = [n for n in st.session_state.get('notes', []) if isinstance(n, dict) and n.get('type') == 'wish']
+
+            if wishes:
+                st.markdown(f"#### 💌 You have {len(wishes)} birthday wishes!")
+
+                for wish in wishes:
+                    parts = wish['content'].split('\n\n', 1)
+                    from_line = parts[0].replace('**', '').replace('From ', '')
+                    message = parts[1] if len(parts) > 1 else ""
+
+                    st.markdown(f"""
+                    <div class="card" style="margin-bottom: 1rem; background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);">
+                        <h4 style="margin: 0 0 0.5rem 0;">💌 {from_line}</h4>
+                        <p style="margin: 0; font-style: italic;">"{message}"</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+            else:
+                st.info("💌 No birthday wishes yet!")
+
+        with tab4:
+            st.markdown("### 🎯 40 Before 50 Bucket List")
+            st.markdown("What do you want to accomplish in your 40s?")
+
+            # Add bucket list item
+            with st.expander("➕ Add Bucket List Item", expanded=True):
+                bucket_item = st.text_input("I want to...", placeholder="Travel to Japan")
+                bucket_category = st.selectbox(
+                    "Category:",
+                    ["Travel", "Career", "Health", "Relationships", "Learning", "Adventure", "Creative", "Other"]
+                )
+
+                if st.button("⭐ Add to Bucket List", type="primary", use_container_width=True):
+                    if bucket_item.strip():
+                        add_note(
+                            datetime.now().strftime('%Y-%m-%d'),
+                            f"**[{bucket_category}]** {bucket_item}",
+                            'bucket_list'
+                        )
+                        st.session_state.notes = get_notes()
+                        st.success("✅ Added to bucket list!")
+                        add_notification("Bucket List", f"New goal: {bucket_item}", "info")
+                        st.rerun()
+                    else:
+                        st.warning("Please enter a bucket list item!")
+
+            # Display bucket list
+            st.markdown("---")
+            bucket_items = [n for n in st.session_state.get('notes', []) if isinstance(n, dict) and n.get('type') == 'bucket_list']
+
+            if bucket_items:
+                st.markdown(f"#### 🎯 Your 40 Before 50 ({len(bucket_items)} items)")
+
+                for item in bucket_items:
+                    col1, col2 = st.columns([0.9, 0.1])
+
+                    with col1:
+                        st.markdown(f"{item['content']}")
+
+                    with col2:
+                        item_id = f"bucket_{item['id']}"
+                        is_done = st.session_state.packing_list.get(item_id, False)
+                        done = st.checkbox("✓", value=is_done, key=f"bucket_check_{item['id']}", label_visibility="collapsed")
+
+                        if done != is_done:
+                            st.session_state.packing_list[item_id] = done
+                            update_packing_item(item_id, done)
+                            if done:
+                                st.balloons()
+                            st.rerun()
+            else:
+                st.info("🎯 No bucket list items yet. Start dreaming big!")
+
+    except Exception as e:
+        import traceback
+        st.error("⚠️ We encountered an error loading the birthday page. Please refresh the page.")
+        st.error(f"Error details: {type(e).__name__}")
+        # Log full error for debugging
+        print(f"❌ BIRTHDAY PAGE ERROR: {e}")
+        print(traceback.format_exc())
+        return
 
 def render_memories_page():
     """Photo Gallery & Memories page - Upload and view trip photos and notes"""
@@ -10080,7 +10092,7 @@ def render_memories_page():
         if filter_date == "All Dates":
             photos_to_display = st.session_state.photos
         else:
-            photos_to_display = [p for p in st.session_state.photos if p['date'] == filter_date]
+            photos_to_display = [p for p in st.session_state.get('photos', []) if isinstance(p, dict) and p.get('date') == filter_date]
 
         if photos_to_display:
             # Display photos in grid
@@ -10145,7 +10157,7 @@ def render_memories_page():
 
         # Display journal entries
         st.markdown("---")
-        journal_entries = [n for n in st.session_state.notes if n['type'] == 'journal']
+        journal_entries = [n for n in st.session_state.get('notes', []) if isinstance(n, dict) and n.get('type') == 'journal']
 
         if journal_entries:
             for entry in journal_entries:
@@ -10204,7 +10216,7 @@ def render_memories_page():
 
         # Display highlights
         st.markdown("---")
-        highlights = [n for n in st.session_state.notes if n['type'] == 'highlight']
+        highlights = [n for n in st.session_state.get('notes', []) if isinstance(n, dict) and n.get('type') == 'highlight']
 
         if highlights:
             for idx, highlight in enumerate(highlights):
@@ -10238,10 +10250,10 @@ def render_memories_page():
         photo_count = len(st.session_state.photos)
         st.metric("📷 Total Photos", photo_count)
     with col2:
-        journal_count = len([n for n in st.session_state.notes if n['type'] == 'journal'])
+        journal_count = len([n for n in st.session_state.get('notes', []) if isinstance(n, dict) and n.get('type') == 'journal'])
         st.metric("📝 Journal Entries", journal_count)
     with col3:
-        highlight_count = len([n for n in st.session_state.notes if n['type'] == 'highlight'])
+        highlight_count = len([n for n in st.session_state.get('notes', []) if isinstance(n, dict) and n.get('type') == 'highlight'])
         st.metric("⭐ Highlights", highlight_count)
 
 
@@ -10364,7 +10376,7 @@ def main():
         st.markdown("---")
 
         # Notifications
-        active_notifications = [n for n in st.session_state.notifications if not n['dismissed']]
+        active_notifications = [n for n in st.session_state.get('notifications', []) if isinstance(n, dict) and not n.get('dismissed', False)]
         if active_notifications:
             st.markdown("### 🔔 Notifications")
             for notif in active_notifications[:3]:  # Show max 3 in sidebar
