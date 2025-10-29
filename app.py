@@ -5776,6 +5776,22 @@ def render_full_schedule(df, activities_data, show_sensitive):
         if selected_date:
             dates = [d for d in dates if d == selected_date]
 
+    # Helper function to convert time strings to sortable format
+    def parse_time_for_sorting(time_str):
+        """Convert time string like '9:00 AM' or '12:30 PM' to minutes from midnight for proper sorting"""
+        try:
+            # Handle 'TBD' or empty times
+            if not time_str or time_str == 'TBD':
+                return 9999  # Put TBD times at the end
+
+            # Parse the time string
+            time_obj = datetime.strptime(time_str.strip(), '%I:%M %p')
+            # Convert to minutes from midnight
+            return time_obj.hour * 60 + time_obj.minute
+        except (ValueError, AttributeError):
+            # If parsing fails, return a large number to put it at the end
+            return 9999
+
     # Show days with improved UX
     for date in dates:
         # Day header with weather
@@ -5950,7 +5966,7 @@ def render_full_schedule(df, activities_data, show_sensitive):
                     }
                     day_activities.append(voting_activity)
 
-        day_activities.sort(key=lambda x: x['time'])
+        day_activities.sort(key=lambda x: parse_time_for_sorting(x['time']))
 
         # NEW: Apply status filter
         if status_filter == "Urgent - Needs Booking":
