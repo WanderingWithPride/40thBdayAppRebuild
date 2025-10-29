@@ -15,24 +15,23 @@ GITHUB_OWNER = "WanderingWithPride"
 GITHUB_REPO = "40thBdayAppRebuild"
 GITHUB_DATA_PATH = "data/trip_data.json"
 
-# Get GitHub token from Streamlit secrets (cloud) or environment variable (local)
-GITHUB_TOKEN = None
-try:
-    # Try Streamlit secrets first (for Streamlit Cloud)
-    if hasattr(st, 'secrets'):
-        GITHUB_TOKEN = st.secrets.get("GITHUB_TOKEN", None)
-        if GITHUB_TOKEN:
-            print(f"✅ GitHub token loaded from st.secrets (length: {len(GITHUB_TOKEN)})")
-except Exception as e:
-    print(f"⚠️ Could not load from st.secrets: {e}")
+def _get_github_token():
+    """Get GitHub token dynamically from environment or secrets"""
+    # Try environment variable first (set by app.py's load_secrets_to_env())
+    token = os.getenv('GITHUB_TOKEN')
+    if token:
+        return token
 
-# Fallback to environment variable (for local development)
-if not GITHUB_TOKEN:
-    GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
-    if GITHUB_TOKEN:
-        print(f"✅ GitHub token loaded from environment variable")
-    else:
-        print(f"❌ No GitHub token found in secrets or environment")
+    # Fallback to Streamlit secrets
+    try:
+        if hasattr(st, 'secrets'):
+            token = st.secrets.get("GITHUB_TOKEN", None)
+            if token:
+                return token
+    except Exception:
+        pass
+
+    return None
 
 # Local fallback
 LOCAL_DATA_FILE = "trip_data_local.json"
@@ -145,6 +144,7 @@ def init_empty_data():
 
 def load_data_from_github():
     """Load data from GitHub"""
+    GITHUB_TOKEN = _get_github_token()
     if not GITHUB_TOKEN:
         # Local development - use local file
         try:
@@ -212,6 +212,7 @@ def save_data_to_github(data, commit_message="Update trip data"):
     # Update timestamp
     data["last_updated"] = datetime.now().isoformat()
 
+    GITHUB_TOKEN = _get_github_token()
     if not GITHUB_TOKEN:
         # Local development - save to local file with atomic write + backups
         return _atomic_write_local(data, LOCAL_DATA_FILE)
