@@ -1076,6 +1076,7 @@ def get_ultimate_trip_data():
             "time": "12:00 PM",
             "activity": "John Arrives at Hotel",
             "type": "transport",
+            "duration": "1.5 hours",
             "location": {
                 "name": "The Ritz-Carlton, Amelia Island",
                 "address": "4750 Amelia Island Parkway",
@@ -1203,7 +1204,7 @@ def get_ultimate_trip_data():
             },
             "status": "Confirmed",
             "cost": 0,
-            "category": "Beach",
+            "category": "Activity",
             "notes": "Relax! Check tide times for best swimming",
             "what_to_bring": ["Beach towels", "Sunscreen (reapply!)", "Beach umbrella", "Cooler", "Snacks", "Books", "Beach chairs", "Frisbee/ball"],
             "tips": ["Go early for parking", "High tide is best for swimming", "Lots of shells at low tide"],
@@ -1215,6 +1216,7 @@ def get_ultimate_trip_data():
             "time": "8:20 AM",
             "activity": "John Departs to Airport (Uber)",
             "type": "transport",
+            "duration": "45 minutes",
             "location": {
                 "name": "Jacksonville International Airport (JAX)",
                 "address": "2400 Yankee Clipper Dr, Jacksonville, FL 32218",
