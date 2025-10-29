@@ -6274,6 +6274,7 @@ def render_full_schedule(df, activities_data, show_sensitive):
                             'notes': f"Dress Code: {rest_details.get('dress_code', 'Casual')}\nPhone: {final_restaurant.get('phone', 'N/A')}\nBooking: {final_restaurant.get('booking_url', 'N/A')}\nMenu: {rest_details.get('menu_url', 'N/A')}",
                             'location': {'name': final_restaurant['name'], 'address': ''},
                             'is_meal': True,
+                            'is_solo': proposal.get('is_solo', False),  # Copy solo flag from proposal!
                             'booking_url': final_restaurant.get('booking_url', '')
                         }
                         day_activities.append(meal_activity)
