@@ -382,11 +382,34 @@
       "status": "confirmed",
       "john_vote": null,
       "final_choice": 0,
-      "meal_time": "07:30 AM",
+      "meal_time": null,
       "submitted_by": "Michael",
       "is_solo": true,
       "created_at": "2025-10-29T17:34:49.529165",
       "updated_at": "2025-10-29T17:34:49.529173"
+    },
+    "tue_lunch": {
+      "meal_id": "tue_lunch",
+      "restaurant_options": [
+        {
+          "name": "Salty Pelican Bar & Grill",
+          "description": "Heart of downtown waterfront, blackened grouper tacos, fresh oysters, fried tuna. \u2705 NON-SEAFOOD: Burgers, chicken sandwiches, steaks",
+          "cost_range": "$18-35 per person",
+          "duration": "1-2 hours",
+          "phone": "904-277-3811",
+          "booking_url": "https://thesaltypelicanamelia.com",
+          "tips": "Best place to catch sunset over the river. Full bar & grill menu with chicken, burgers, steaks!",
+          "rating": "4.6/5"
+        }
+      ],
+      "status": "confirmed",
+      "john_vote": null,
+      "final_choice": 0,
+      "meal_time": null,
+      "submitted_by": "Michael",
+      "is_solo": true,
+      "created_at": "2025-10-29T21:04:27.835303",
+      "updated_at": "2025-10-29T21:04:27.835315"
     }
   },
   "activity_proposals": {
@@ -946,6 +969,6 @@
   "completed_activities": [],
   "notifications": [],
   "tsa_updates": [],
-  "last_updated": "2025-10-29T17:34:49.529184",
+  "last_updated": "2025-10-29T21:04:27.835327",
   "_test_write": "verification"
 }
