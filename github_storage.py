@@ -20,6 +20,7 @@ def _get_github_token():
     # Try environment variable first (set by app.py's load_secrets_to_env())
     token = os.getenv('GITHUB_TOKEN')
     if token:
+        print(f"✅ GitHub token loaded from os.environ (length: {len(token)})")
         return token
 
     # Fallback to Streamlit secrets
@@ -27,10 +28,12 @@ def _get_github_token():
         if hasattr(st, 'secrets'):
             token = st.secrets.get("GITHUB_TOKEN", None)
             if token:
+                print(f"✅ GitHub token loaded from st.secrets (length: {len(token)})")
                 return token
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"⚠️ Could not load from st.secrets: {e}")
 
+    print("❌ No GitHub token found in environment or secrets")
     return None
 
 # Local fallback
