@@ -7987,18 +7987,25 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                         if meal_type in serves_list and day_of_week in days_open:
                             meal_appropriate_restaurants.append(restaurant)
 
+                # Determine if solo meal and required count
+                is_solo = meal_slot.get('solo', False)
+                required_count = 1 if is_solo else 3
+
                 # Filter out used restaurants
                 available_restaurants = [r for r in meal_appropriate_restaurants if r['name'] not in used_restaurants]
 
-                if len(available_restaurants) < 3:
-                    st.error("⚠️ Not enough unique restaurants available! You may need to cancel some previous proposals or pick different options.")
+                if len(available_restaurants) < required_count:
+                    st.error(f"⚠️ Not enough unique restaurants available! You may need to cancel some previous proposals or pick different options.")
                 else:
                     # Initialize session state for selections
                     selection_key = f"selected_{meal_slot['id']}"
                     if selection_key not in st.session_state:
                         st.session_state[selection_key] = []
 
-                    st.markdown(f"**Selected: {len(st.session_state[selection_key])}/3**")
+                    if is_solo:
+                        st.markdown(f"**👤 Solo Meal:** Just pick 1 restaurant for yourself!")
+                    else:
+                        st.markdown(f"**Selected: {len(st.session_state[selection_key])}/{required_count}**")
 
                     # Show available restaurants as clickable cards
                     cols = st.columns(3)
@@ -8098,16 +8105,15 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                                     st.session_state[selection_key].remove(restaurant['name'])
                                     st.rerun()
                             else:
-                                if len(st.session_state[selection_key]) < 3:
+                                if len(st.session_state[selection_key]) < required_count:
                                     if st.button(f"➕ Select", key=f"select_{meal_slot['id']}_{idx}", use_container_width=True):
                                         st.session_state[selection_key].append(restaurant['name'])
                                         st.rerun()
                                 else:
-                                    st.button(f"Max 3", key=f"disabled_{meal_slot['id']}_{idx}", use_container_width=True, disabled=True)
+                                    max_text = f"Max {required_count}" if not is_solo else "Already selected"
+                                    st.button(max_text, key=f"disabled_{meal_slot['id']}_{idx}", use_container_width=True, disabled=True)
 
-                    # Send proposal/confirm button
-                    is_solo = meal_slot.get('solo', False)
-                    required_count = 1 if is_solo else 3
+                    # Send proposal/confirm button (is_solo and required_count already defined above)
 
                     if len(st.session_state[selection_key]) == required_count:
                         st.markdown("---")
