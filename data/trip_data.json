@@ -136,8 +136,14 @@
           "duration": "2-2.5 hours",
           "phone": "904-310-6049",
           "booking_url": "https://www.opentable.com/r/davids-restaurant-and-lounge-fernandina-beach",
-          "tips": "Mention it's a 40th birthday! Request window table. Ask about chef's specials and save room for dessert. Business casual dress code (no shorts/flip-flops). Michael is treating for the birthday celebration!",
-          "rating": "4.8/5"
+          "tips": [
+            "Mention it's a 40th birthday! Request window table.",
+            "Ask about chef's specials and save room for dessert.",
+            "Business casual dress code (no shorts/flip-flops).",
+            "Michael is treating for the birthday celebration!"
+          ],
+          "rating": "4.8/5",
+          "menu_url": "https://www.davidsrestaurantandlounge.com/menu"
         },
         {
           "name": "Le Clos",
