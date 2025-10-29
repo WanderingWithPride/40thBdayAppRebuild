@@ -12,21 +12,39 @@ from github_storage import get_trip_data, save_trip_data
 # MEAL PROPOSALS
 # ============================================================================
 
-def save_meal_proposal(meal_id, restaurant_options, submitted_by="Michael"):
-    """Save meal proposal"""
+def save_meal_proposal(meal_id, restaurant_options, submitted_by="Michael", is_solo=False):
+    """Save meal proposal (or auto-confirm if solo meal)"""
     try:
         data = get_trip_data()
-        data['meal_proposals'][meal_id] = {
-            'meal_id': meal_id,
-            'restaurant_options': restaurant_options,
-            'status': 'proposed',
-            'john_vote': None,
-            'final_choice': None,
-            'meal_time': None,
-            'submitted_by': submitted_by,  # Track who submitted this proposal
-            'created_at': datetime.now().isoformat(),
-            'updated_at': datetime.now().isoformat()
-        }
+
+        # For solo meals, auto-confirm the choice
+        if is_solo:
+            data['meal_proposals'][meal_id] = {
+                'meal_id': meal_id,
+                'restaurant_options': restaurant_options,
+                'status': 'confirmed',  # Auto-confirm solo meals
+                'john_vote': None,  # Not applicable for solo meals
+                'final_choice': 0,  # Pick the only restaurant selected
+                'meal_time': None,
+                'submitted_by': submitted_by,
+                'is_solo': True,  # Mark as solo meal
+                'created_at': datetime.now().isoformat(),
+                'updated_at': datetime.now().isoformat()
+            }
+        else:
+            # Regular meal proposal (requires John's vote)
+            data['meal_proposals'][meal_id] = {
+                'meal_id': meal_id,
+                'restaurant_options': restaurant_options,
+                'status': 'proposed',
+                'john_vote': None,
+                'final_choice': None,
+                'meal_time': None,
+                'submitted_by': submitted_by,
+                'created_at': datetime.now().isoformat(),
+                'updated_at': datetime.now().isoformat()
+            }
+
         return save_trip_data(f"Add meal proposal: {meal_id}")
     except Exception as e:
         print(f"Error saving meal proposal: {e}")

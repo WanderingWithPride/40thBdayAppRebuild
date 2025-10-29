@@ -3350,8 +3350,17 @@ def detect_meal_gaps(activities_data):
             # Sunday Nov 9 breakfast is locked as room service
             meals_found['breakfast'] = True
 
-        # Report missing meals
-        if not meals_found['breakfast']:
+        # Skip unrealistic meal times based on arrival/departure
+        skip_meals = []
+        if date_str == '2025-11-07':
+            # Friday: Arrive 6:01 PM, only dinner is realistic
+            skip_meals = ['breakfast', 'lunch']
+        elif date_str == '2025-11-12':
+            # Wednesday: Leave 12:30 PM for flight, only breakfast is realistic
+            skip_meals = ['lunch', 'dinner']
+
+        # Report missing meals (excluding unrealistic ones)
+        if not meals_found['breakfast'] and 'breakfast' not in skip_meals:
             missing_meals.append({
                 'date': date_str,
                 'day_name': day_name,
@@ -3360,7 +3369,7 @@ def detect_meal_gaps(activities_data):
                 'priority': 'medium'
             })
 
-        if not meals_found['lunch']:
+        if not meals_found['lunch'] and 'lunch' not in skip_meals:
             missing_meals.append({
                 'date': date_str,
                 'day_name': day_name,
@@ -3369,7 +3378,7 @@ def detect_meal_gaps(activities_data):
                 'priority': 'high'
             })
 
-        if not meals_found['dinner']:
+        if not meals_found['dinner'] and 'dinner' not in skip_meals:
             missing_meals.append({
                 'date': date_str,
                 'day_name': day_name,
@@ -7451,6 +7460,9 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
     def get_daily_schedule(date_str):
         """Get scheduled activities for a given date to show meal time constraints"""
         schedules = {
+            "2025-11-07": [  # Friday
+                {"time": "6:01 PM", "activity": "Arrival at hotel from JAX", "icon": "✈️"},
+            ],
             "2025-11-08": [  # Saturday
                 {"time": "12:00 PM", "activity": "John arrives at hotel", "icon": "✈️"},
             ],
@@ -7465,16 +7477,22 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                 {"time": "Flexible", "activity": "No activities scheduled - can sleep in!", "icon": "😴"},
             ],
             "2025-11-11": [  # Tuesday
+                {"time": "8:20 AM", "activity": "John departs to JAX", "icon": "✈️"},
+            ],
+            "2025-11-12": [  # Wednesday
                 {"time": "11:00 AM", "activity": "Check out from hotel", "icon": "🏨"},
-                {"time": "1:00 PM", "activity": "Flight departure", "icon": "✈️"},
+                {"time": "12:30 PM", "activity": "Depart for JAX airport", "icon": "🚗"},
             ],
         }
         return schedules.get(date_str, [])
 
-    # Define meal slots - ONLY for days when John is there (Nov 8-11)
+    # Define meal slots - Including SOLO meals and meals with John
     meal_slots = [
-        # Friday removed - John not there yet
-        # Saturday breakfast removed - John doesn't arrive until 12:00 PM
+        # SOLO MEALS (Michael only)
+        {"id": "fri_dinner", "label": "Friday Dinner (Nov 7) - Solo 🧍", "date": "2025-11-07", "time": "7:00 PM", "solo": True},
+        {"id": "sat_breakfast", "label": "Saturday Breakfast (Nov 8) - Solo 🧍", "date": "2025-11-08", "time": "8:30 AM", "solo": True},
+
+        # TOGETHER MEALS (with John)
         {"id": "sat_lunch", "label": "Saturday Lunch (Nov 8)", "date": "2025-11-08", "time": "12:30 PM"},
         {"id": "sat_dinner", "label": "Saturday Dinner (Nov 8)", "date": "2025-11-08", "time": "7:00 PM"},
         {"id": "sun_breakfast", "label": "Sunday Breakfast (Nov 9) - 🎂 Room Service!", "date": "2025-11-09", "time": "9:00 AM", "locked": True, "room_service": True},
@@ -7484,6 +7502,11 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
         {"id": "mon_lunch", "label": "Monday Lunch (Nov 10)", "date": "2025-11-10", "time": "12:30 PM"},
         {"id": "mon_dinner", "label": "Monday Dinner (Nov 10)", "date": "2025-11-10", "time": "7:00 PM"},
         {"id": "tue_breakfast", "label": "Tuesday Breakfast (Nov 11)", "date": "2025-11-11", "time": "8:00 AM"},
+
+        # SOLO MEALS (after John leaves)
+        {"id": "tue_lunch", "label": "Tuesday Lunch (Nov 11) - Solo 🧍", "date": "2025-11-11", "time": "12:30 PM", "solo": True},
+        {"id": "tue_dinner", "label": "Tuesday Dinner (Nov 11) - Solo 🧍", "date": "2025-11-11", "time": "6:30 PM", "solo": True},
+        {"id": "wed_breakfast", "label": "Wednesday Breakfast (Nov 12) - Solo 🧍", "date": "2025-11-12", "time": "8:00 AM", "solo": True},
     ]
 
     # Get list of already-used restaurants to prevent duplicates
@@ -8082,10 +8105,15 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                                 else:
                                     st.button(f"Max 3", key=f"disabled_{meal_slot['id']}_{idx}", use_container_width=True, disabled=True)
 
-                    # Send proposal button
-                    if len(st.session_state[selection_key]) == 3:
+                    # Send proposal/confirm button
+                    is_solo = meal_slot.get('solo', False)
+                    required_count = 1 if is_solo else 3
+
+                    if len(st.session_state[selection_key]) == required_count:
                         st.markdown("---")
-                        if st.button(f"✅ Send Proposal to John", key=f"propose_{meal_slot['id']}", type="primary", use_container_width=True):
+                        button_text = f"✅ Confirm My Choice" if is_solo else f"✅ Send Proposal to John"
+
+                        if st.button(button_text, key=f"propose_{meal_slot['id']}", type="primary", use_container_width=True):
                             # Get full restaurant data
                             selected_restaurants = []
                             for name in st.session_state[selection_key]:
@@ -8093,19 +8121,25 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
                                 if rest:
                                     selected_restaurants.append(rest)
 
-                            if len(selected_restaurants) == 3:
-                                success = save_meal_proposal(meal_slot['id'], selected_restaurants)
+                            if len(selected_restaurants) == required_count:
+                                success = save_meal_proposal(meal_slot['id'], selected_restaurants, is_solo=is_solo)
                                 if success:
                                     # Clear selection
                                     st.session_state[selection_key] = []
-                                    st.success(f"✅ Proposal sent! John will see these options on his page.")
+                                    success_msg = f"✅ Saved! Your pick: {selected_restaurants[0]['name']}" if is_solo else f"✅ Proposal sent! John will see these options on his page."
+                                    st.success(success_msg)
                                     st.rerun()
                                 else:
-                                    st.error("❌ Failed to save proposal. Please try again or contact support.")
+                                    st.error("❌ Failed to save. Please try again or contact support.")
                     elif len(st.session_state[selection_key]) > 0:
-                        st.warning(f"⚠️ Please select {3 - len(st.session_state[selection_key])} more restaurant(s)")
+                        remaining = required_count - len(st.session_state[selection_key])
+                        if is_solo:
+                            st.warning(f"⚠️ Please select {remaining} restaurant")
+                        else:
+                            st.warning(f"⚠️ Please select {remaining} more restaurant(s)")
                     else:
-                        st.info("👆 Select 3 restaurants from the cards above")
+                        info_text = "👆 Pick your restaurant from the cards above" if is_solo else "👆 Select 3 restaurants from the cards above"
+                        st.info(info_text)
 
         st.markdown("---")
 
