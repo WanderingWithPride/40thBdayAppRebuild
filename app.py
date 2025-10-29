@@ -1098,8 +1098,8 @@ def get_ultimate_trip_data():
         {
             "id": "act001",
             "date": "2025-11-08",
-            "time": "2:30 PM",
-            "activity": "Backwater Cat Eco Tour (for you)",
+            "time": "9:00 AM",
+            "activity": "Backwater Cat Eco Tour (SOLO - before John arrives)",
             "type": "activity",
             "duration": "2.5 hours",
             "location": {
@@ -1112,9 +1112,9 @@ def get_ultimate_trip_data():
             "status": "URGENT",
             "cost": 135,
             "category": "Activity",
-            "notes": "Private boat tour exploring backwaters, marshes, and tidal creeks. See dolphins, birds, and coastal ecosystems! You're doing this either way - John can pay for this if he wants to join ($135 per person = $270 total for 2). Call 904-753-7631 to book.",
+            "notes": "👤 SOLO ACTIVITY - Saturday morning before John arrives at noon! Top-rated tour (1000+ 5-star reviews) exploring backwaters, marshes, and tidal creeks. See dolphins, birds, and coastal ecosystems. Tour 9:00-11:30 AM, back at hotel by noon for John's arrival. Call 904-753-7631 to book for 9 AM Saturday departure.",
             "what_to_bring": ["Sunglasses with strap", "Sunscreen (reapply!)", "Camera for wildlife", "Light windbreaker/jacket", "Non-slip shoes", "Dry bag for valuables", "Water bottle"],
-            "tips": ["⚠️ BOOKING REQUIRED - Call 904-753-7631 to reserve", "Best at golden hour for wildlife viewing", "Bring camera for dolphins and birds", "Wear layers - can be breezy on water", "Dramamine if prone to seasickness"],
+            "tips": ["⚠️ BOOKING REQUIRED - Call 904-753-7631 to reserve for 9:00 AM Saturday", "Perfect morning timing - back by 11:30 AM before John arrives", "Bring camera for dolphins and birds", "Morning is ideal for wildlife viewing", "Wear layers - can be breezy on water", "Top-rated: 1000+ five-star reviews on TripAdvisor"],
             "booking_url": "Call to book",
             "priority": 1
         },
@@ -2039,7 +2039,7 @@ def get_optional_activities():
             {"name": "Parasailing", "description": "Soar above the Atlantic with breathtaking aerial views of Amelia Island", "cost_range": "$75-100 per person", "duration": "1-1.5 hours", "phone": "904-261-9972", "booking_url": "N/A", "tips": "Best on calm, clear days, no experience needed", "rating": "4.8/5"},
             {"name": "Deep Sea Fishing Charter", "description": "Trophy tarpon and deep water fishing adventure", "cost_range": "$500-900 (up to 6 people)", "duration": "6-8 hours", "phone": "904-206-0200", "booking_url": "N/A", "tips": "Full-day charters for serious anglers, all gear provided", "rating": "4.9/5"},
             {"name": "Inshore Fishing", "description": "Redfish in backwaters, quiet rivers and tidal creeks", "cost_range": "$350-550 (up to 4 people)", "duration": "4-6 hours", "phone": "904-206-0200", "booking_url": "N/A", "tips": "Great for families, calmer waters, catch and release", "rating": "4.7/5"},
-            {"name": "Backwater Cat Eco Tour", "description": "⭐ POPULAR CHOICE! Private boat tour exploring backwaters, marshes, and tidal creeks. See dolphins, birds, and coastal ecosystems up close. Departing from Dee Dee Bartels Boat Ramp", "cost_range": "$135 per person", "duration": "2.5 hours", "phone": "904-753-7631", "booking_url": "Call to book", "tips": "⚠️ BOOKING REQUIRED - Call 904-753-7631 to reserve for 2 people ($270 total). Best at golden hour, bring sunscreen and camera. Wear non-slip shoes", "rating": "4.9/5"},
+            {"name": "Backwater Cat Eco Tour", "description": "⭐ TOP RATED! Private boat tour exploring backwaters, marshes, and tidal creeks. See dolphins, birds, and coastal ecosystems up close. 1000+ five-star reviews! Departing from Dee Dee Bartels Boat Ramp", "cost_range": "$135 per person", "duration": "2.5 hours", "phone": "904-753-7631", "booking_url": "Call to book", "tips": "⚠️ BOOKING REQUIRED - Call 904-753-7631. Morning tours best for dolphin viewing! Bring sunscreen and camera. Wear non-slip shoes. Open Sat 8 AM-5:30 PM", "rating": "4.9/5"},
             {"name": "Dolphin Watching Tour", "description": "Eco-tour to see dolphins, manatees, and coastal wildlife", "cost_range": "$35-55 per person", "duration": "1.5-2 hours", "phone": "904-261-9972", "booking_url": "N/A", "tips": "Best in morning or late afternoon, bring binoculars", "rating": "4.9/5"},
             {"name": "Sunset Cruise", "description": "Relaxing sunset sail with BYOB allowed", "cost_range": "$45-65 per person", "duration": "2 hours", "phone": "904-261-9972", "booking_url": "N/A", "tips": "Bring camera and your favorite drinks", "rating": "4.9/5"},
             {"name": "SCUBA Diving", "description": "Explore underwater reefs and shipwrecks off Amelia Island coast", "cost_range": "$80-150 per dive", "duration": "3-4 hours", "phone": "904-261-0666", "booking_url": "N/A", "tips": "Certification required, equipment rentals available", "rating": "4.6/5"},
@@ -8211,10 +8211,10 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             "label": "Saturday Morning (Nov 8) - 👤 Michael Solo",
             "date": "2025-11-08",
             "time": "Morning",
-            "actual_availability": "8:00 AM - 12:00 PM",
-            "timeline": "Breakfast → Free morning until John arrives at 12:00 PM",
-            "notes": "👤 SOLO TIME - John arrives at noon! Plan breakfast solo, then activities after he arrives.",
-            "smart_tip": "~4 hours solo before John arrives. Perfect for: Sunrise beach walk, hotel breakfast, pool, or exploring grounds.",
+            "actual_availability": "8:00 AM - 9:00 AM (before tour)",
+            "timeline": "Breakfast 8:00 AM → 🚤 Backwater Cat Tour 9:00-11:30 AM → Back for John's arrival at 12:00 PM",
+            "notes": "👤 SOLO ADVENTURE - Backwater Cat Eco Tour! Top-rated dolphin & wildlife tour (1000+ 5-star reviews). Departs 9:00 AM, back 11:30 AM, perfect timing before John arrives at noon.",
+            "smart_tip": "Quick breakfast, then off on your dolphin adventure! Tour 9:00-11:30 AM gives you time to shower and meet John at noon. Call 904-753-7631 to book.",
             "is_solo": True
         },
         {
@@ -8222,11 +8222,11 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             "label": "Saturday Afternoon (Nov 8)",
             "date": "2025-11-08",
             "time": "After lunch",
-            "scheduled_activity": "🚤 Boat Tour 2:30-5:00 PM",
-            "actual_availability": None,  # Fully booked with boat tour
-            "timeline": "Lunch around 12:00 PM → Boat Tour 2:30-5:00 PM (2.5 hrs + 30 min travel) → Back at hotel 5:15 PM",
-            "notes": "⚠️ This slot is taken by your scheduled Backwater Cat Eco Tour! Departs 2:30 PM, you'll be back around 5:15 PM.",
-            "smart_tip": "After boat tour, you'll have time to freshen up (5:15-5:45 PM) and catch the end of sunset at 5:30 PM before dinner!",
+            "scheduled_activity": "Free time with John",
+            "actual_availability": "1:00 PM - 5:30 PM",
+            "timeline": "John arrives 12:00 PM → Lunch together → Free afternoon activities → Dinner",
+            "notes": "👥 TIME WITH JOHN - He arrives at noon! Afternoon is now free since boat tour moved to morning (9:00-11:30 AM). Perfect for exploring together, beach time, or other activities.",
+            "smart_tip": "Backwater Cat Tour moved to 9:00 AM (solo), so you're back by 11:30 AM for John's arrival. Afternoon is wide open for beach, pool, downtown Fernandina, or relaxing!",
             "is_solo": False
         },
         {
