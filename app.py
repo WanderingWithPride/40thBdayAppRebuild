@@ -5718,7 +5718,7 @@ def enrich_activity_with_live_data(activity, date_str, weather_data):
     # 6. UV INDEX for outdoor activities
     is_outdoor = activity.get('type') in ['activity', 'beach', 'outdoor']
     if is_outdoor and day_weather:
-        uv_data = get_uv_data()
+        uv_data = get_uv_index()
         if uv_data:
             for day_uv in uv_data.get('daily', []):
                 if day_uv['date'] == date_str:
