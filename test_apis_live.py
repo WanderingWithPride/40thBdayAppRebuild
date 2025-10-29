@@ -23,7 +23,7 @@ if github_token:
     try:
         response = requests.get(
             'https://api.github.com/user',
-            headers={'Authorization': f'Bearer {github_token}'},
+            headers={'Authorization': f'token {github_token}'},
             timeout=5
         )
         if response.status_code == 200:
@@ -31,6 +31,11 @@ if github_token:
             print(f"   ✅ SUCCESS - Connected as: {user.get('login', 'Unknown')}")
         else:
             print(f"   ❌ FAILED - Status: {response.status_code}")
+            try:
+                error_details = response.json()
+                print(f"   ❌ Details: {error_details}")
+            except:
+                pass
     except Exception as e:
         print(f"   ❌ ERROR: {e}")
 else:

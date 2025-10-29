@@ -180,11 +180,19 @@ def load_data_from_github():
 
     try:
         url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/contents/{GITHUB_DATA_PATH}"
+
+        # Debug: Show token info (safely)
+        token_prefix = GITHUB_TOKEN[:7] if GITHUB_TOKEN and len(GITHUB_TOKEN) > 7 else "INVALID"
+        print(f"🔍 Attempting to load from GitHub with token prefix: {token_prefix}...")
+        print(f"🔍 URL: {url}")
+
         headers = {
-            "Authorization": f"Bearer {GITHUB_TOKEN}",
+            "Authorization": f"token {GITHUB_TOKEN}",
             "Accept": "application/vnd.github.v3+json"
         }
         response = requests.get(url, headers=headers, timeout=10)
+
+        print(f"🔍 Response status: {response.status_code}")
 
         if response.status_code == 200:
             content = response.json()
@@ -200,13 +208,23 @@ def load_data_from_github():
             # File doesn't exist - initialize
             return init_empty_data()
         elif response.status_code == 401:
-            error_msg = "GitHub authentication failed (401). Please check your GITHUB_TOKEN."
+            error_msg = "GitHub authentication failed (401)"
             try:
                 error_details = response.json()
-                print(f"❌ {error_msg} Details: {error_details}")
+                print(f"❌ {error_msg}")
+                print(f"❌ API Response: {error_details}")
+                print(f"❌ Token type: {token_prefix}")
+
+                # Check if it's a fine-grained token issue
+                if 'message' in error_details:
+                    msg = error_details['message']
+                    if 'fine-grained' in msg.lower() or 'permissions' in msg.lower():
+                        error_msg += " - Token may need additional permissions or be of wrong type."
+
+                st.warning(f"{error_msg} Please check your GITHUB_TOKEN permissions. Using default data.")
             except:
                 print(f"❌ {error_msg}")
-            st.warning(f"{error_msg} Using default data.")
+                st.warning(f"{error_msg} Using default data.")
             return init_empty_data()
         else:
             st.warning(f"Could not load data from GitHub (status {response.status_code}). Using default data.")
@@ -227,22 +245,30 @@ def save_data_to_github(data, commit_message="Update trip data"):
 
     try:
         url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/contents/{GITHUB_DATA_PATH}"
+
+        # Debug: Show token info (safely)
+        token_prefix = GITHUB_TOKEN[:7] if GITHUB_TOKEN and len(GITHUB_TOKEN) > 7 else "INVALID"
+        print(f"🔍 Attempting to save to GitHub with token prefix: {token_prefix}...")
+
         headers = {
-            "Authorization": f"Bearer {GITHUB_TOKEN}",
+            "Authorization": f"token {GITHUB_TOKEN}",
             "Accept": "application/vnd.github.v3+json"
         }
 
         # Get current file SHA (needed for update)
         response = requests.get(url, headers=headers, timeout=10)
 
+        print(f"🔍 GET response status (for SHA): {response.status_code}")
+
         if response.status_code == 401:
-            error_msg = "GitHub authentication failed (401). Cannot save data. Please check your GITHUB_TOKEN."
+            error_msg = "GitHub authentication failed (401). Cannot save data."
             try:
                 error_details = response.json()
                 print(f"❌ {error_msg} Details: {error_details}")
+                st.error(f"{error_msg} Please check your GITHUB_TOKEN permissions.")
             except:
                 print(f"❌ {error_msg}")
-            st.error(error_msg)
+                st.error(error_msg)
             return False
 
         sha = response.json()['sha'] if response.status_code == 200 else None
@@ -262,16 +288,20 @@ def save_data_to_github(data, commit_message="Update trip data"):
         # Commit to GitHub
         response = requests.put(url, headers=headers, json=payload, timeout=15)
 
+        print(f"🔍 PUT response status (for commit): {response.status_code}")
+
         if response.status_code in [200, 201]:
+            print(f"✅ Successfully saved to GitHub")
             return True
         elif response.status_code == 401:
-            error_msg = "GitHub authentication failed (401). Cannot save data. Please check your GITHUB_TOKEN."
+            error_msg = "GitHub authentication failed (401). Cannot save data."
             try:
                 error_details = response.json()
                 print(f"❌ {error_msg} Details: {error_details}")
+                st.error(f"{error_msg} Please check your GITHUB_TOKEN permissions.")
             except:
                 print(f"❌ {error_msg}")
-            st.error(error_msg)
+                st.error(error_msg)
             return False
         else:
             st.error(f"Failed to save to GitHub: {response.status_code} - {response.text}")
