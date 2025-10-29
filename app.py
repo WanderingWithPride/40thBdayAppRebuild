@@ -3490,6 +3490,141 @@ def detect_conflicts(activities_data):
 
     return conflicts
 
+def detect_weather_swap_opportunities(activities_data, weather_data):
+    """Detect activities scheduled on bad weather days that could be swapped with better days
+
+    Args:
+        activities_data: List of scheduled activities
+        weather_data: Weather forecast data
+
+    Returns:
+        List of swap suggestions with reasoning
+    """
+    swap_suggestions = []
+
+    # Create weather lookup by date
+    weather_by_date = {}
+    for day in weather_data.get('forecast', []):
+        weather_by_date[day['date']] = day
+
+    # Check each outdoor activity
+    for activity in activities_data:
+        # Skip non-outdoor or transport/dining activities
+        activity_name = activity.get('activity', '').lower()
+        activity_type = activity.get('type', '').lower()
+
+        if activity_type in ['transport', 'dining']:
+            continue
+
+        # Check if outdoor activity
+        outdoor_keywords = ['beach', 'kayak', 'boat', 'tour', 'outdoor', 'bike', 'walk', 'golf', 'horseback']
+        is_outdoor = any(keyword in activity_name for keyword in outdoor_keywords)
+
+        if not is_outdoor:
+            continue
+
+        # Get weather for this activity's date
+        activity_date = activity.get('date')
+        activity_weather = weather_by_date.get(activity_date)
+
+        if not activity_weather:
+            continue
+
+        # Check if weather is bad for this outdoor activity
+        rain_chance = activity_weather.get('precipitation', 0)
+        wind_speed = activity_weather.get('wind', 0)
+
+        # Bad weather threshold
+        is_bad_weather = False
+        weather_issue = ""
+
+        if rain_chance > 60:
+            is_bad_weather = True
+            weather_issue = f"{rain_chance}% chance of rain"
+        elif wind_speed > 20 and any(word in activity_name for word in ['boat', 'kayak', 'beach']):
+            is_bad_weather = True
+            weather_issue = f"{wind_speed} mph winds"
+
+        if not is_bad_weather:
+            continue
+
+        # Find better weather days to swap with
+        for other_activity in activities_data:
+            # Skip same activity
+            if other_activity['date'] == activity_date:
+                continue
+
+            # Skip transport/arrival/departure days
+            if other_activity.get('type') == 'transport':
+                continue
+
+            # Get weather for potential swap date
+            swap_date = other_activity['date']
+            swap_weather = weather_by_date.get(swap_date)
+
+            if not swap_weather:
+                continue
+
+            # Check if swap date has better weather
+            swap_rain = swap_weather.get('precipitation', 0)
+            swap_wind = swap_weather.get('wind', 0)
+
+            # Calculate improvement
+            is_better_weather = False
+            improvement_reason = ""
+
+            if rain_chance > 60 and swap_rain < 30:
+                is_better_weather = True
+                improvement_reason = f"only {swap_rain}% rain vs {rain_chance}%"
+            elif wind_speed > 20 and swap_wind < 15:
+                is_better_weather = True
+                improvement_reason = f"calmer winds ({swap_wind} mph vs {wind_speed} mph)"
+
+            if is_better_weather:
+                # Check if other activity is swappable (preferably indoor or less weather-sensitive)
+                other_name = other_activity.get('activity', '').lower()
+                other_is_indoor = any(word in other_name for word in ['spa', 'dining', 'museum', 'shopping', 'indoor'])
+                other_is_outdoor = any(word in other_name for word in outdoor_keywords)
+
+                # Only suggest swap if:
+                # 1. Other activity is indoor (can happen in any weather), OR
+                # 2. Other activity is also outdoor but current weather is still okay for it
+                swap_makes_sense = other_is_indoor or (other_is_outdoor and rain_chance > 60 and swap_rain < 30)
+
+                if swap_makes_sense:
+                    swap_suggestions.append({
+                        'activity1': {
+                            'name': activity['activity'],
+                            'date': activity_date,
+                            'time': activity.get('time'),
+                            'weather_issue': weather_issue,
+                            'weather': activity_weather
+                        },
+                        'activity2': {
+                            'name': other_activity['activity'],
+                            'date': swap_date,
+                            'time': other_activity.get('time'),
+                            'weather': swap_weather
+                        },
+                        'improvement': improvement_reason,
+                        'severity': 'high' if rain_chance > 70 else 'medium',
+                        'message': f"🔄 Swap Suggestion: {activity['activity']} ({activity_date}) has {weather_issue}, but {swap_date} has {improvement_reason}"
+                    })
+
+    # Sort by severity
+    swap_suggestions.sort(key=lambda x: 0 if x['severity'] == 'high' else 1)
+
+    # Remove duplicates (same swap suggested twice)
+    seen = set()
+    unique_swaps = []
+    for swap in swap_suggestions:
+        key = (swap['activity1']['name'], swap['activity1']['date'], swap['activity2']['date'])
+        if key not in seen:
+            seen.add(key)
+            unique_swaps.append(swap)
+
+    return unique_swaps
+
 def score_activity_for_slot(activity, time_slot_start, date_str, weather_data, tide_data, recent_activities):
     """Score how well an activity fits a specific time slot (0-100)
 
@@ -5790,6 +5925,7 @@ def render_full_schedule(df, activities_data, show_sensitive):
     tide_data = get_tide_data()
     meal_gaps = detect_meal_gaps(activities_data)
     conflicts = detect_conflicts(activities_data)
+    weather_swaps = detect_weather_swap_opportunities(activities_data, weather_data)
 
     # Show trip overview
     st.markdown("""
@@ -5922,11 +6058,11 @@ def render_full_schedule(df, activities_data, show_sensitive):
                 st.error(f"Error generating calendar: {e}")
 
     # Show conflicts and meal gaps
-    if conflicts or meal_gaps:
+    if conflicts or meal_gaps or weather_swaps:
         st.markdown("---")
         st.markdown("### 🚨 Schedule Alerts")
 
-        alert_col1, alert_col2 = st.columns(2)
+        alert_col1, alert_col2, alert_col3 = st.columns(3)
 
         with alert_col1:
             if conflicts:
@@ -5950,12 +6086,63 @@ def render_full_schedule(df, activities_data, show_sensitive):
                 st.warning(f"**🍽️ {len(meal_gaps)} Missing Meals**")
                 for gap in meal_gaps[:5]:  # Show first 5
                     st.markdown(f"• {gap['day_name']}: {gap['meal_type'].title()} at {gap['suggested_time']}")
+            else:
+                st.success("✅ All meals planned!")
+
+        with alert_col3:
+            if weather_swaps:
+                st.warning(f"**🌦️ {len(weather_swaps)} Weather Swap Suggestions**")
+                for swap in weather_swaps[:3]:  # Show first 3
+                    st.markdown(f"• {swap['activity1']['name']} ({swap['activity1']['date']})")
+                    st.caption(f"   → {swap['improvement']}")
+            else:
+                st.success("✅ Weather looks good!")
 
     # ENHANCED CONFLICT DETECTION + VISUALIZATION
     st.markdown("---")
     if st.checkbox("🔍 Show Detailed Conflict Analysis", value=False):
         from utils.schedule_checker import show_schedule_conflicts_panel
         show_schedule_conflicts_panel(activities_data)
+
+    # WEATHER-BASED SWAP SUGGESTIONS
+    if weather_swaps and st.checkbox("🌦️ Show Weather Swap Suggestions", value=False):
+        st.markdown("### 🔄 Smart Activity Swap Suggestions")
+        st.info("💡 These swaps optimize your schedule based on weather forecasts. Outdoor activities scheduled during bad weather can be swapped with indoor activities or moved to days with better conditions.")
+
+        for i, swap in enumerate(weather_swaps, 1):
+            with st.expander(f"🔄 Swap {i}: {swap['activity1']['name']} ↔ {swap['activity2']['name']}", expanded=(i == 1)):
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    st.markdown(f"#### ⚠️ Activity with Bad Weather")
+                    st.markdown(f"**{swap['activity1']['name']}**")
+                    st.markdown(f"📅 **Current Date:** {swap['activity1']['date']}")
+                    st.markdown(f"🕐 **Time:** {swap['activity1']['time']}")
+                    st.markdown(f"⛈️ **Issue:** {swap['activity1']['weather_issue']}")
+
+                    # Show weather details
+                    weather1 = swap['activity1']['weather']
+                    st.markdown(f"**Weather:** {weather1.get('condition', 'N/A')} | {weather1.get('high', 'N/A')}°F | 💧 {weather1.get('precipitation', 0)}% rain | 💨 {weather1.get('wind', 0)} mph")
+
+                with col2:
+                    st.markdown(f"#### ✅ Suggested Swap")
+                    st.markdown(f"**{swap['activity2']['name']}**")
+                    st.markdown(f"📅 **Swap to Date:** {swap['activity2']['date']}")
+                    st.markdown(f"🕐 **Time:** {swap['activity2']['time']}")
+                    st.success(f"**Improvement:** {swap['improvement']}")
+
+                    # Show weather details
+                    weather2 = swap['activity2']['weather']
+                    st.markdown(f"**Weather:** {weather2.get('condition', 'N/A')} | {weather2.get('high', 'N/A')}°F | 💧 {weather2.get('precipitation', 0)}% rain | 💨 {weather2.get('wind', 0)} mph")
+
+                st.markdown("---")
+                st.markdown("**💡 Recommendation:**")
+                if swap['severity'] == 'high':
+                    st.error("🚨 **Strongly recommended** - High chance of bad weather affecting this outdoor activity")
+                else:
+                    st.warning("⚠️ **Recommended** - Weather conditions may impact enjoyment")
+
+                st.caption("ℹ️ To perform this swap, you can manually reschedule these activities in the Schedule Builder. Weather data updates daily.")
 
     st.markdown("---")
 
