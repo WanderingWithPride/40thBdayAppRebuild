@@ -5786,7 +5786,7 @@ def enrich_activity_with_live_data(activity, date_str, weather_data):
 
     activity_time = activity.get('time', '')
 
-    # FOR ARRIVALS: Calculate projected "ready by" time
+    # FOR ARRIVALS: Calculate projected "ready for dinner" time
     if is_arrival and activity_time and activity_time != 'TBD':
         try:
             from datetime import datetime, timedelta
@@ -5798,17 +5798,26 @@ def enrich_activity_with_live_data(activity, date_str, weather_data):
             # - Deplane & baggage claim: 30 min
             # - Drive to hotel (from airport): 45 min
             # - Hotel check-in: 15 min
-            total_arrival_minutes = 30 + 45 + 15  # 90 minutes total
+            # - Freshen up / change for dinner: 30 min
+            baggage_time = 30
+            drive_time = 45
+            checkin_time = 15
+            prep_time = 30
+            total_arrival_minutes = baggage_time + drive_time + checkin_time + prep_time  # 120 minutes total
 
+            # Intermediate times
+            at_hotel_time = arrival_time_obj + timedelta(minutes=baggage_time + drive_time + checkin_time)
             ready_time = arrival_time_obj + timedelta(minutes=total_arrival_minutes)
 
             enriched['arrival_timeline'] = {
                 'flight_lands': activity_time,
-                'baggage_claim': '~30 min',
-                'drive_to_hotel': '~45 min',
-                'check_in': '~15 min',
-                'ready_by': ready_time.strftime('%I:%M %p'),
-                'total_time': '~90 min'
+                'baggage_claim': f'~{baggage_time} min',
+                'drive_to_hotel': f'~{drive_time} min',
+                'check_in': f'~{checkin_time} min',
+                'prep_time': f'~{prep_time} min',
+                'at_hotel_by': at_hotel_time.strftime('%I:%M %p'),
+                'ready_for_dinner_by': ready_time.strftime('%I:%M %p'),
+                'total_time': f'~{total_arrival_minutes} min'
             }
             enriched['projected_end_time'] = ready_time.strftime('%I:%M %p')
         except:
@@ -6560,9 +6569,10 @@ def render_full_schedule(df, activities_data, show_sensitive):
                             **Arrival Process:**
                             - 🛄 Baggage claim: {timeline['baggage_claim']}
                             - 🚗 Drive to hotel: {timeline['drive_to_hotel']}
-                            - 🏨 Check-in: {timeline['check_in']}
+                            - 🏨 Check-in: {timeline['check_in']} → At hotel by {timeline['at_hotel_by']}
+                            - 🚿 Freshen up & change: {timeline['prep_time']}
                             """)
-                            st.success(f"⏰ **Ready by:** {timeline['ready_by']} ({timeline['total_time']} after landing)")
+                            st.success(f"🍽️ **Ready for dinner by:** {timeline['ready_for_dinner_by']} ({timeline['total_time']} after landing)")
 
                         # === REAL-TIME TRAFFIC + SMART DEPARTURE TIME (for regular activities) ===
                         elif live_data.get('traffic'):
@@ -6797,9 +6807,10 @@ def render_full_schedule(df, activities_data, show_sensitive):
                             **Arrival Process:**
                             - 🛄 Baggage claim: {timeline['baggage_claim']}
                             - 🚗 Drive to hotel: {timeline['drive_to_hotel']}
-                            - 🏨 Check-in: {timeline['check_in']}
+                            - 🏨 Check-in: {timeline['check_in']} → At hotel by {timeline['at_hotel_by']}
+                            - 🚿 Freshen up & change: {timeline['prep_time']}
                             """)
-                            st.success(f"⏰ **Ready by:** {timeline['ready_by']} ({timeline['total_time']} after landing)")
+                            st.success(f"🍽️ **Ready for dinner by:** {timeline['ready_for_dinner_by']} ({timeline['total_time']} after landing)")
 
                         # === REAL-TIME TRAFFIC + SMART DEPARTURE TIME (for regular activities) ===
                         elif live_data.get('traffic'):
