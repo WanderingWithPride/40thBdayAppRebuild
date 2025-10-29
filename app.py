@@ -98,6 +98,22 @@ except ImportError as e:
 # CONFIGURATION & SETUP
 # ============================================================================
 
+# Load secrets into environment variables for os.getenv() compatibility
+def load_secrets_to_env():
+    """Load Streamlit secrets into environment variables"""
+    try:
+        if hasattr(st, 'secrets'):
+            for key in ['GOOGLE_MAPS_API_KEY', 'OPENWEATHER_API_KEY', 'GITHUB_TOKEN',
+                       'AVIATIONSTACK_API_KEY', 'TRIP_PASSWORD_HASH']:
+                if key in st.secrets:
+                    os.environ[key] = st.secrets[key]
+    except Exception as e:
+        # Secrets not configured or not in Streamlit environment
+        pass
+
+# Load secrets on startup
+load_secrets_to_env()
+
 st.set_page_config(
     page_title="✈️ Michael's 40th Birthday Trip Assistant",
     page_icon="🎉",
