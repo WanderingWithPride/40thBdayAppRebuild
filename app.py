@@ -1211,6 +1211,29 @@ def get_ultimate_trip_data():
             "priority": 3
         },
         {
+            "id": "pho001",
+            "date": "2025-11-09",
+            "time": "5:00 PM",
+            "activity": "Golden Hour Photography Session (FREE!)",
+            "type": "activity",
+            "duration": "1 hour",
+            "location": {
+                "name": "Ritz-Carlton Beach & Resort Grounds",
+                "address": "4750 Amelia Island Parkway",
+                "lat": 30.6074,
+                "lon": -81.4493,
+                "phone": "239-449-6125"
+            },
+            "status": "URGENT",
+            "cost": 0,
+            "category": "Activity",
+            "notes": "🎉 FREE Photography Concierge Service! Professional 60-min session during golden hour/sunset. Perfect timing after spa - you'll be glowing! Individual shots for dating profiles + friend photos. Call 239-449-6125 or book via poolside app (ritzcarltonameliaisland.ipoolside.com) to reserve.",
+            "what_to_bring": ["Nice dinner outfit (can layer jacket on/off)", "Backup shoes for beach (can go barefoot)", "Hair styled", "Smile!"],
+            "tips": ["⚠️ BOOKING REQUIRED - Call 239-449-6125 ASAP!", "Request full 60 minutes (30-60 min available)", "Sunset at 5:33 PM - perfect timing!", "Skin will be glowing 4 hours after facial", "Get both beach and resort shots", "Tell photographer: individual shots for dating profiles + friend photos", "Normally $400-500 value - FREE for resort guests!"],
+            "booking_url": "ritzcarltonameliaisland.ipoolside.com",
+            "priority": 1
+        },
+        {
             "id": "dep001",
             "date": "2025-11-11",
             "time": "8:20 AM",
@@ -8914,6 +8937,23 @@ def render_johns_page(df, activities_data, show_sensitive):
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
+
+                    # Add FREE spa amenities guide for couples massage (spa001)
+                    if activity_id == 'spa001':
+                        st.markdown("""
+                        <div class="info-box" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-left: 4px solid #4caf50; margin-top: 0.5rem;">
+                            <h4 style="margin: 0 0 0.5rem 0; color: #2e7d32;">🎁 BONUS: FREE Spa Amenities Included with Your Massage!</h4>
+                            <p style="margin: 0.5rem 0;"><strong>You get FREE access to these facilities on spa day (normally $25/person):</strong></p>
+                            <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                                <li><strong>✨ Healing Saltwater Pool</strong> - Arrive 30 min early to enjoy it before your massage!</li>
+                                <li><strong>✨ Steam Rooms & Saunas</strong> - Relax and detoxify</li>
+                                <li><strong>✨ Relaxation Lounges</strong> - Comfortable seating with healthy snacks & tea</li>
+                                <li><strong>✨ Spa Robes, Slippers & Amenities</strong> - Everything provided</li>
+                            </ul>
+                            <p style="margin: 0.5rem 0 0 0; font-weight: bold; color: #2e7d32;">💰 Total Value: $25/person = $50 for both of you - ALL FREE with your massage booking!</p>
+                            <p style="margin: 0.5rem 0 0 0; font-style: italic; color: #555;">🕐 <strong>Pro Tip:</strong> Arrive at 9:30 AM to maximize your saltwater pool time before the 10:00 AM massage. You'll feel amazing!</p>
+                        </div>
+                        """, unsafe_allow_html=True)
 
                     # Add opt-in buttons for activities that need John's decision
                     needs_optin = False
