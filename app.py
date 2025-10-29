@@ -1112,9 +1112,9 @@ def get_ultimate_trip_data():
             "duration": "2.5 hours",
             "location": {
                 "name": "Dee Dee Bartels Boat Ramp",
-                "address": "Dee Dee Bartels Boat Ramp, Amelia Island, FL",
-                "lat": 30.6074,
-                "lon": -81.4493,
+                "address": "1 N Front St, Fernandina Beach, FL 32034",
+                "lat": 30.6708,
+                "lon": -81.4651,
                 "phone": "904-753-7631"
             },
             "status": "URGENT",
@@ -6429,6 +6429,10 @@ def render_full_schedule(df, activities_data, show_sensitive):
             elif activity_id == 'spa003' or (activity_id == 'spa003' and 'mani-pedi' in activity_name):
                 activity['activity_type'] = 'michael_solo'
                 activity['activity_type_label'] = '🎂 MICHAEL\'S TREATMENT - Birthday pampering!'
+            # Michael's solo activities before John arrives
+            elif activity_id == 'act001':  # Boat tour Saturday morning
+                activity['activity_type'] = 'michael_solo'
+                activity['activity_type_label'] = '👤 MICHAEL SOLO - Before John arrives'
             # Photography and special events
             elif 'photography' in activity_name:
                 activity['activity_type'] = 'shared'
