@@ -6384,39 +6384,8 @@ def render_full_schedule(df, activities_data, show_sensitive):
                         }
                         day_activities.append(activity_item)
 
-                # Show proposed activities with voting options (only for John's optional activities, not Michael's solo time)
-                elif proposal and proposal['status'] in ['proposed', 'voted']:
-                    # Determine if this is Michael's solo time or John's optional activity
-                    is_michael_solo = activity_slot['id'] in ['fri_evening', 'mon_morning', 'mon_afternoon', 'mon_evening']
-
-                    # Skip showing voting activities for Michael's solo time - he can just add custom activities if he wants
-                    if is_michael_solo:
-                        continue
-
-                    activity_label = activity_slot['id'].replace('_', ' ').title()
-                    john_vote = proposal.get('john_vote')
-
-                    vote_text = 'Option ' + str(int(john_vote) + 1) if john_vote is not None else 'Not voted yet'
-                    notes_text = f"3 activity options proposed. John's vote: {vote_text}"
-
-                    voting_activity = {
-                        'id': f"activity_vote_{activity_slot['id']}",
-                        'date': date_str,
-                        'time': activity_slot['time'],
-                        'activity': f"{activity_label}",
-                        'description': "Browse activity options and decide on the day",
-                        'type': 'activity',
-                        'category': 'Activity',
-                        'duration': 'Flexible',
-                        'cost': 'Varies',
-                        'status': 'optional',
-                        'notes': f"Multiple activity options available. Sorted by price (free first).",
-                        'location': {'name': 'Multiple options available', 'address': ''},
-                        'is_activity_voting': True,
-                        'activity_slot_id': activity_slot['id'],
-                        'activity_options': proposal['activity_options']
-                    }
-                    day_activities.append(voting_activity)
+                # Activity proposals are now handled through the universal activity suggestion system
+                # No need to show voting/pending displays - just browse suggestions in free time
 
         day_activities.sort(key=lambda x: parse_time_for_sorting(x['time']))
 
@@ -6915,64 +6884,9 @@ def render_full_schedule(df, activities_data, show_sensitive):
                                 if act.get('tips'):
                                     st.caption(f"💡 {act['tips'][:100]}...")
 
-                # Special handling for activity voting
-                elif activity.get('is_activity_voting'):
-                    # Display activity voting with all 3 options
-                    import html
-                    safe_activity_name = html.escape(activity['activity'])
-                    safe_time_display = html.escape(time_display)
-                    is_michael_solo = activity.get('activity_slot_id') in ['fri_evening', 'mon_morning', 'mon_afternoon', 'mon_evening']
+                # Activity and meal voting removed - use universal suggestion system in free time instead
 
-                    status_text = 'ACTIVITY OPTIONS'
-                    description_text = 'Browse options below - pick as many or few as you want on the day!'
-                    border_color = '#4caf50'
-
-                    st.markdown(f"""<div class="timeline-item" style="margin: 1rem 0;">
-<div class="ultimate-card" style="border-left: 4px solid {border_color};">
-<div class="card-body">
-<div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-<h4 style="margin: 0;">💡 {safe_activity_name} - Activity Options</h4>
-<span class="status-optional" style="background: #4caf50; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.85rem; font-weight: 600;">{status_text}</span>
-</div>
-<p style="margin: 0.5rem 0;"><b>🕐 {safe_time_display}</b></p>
-<p style="margin: 0.5rem 0; color: #666;">{description_text}</p>
-</div>
-</div>
-</div>""", unsafe_allow_html=True)
-
-                    # Display all 3 activity options
-                    import html
-                    for idx, act_option in enumerate(activity.get('activity_options', [])):
-                        phone = act_option.get('phone', 'N/A')
-                        booking = act_option.get('booking_url', 'N/A')
-
-                        # Escape all user-provided strings
-                        safe_name = html.escape(act_option['name'])
-                        safe_description = html.escape(act_option.get('description', 'N/A'))
-                        safe_cost_range = html.escape(act_option.get('cost_range', 'FREE'))
-                        safe_duration = html.escape(act_option.get('duration', '1 hour'))
-                        safe_rating = html.escape(act_option.get('rating', 'N/A'))
-                        safe_phone = html.escape(phone)
-                        safe_booking = html.escape(booking) if booking != 'N/A' else 'N/A'
-                        safe_tips = html.escape(act_option.get('tips', 'N/A'))
-
-                        phone_html = f'<p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>📞</strong> {safe_phone}</p>' if phone != 'N/A' else ''
-                        booking_html = f'<p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>🔗</strong> <a href="{safe_booking}" target="_blank">Booking Info</a></p>' if booking != 'N/A' and booking.startswith('http') else ''
-
-                        st.markdown(f"""<div class="ultimate-card" style="margin: 0.5rem 0 0.5rem 2rem; border-left: 3px solid {'#2196f3' if is_michael_solo else '#4caf50'};">
-<div class="card-body" style="padding: 1rem;">
-<h5 style="margin: 0 0 0.5rem 0;">Option {idx + 1}: {safe_name}</h5>
-<p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>📝</strong> {safe_description}</p>
-<p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>💰</strong> {safe_cost_range}</p>
-<p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>⏱️</strong> Duration: {safe_duration}</p>
-<p style="margin: 0.25rem 0; font-size: 0.9rem;"><strong>⭐</strong> Rating: {safe_rating}</p>
-{phone_html}
-{booking_html}
-<p style="margin: 0.25rem 0; font-size: 0.9rem; font-style: italic;"><strong>💡</strong> {safe_tips}</p>
-</div>
-</div>""", unsafe_allow_html=True)
-
-                # Special handling for meal voting activities
+                # Special handling for meal voting activities (keeping for backward compatibility)
                 elif activity.get('is_meal_voting'):
                     # Display meal voting with all 3 options
                     import html
