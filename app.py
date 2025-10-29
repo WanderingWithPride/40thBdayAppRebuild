@@ -1873,7 +1873,7 @@ def get_ritz_spa_services():
         "notes": {
             "booking": "Call 904-277-1087 or book through ritzcarltonameliaisland.ipoolside.com",
             "series_recommended": "LPG Endermologie treatments: Ask about package pricing for series",
-            "spa_facility_access": "Spa facility day pass: $25 (resort guests), $75 (non-guests)",
+            "spa_facility_access": "Spa facility day pass fee: $25 per person (resort guests), $75 per person (non-guests) - grants access to spa amenities",
             "couples_massage": "Must call to reserve couples massage - cannot book online"
         }
     }
@@ -2060,7 +2060,7 @@ def get_optional_activities():
             {"name": "Birthday Spa Day at Ritz-Carlton", "description": "🎂 YOUR BOOKED TREATMENTS: • 10:00 AM: Heaven in a Hammock Couples Massage (80 min beachside) - $490 total • 12:00 PM: HydraFacial Treatment (50 min glowing skin) - $195 • 1:30 PM: Mani-Pedi Combo (2 hours pampering) - $150 | ✨ FREE AMENITIES INCLUDED: Arrive 30 min early (9:30 AM) to enjoy: • Healing Saltwater Pool • Steam Rooms & Saunas • Relaxation Lounges with healthy snacks & tea • Spa robes, slippers, and all amenities | 📞 Call 904-277-1087 with any questions | ✨ Want to add more treatments? See 'Complete Spa Menu' below for 60+ services!", "cost_range": "$835 total (already calculated in budget)", "duration": "9:30 AM - 3:30 PM (full spa day)", "phone": "904-277-1087", "booking_url": "https://www.ritzcarlton.com/en/hotels/jaxam-the-ritz-carlton-amelia-island/spa/", "tips": "ARRIVE AT 9:30 AM to enjoy free saltwater pool before your 10:00 AM massage! Everything is already booked and scheduled perfectly - just show up and enjoy. Gratuity (20%) is automatically added. Stay in the relaxation lounges between treatments! See Complete Spa Menu below for additional treatments.", "rating": "5.0/5"},
         ],
         "💆 Complete Ritz Spa Menu (60+ Services with Pricing)": [
-            {"name": "📋 VIEW ALL SPA SERVICES & PRICING", "description": "Complete menu of all Ritz-Carlton Spa services: • Massage (17 options: $185-410) • Facials (16 options: $185-510) • Body Treatments (5 options: $195-515) • LPG Endermologie Advanced Tech (7 options: $325-350) • Nail Services (12 options: $45-245) • Hair Services (6 options: $35-150) • Red Light Therapy ($50) • Spa Pool Cabanas ($150-600) | All actual pricing from poolside app. Call 904-277-1087 to book additional treatments!", "cost_range": "See full menu below", "duration": "15 min - 150 min depending on service", "phone": "904-277-1087", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "📞 Call 904-277-1087 to add any treatments to your birthday spa day or other days! Ask about LPG Endermologie series packages. Spa facility day pass: $25 (resort guests), $75 (non-guests). Couples massages must be booked by phone.", "rating": "5.0/5", "view_full_spa_menu": True},
+            {"name": "📋 VIEW ALL SPA SERVICES & PRICING", "description": "Complete menu of all Ritz-Carlton Spa services: • Massage (17 options: $185-410) • Facials (16 options: $185-510) • Body Treatments (5 options: $195-515) • LPG Endermologie Advanced Tech (7 options: $325-350) • Nail Services (12 options: $45-245) • Hair Services (6 options: $35-150) • Red Light Therapy ($50) • Spa Pool Cabanas ($150-600) | All actual pricing from poolside app. Call 904-277-1087 to book additional treatments!", "cost_range": "See full menu below", "duration": "15 min - 150 min depending on service", "phone": "904-277-1087", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "📞 Call 904-277-1087 to add any treatments to your birthday spa day or other days! Ask about LPG Endermologie series packages. Spa facility day pass fee: $25 per person (resort guests), $75 per person (non-guests) - grants access to spa amenities like relaxation lounges, steam rooms, spa pools. Couples massages must be booked by phone.", "rating": "5.0/5", "view_full_spa_menu": True},
         ],
         "🧘 Wellness & Other Spas": [
             {"name": "Omni Spa Clean & Green Therapies", "description": "Massage, peels, wraps, and signature scrubs at Omni Resort", "cost_range": "$150-250", "duration": "50-90 minutes", "phone": "904-261-6161", "booking_url": "N/A", "tips": "Eco-friendly products and treatments", "rating": "4.7/5"},
@@ -8990,7 +8990,7 @@ def render_johns_page(df, activities_data, show_sensitive):
             **🌐 Online:** [{spa_services['reservation_url']}](https://{spa_services['reservation_url']})
             """)
 
-            st.info(f"💡 **Spa Facility Access:** $25 (resort guests), $75 (non-guests)")
+            st.info(f"💡 **Spa Facility Day Pass Fee:** $25 per person (resort guests) or $75 per person (non-guests). This grants access to spa amenities like relaxation lounges, steam rooms, and spa pools. Separate from treatment costs.")
 
             # Display services by category
             service_tabs = st.tabs(["💆 Massage", "👤 Facials", "🧖 Body Treatments", "🔬 Advanced Tech", "💅 Nails", "💇 Hair", "🛁 Cabanas"])
