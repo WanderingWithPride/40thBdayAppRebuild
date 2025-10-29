@@ -5781,7 +5781,7 @@ def enrich_activity_with_live_data(activity, date_str, weather_data):
 
     # 3. REAL-TIME TRAFFIC (skip for arrivals - you're already traveling!)
     activity_name_lower = activity.get('activity', '').lower()
-    is_arrival = 'arrival' in activity_name_lower or 'arriving' in activity_name_lower
+    is_arrival = 'arrival' in activity_name_lower or 'arriving' in activity_name_lower or 'arrives' in activity_name_lower
 
     # Only calculate traffic for activities you need to DRIVE TO (not arrivals)
     if GOOGLE_APIS_AVAILABLE and not is_arrival:
