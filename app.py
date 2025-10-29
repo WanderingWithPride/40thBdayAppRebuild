@@ -1227,9 +1227,9 @@ def get_ultimate_trip_data():
             "status": "URGENT",
             "cost": 0,
             "category": "Activity",
-            "notes": "🎉 FREE Photography Concierge Service! Professional 60-min session during golden hour/sunset. Perfect timing after spa - you'll be glowing! Individual shots for dating profiles + friend photos. Call 239-449-6125 or book via poolside app (ritzcarltonameliaisland.ipoolside.com) to reserve.",
+            "notes": "🎉 FREE Photography Concierge Service! Professional session during golden hour/sunset. Perfect timing after spa - you'll be glowing! IMPORTANT: When calling, ASK if you can book 2 SEPARATE sessions (one for birthday boy's shots, one for bestie's shots) so each person gets their own full session for dating profile photos. If not, book one 60-min session together. Call 239-449-6125 or book via poolside app (ritzcarltonameliaisland.ipoolside.com).",
             "what_to_bring": ["Nice dinner outfit (can layer jacket on/off)", "Backup shoes for beach (can go barefoot)", "Hair styled", "Smile!"],
-            "tips": ["⚠️ BOOKING REQUIRED - Call 239-449-6125 ASAP!", "Request full 60 minutes (30-60 min available)", "Sunset at 5:33 PM - perfect timing!", "Skin will be glowing 4 hours after facial", "Get both beach and resort shots", "Tell photographer: individual shots for dating profiles + friend photos", "Normally $400-500 value - FREE for resort guests!"],
+            "tips": ["⚠️ BOOKING REQUIRED - Call 239-449-6125 ASAP!", "ASK: Can we book 2 separate sessions per stay? One for each person's individual dating profile shots?", "Explain: It's a 40th birthday trip, 2 friends staying together, both need dating profile photos", "If YES to 2 sessions: Book separate times (maybe Nov 9 golden hour for bday boy + Nov 10 morning for bestie)", "If NO to 2 sessions: Book one 60-min session together, request focus on individual shots for each person", "Sunset at 5:33 PM on Nov 9 - perfect golden hour!", "Normally $400-500 value - FREE for resort guests!"],
             "booking_url": "ritzcarltonameliaisland.ipoolside.com",
             "priority": 1
         },
