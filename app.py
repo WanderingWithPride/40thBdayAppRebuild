@@ -3350,8 +3350,17 @@ def detect_meal_gaps(activities_data):
             # Sunday Nov 9 breakfast is locked as room service
             meals_found['breakfast'] = True
 
-        # Report missing meals
-        if not meals_found['breakfast']:
+        # Skip unrealistic meal times based on arrival/departure
+        skip_meals = []
+        if date_str == '2025-11-07':
+            # Friday: Arrive 6:01 PM, only dinner is realistic
+            skip_meals = ['breakfast', 'lunch']
+        elif date_str == '2025-11-12':
+            # Wednesday: Leave 12:30 PM for flight, only breakfast is realistic
+            skip_meals = ['lunch', 'dinner']
+
+        # Report missing meals (excluding unrealistic ones)
+        if not meals_found['breakfast'] and 'breakfast' not in skip_meals:
             missing_meals.append({
                 'date': date_str,
                 'day_name': day_name,
@@ -3360,7 +3369,7 @@ def detect_meal_gaps(activities_data):
                 'priority': 'medium'
             })
 
-        if not meals_found['lunch']:
+        if not meals_found['lunch'] and 'lunch' not in skip_meals:
             missing_meals.append({
                 'date': date_str,
                 'day_name': day_name,
@@ -3369,7 +3378,7 @@ def detect_meal_gaps(activities_data):
                 'priority': 'high'
             })
 
-        if not meals_found['dinner']:
+        if not meals_found['dinner'] and 'dinner' not in skip_meals:
             missing_meals.append({
                 'date': date_str,
                 'day_name': day_name,
