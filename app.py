@@ -1240,6 +1240,7 @@ def get_ultimate_trip_data():
             "time": "12:30 PM",
             "activity": "Leave Hotel for Airport",
             "type": "transport",
+            "duration": "2h 1m",
             "location": {
                 "name": "Jacksonville International Airport (JAX)",
                 "address": "2400 Yankee Clipper Dr, Jacksonville, FL 32218",
