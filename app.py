@@ -5779,8 +5779,12 @@ def enrich_activity_with_live_data(activity, date_str, weather_data):
         except:
             pass
 
-    # 3. REAL-TIME TRAFFIC
-    if GOOGLE_APIS_AVAILABLE:
+    # 3. REAL-TIME TRAFFIC (skip for arrivals - you're already traveling!)
+    activity_name_lower = activity.get('activity', '').lower()
+    is_arrival = 'arrival' in activity_name_lower or 'arriving' in activity_name_lower
+
+    # Only calculate traffic for activities you need to DRIVE TO (not arrivals)
+    if GOOGLE_APIS_AVAILABLE and not is_arrival:
         try:
             traffic = get_traffic_data(hotel_address, location_address)
             if traffic:
@@ -5792,7 +5796,11 @@ def enrich_activity_with_live_data(activity, date_str, weather_data):
                         from datetime import datetime, timedelta
                         time_obj = datetime.strptime(activity_time, '%I:%M %p')
                         travel_minutes = traffic.get('duration_in_traffic', {}).get('value', 0) // 60
-                        buffer_minutes = 10  # Add 10 min buffer
+
+                        # Add buffer: 10 min for regular activities, 30 min for departures
+                        is_departure = 'depart' in activity_name_lower or 'leaving' in activity_name_lower
+                        buffer_minutes = 30 if is_departure else 10
+
                         departure_time = time_obj - timedelta(minutes=travel_minutes + buffer_minutes)
                         enriched['suggested_departure'] = departure_time.strftime('%I:%M %p')
                         enriched['travel_time_minutes'] = travel_minutes
