@@ -5783,8 +5783,20 @@ def enrich_activity_with_live_data(activity, date_str, weather_data):
     try:
         from utils.smart_timing import calculate_smart_timing
 
+        # Determine next event time for gap analysis
+        next_event_time = None
+        activity_id = activity.get('id', '')
+        activity_date = activity.get('date', '')
+
+        # For Friday arrival (arr001), next event is dinner at 8:30 PM
+        if activity_id == 'arr001' and activity_date == '2025-11-07':
+            next_event_time = '8:30 PM'  # Friday dinner
+        # For Saturday arrival (arr002), next event is lunch at 12:30 PM
+        elif activity_id == 'arr002' and activity_date == '2025-11-08':
+            next_event_time = '12:30 PM'  # Saturday lunch
+
         # Calculate smart timing for this event
-        smart_timing = calculate_smart_timing(activity)
+        smart_timing = calculate_smart_timing(activity, next_event_time=next_event_time)
 
         if smart_timing:
             enriched['smart_timing'] = smart_timing
@@ -6575,6 +6587,15 @@ def render_full_schedule(df, activities_data, show_sensitive):
                             if timing_type == 'arrival_flight':
                                 st.success(f"🍽️ **Ready for dinner by:** {timing['ready_for_dinner_by']} ({timing['total_time']} after landing)")
 
+                                # Show gap analysis if available
+                                if timing.get('gap_analysis'):
+                                    gap = timing['gap_analysis']
+                                    st.info(f"{gap['icon']} **{gap['message']}**")
+                                    if gap.get('recommendations'):
+                                        st.markdown("**💡 Free Time Options:**")
+                                        for rec in gap['recommendations']:
+                                            st.markdown(f"- {rec}")
+
                             elif timing_type == 'departure_flight':
                                 st.warning(f"⏰ **Start checkout by:** {timing['start_checkout_by']}")
                                 st.success(f"🚗 **Leave hotel by:** {timing['leave_hotel_by']}")
@@ -6858,6 +6879,15 @@ def render_full_schedule(df, activities_data, show_sensitive):
                             # Type-specific highlights
                             if timing_type == 'arrival_flight':
                                 st.success(f"🍽️ **Ready for dinner by:** {timing['ready_for_dinner_by']} ({timing['total_time']} after landing)")
+
+                                # Show gap analysis if available
+                                if timing.get('gap_analysis'):
+                                    gap = timing['gap_analysis']
+                                    st.info(f"{gap['icon']} **{gap['message']}**")
+                                    if gap.get('recommendations'):
+                                        st.markdown("**💡 Free Time Options:**")
+                                        for rec in gap['recommendations']:
+                                            st.markdown(f"- {rec}")
 
                             elif timing_type == 'departure_flight':
                                 st.warning(f"⏰ **Start checkout by:** {timing['start_checkout_by']}")
