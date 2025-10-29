@@ -1130,9 +1130,9 @@ def get_ultimate_trip_data():
             "id": "spa001",
             "date": "2025-11-09",
             "time": "10:00 AM",
-            "activity": "Heaven in a Hammock Massage (Couples)",
+            "activity": "Men's Muscle Recovery Couples Massage",
             "type": "spa",
-            "duration": "1.5 hours",
+            "duration": "100 minutes",
             "location": {
                 "name": "Ritz-Carlton Spa",
                 "address": "4750 Amelia Island Parkway",
@@ -1141,12 +1141,12 @@ def get_ultimate_trip_data():
                 "phone": "904-277-1087"
             },
             "status": "URGENT",
-            "cost": 490,
+            "cost": 410,
             "category": "Spa",
-            "notes": "🎉 BIRTHDAY SPA DAY! Couples beachside massage in swaying hammocks - YOU'RE PAYING for both ($245 each = $490 total). Call 904-277-1087 to book ASAP! Arrive 30 min early to enjoy saltwater pool. Signature treatment!",
-            "what_to_bring": ["Arrive 30 min early for saltwater pool", "Spa robes provided", "Bring swimsuit for pool", "Camera for beach setup"],
-            "tips": ["Hydrate well before", "Communicate pressure preferences", "No heavy meal 2 hrs before", "Most unique massage experience!", "Literally on the beach with ocean sounds"],
-            "dress_code": "Spa attire provided - they give you everything",
+            "notes": "🎉 BIRTHDAY SPA DAY! Deep muscle couples massage - PERFECT for John's bad back! YOU'RE PAYING for both ($205 each = $410 total). Therapeutic deep tissue massage for tension relief. Private couples suite with professional draping (you're covered at all times). Undress to comfort level, spa robes provided. Call 904-277-1087 to book ASAP! Arrive 30 min early to enjoy FREE saltwater pool, steam rooms, relaxation lounges. 💪 Request firm pressure for maximum back relief!",
+            "what_to_bring": ["Arrive 30 min early for saltwater pool", "Spa robes provided", "Bring swimsuit for pool", "Mention John's bad back when booking"],
+            "tips": ["Hydrate well before", "Tell therapist about back pain - they'll focus there", "Request firm/deep pressure for best results", "No heavy meal 2 hrs before", "This is therapeutic massage - helps chronic pain!", "100 minutes = thorough full-body treatment", "Professional draping maintained throughout", "Private couples treatment room"],
+            "dress_code": "Undress to comfort level (underwear on or off - your choice). Professional sheet draping throughout. Spa robes provided.",
             "booking_url": "https://www.ritzcarlton.com/en/hotels/jaxam-the-ritz-carlton-amelia-island/spa/",
             "priority": 1
         },
@@ -2097,7 +2097,7 @@ def get_optional_activities():
             {"name": "Wine & Tasting Tour", "description": "Local guide takes you to best restaurants, bars and hot spots", "cost_range": "$60-90 per person", "duration": "2-3 hours", "phone": "904-556-7594", "booking_url": "N/A", "tips": "Fun way to discover local flavors and meet people", "rating": "4.5/5"},
         ],
         "💆 Your Birthday Spa Day": [
-            {"name": "Birthday Spa Day at Ritz-Carlton", "description": "🎂 YOUR BOOKED TREATMENTS: • 10:00 AM: Heaven in a Hammock Couples Massage (80 min beachside) - $490 total • 12:00 PM: HydraFacial Treatment (50 min glowing skin) - $195 • 1:30 PM: Mani-Pedi Combo (2 hours pampering) - $150 | ✨ FREE AMENITIES INCLUDED: Arrive 30 min early (9:30 AM) to enjoy: • Healing Saltwater Pool • Steam Rooms & Saunas • Relaxation Lounges with healthy snacks & tea • Spa robes, slippers, and all amenities | 📞 Call 904-277-1087 with any questions | ✨ Want to add more treatments? See 'Complete Spa Menu' below for 60+ services!", "cost_range": "$835 total (already calculated in budget)", "duration": "9:30 AM - 3:30 PM (full spa day)", "phone": "904-277-1087", "booking_url": "https://www.ritzcarlton.com/en/hotels/jaxam-the-ritz-carlton-amelia-island/spa/", "tips": "ARRIVE AT 9:30 AM to enjoy free saltwater pool before your 10:00 AM massage! Everything is already booked and scheduled perfectly - just show up and enjoy. Gratuity (20%) is automatically added. Stay in the relaxation lounges between treatments! See Complete Spa Menu below for additional treatments.", "rating": "5.0/5"},
+            {"name": "Birthday Spa Day at Ritz-Carlton", "description": "🎂 YOUR BOOKED TREATMENTS: • 10:00 AM: Men's Muscle Recovery Couples Massage (100 min deep tissue - PERFECT for John's bad back!) - $410 total • 12:00 PM: HydraFacial Treatment (50 min glowing skin) - $245 • 1:30 PM: Mani-Pedi Combo (90 min pampering) - $180 | ✨ FREE AMENITIES INCLUDED: Arrive 30 min early (9:30 AM) to enjoy: • Healing Saltwater Pool • Steam Rooms & Saunas • Relaxation Lounges with healthy snacks & tea • Spa robes, slippers, and all amenities | 📞 Call 904-277-1087 with any questions | 💪 This massage is THERAPEUTIC - great for chronic back pain! Private couples suite with professional draping. | ✨ Want to add more treatments? See 'Complete Spa Menu' below for 60+ services!", "cost_range": "$835 total (already calculated in budget)", "duration": "9:30 AM - 3:30 PM (full spa day)", "phone": "904-277-1087", "booking_url": "https://www.ritzcarlton.com/en/hotels/jaxam-the-ritz-carlton-amelia-island/spa/", "tips": "ARRIVE AT 9:30 AM to enjoy free saltwater pool before your 10:00 AM massage! Mention John's bad back when booking - therapist will focus there. Request firm/deep pressure for maximum relief. Professional draping maintained throughout (you're covered at all times, undress to comfort level). Gratuity (20%) is automatically added. Stay in the relaxation lounges between treatments! See Complete Spa Menu below for additional treatments.", "rating": "5.0/5"},
         ],
         "💆 Complete Ritz Spa Menu (60+ Services with Pricing)": [
             {"name": "📋 VIEW ALL SPA SERVICES & PRICING", "description": "Complete menu of all Ritz-Carlton Spa services: • Massage (17 options: $185-410) • Facials (16 options: $185-510) • Body Treatments (5 options: $195-515) • LPG Endermologie Advanced Tech (7 options: $325-350) • Nail Services (12 options: $45-245) • Hair Services (6 options: $35-150) • Red Light Therapy ($50) • Spa Pool Cabanas ($150-600) | All actual pricing from poolside app. Call 904-277-1087 to book additional treatments!", "cost_range": "See full menu below", "duration": "15 min - 150 min depending on service", "phone": "904-277-1087", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "📞 Call 904-277-1087 to add any treatments to your birthday spa day or other days! Ask about LPG Endermologie series packages. Spa facility day pass fee: $25 per person (resort guests), $75 per person (non-guests) - grants access to spa amenities like relaxation lounges, steam rooms, spa pools. Couples massages must be booked by phone.", "rating": "5.0/5", "view_full_spa_menu": True},
@@ -8234,8 +8234,8 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             ],
             "2025-11-09": [  # Sunday - Birthday!
                 {"time": "9:00 AM", "activity": "Room Service Breakfast (already booked)", "icon": "🛎️"},
-                {"time": "10:00 AM", "activity": "Heaven in a Hammock Spa (90 min)", "icon": "💆"},
-                {"time": "12:00 PM", "activity": "HydraFacial Spa Treatment (60 min)", "icon": "💧"},
+                {"time": "10:00 AM", "activity": "Men's Muscle Recovery Couples Massage (100 min - for John's back!)", "icon": "💆"},
+                {"time": "12:00 PM", "activity": "HydraFacial Spa Treatment (50 min)", "icon": "💧"},
                 {"time": "1:30 PM", "activity": "Mani-Pedi Spa Treatment (90 min)", "icon": "💅"},
                 {"time": "7:00 PM", "activity": "Birthday Dinner (already booked)", "icon": "🎂"},
             ],
