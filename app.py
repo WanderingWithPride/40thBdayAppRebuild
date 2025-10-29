@@ -6597,30 +6597,30 @@ def render_full_schedule(df, activities_data, show_sensitive):
 
                                     fitting_activities.sort(key=activity_price_sort_key)
 
-                                    # Show top 10 activities in a compact format
+                                    # Show top 10 activities directly visible
                                     if fitting_activities:
-                                        with st.expander(f"💡 Browse {len(fitting_activities[:10])} Activity Options (sorted by price)", expanded=False):
-                                            for act in fitting_activities[:10]:
-                                                cost = act.get('cost_range', 'N/A')
-                                                is_free = 'FREE' in cost.upper() or 'INCLUDED' in cost.upper() or '$' not in cost
-                                                badge_color = '#4caf50' if is_free else '#2196f3'
-                                                badge_text = '✨ FREE' if is_free else f'💰 {cost}'
+                                        st.markdown(f"**{min(len(fitting_activities), 10)} activity options sorted by price:**")
+                                        for act in fitting_activities[:10]:
+                                            cost = act.get('cost_range', 'N/A')
+                                            is_free = 'FREE' in cost.upper() or 'INCLUDED' in cost.upper() or '$' not in cost
+                                            badge_color = '#4caf50' if is_free else '#2196f3'
+                                            badge_text = '✨ FREE' if is_free else f'💰 {cost}'
 
-                                                st.markdown(f"""
-                                                <div style="border-left: 3px solid {badge_color}; padding: 0.75rem; margin: 0.5rem 0; background: white; border-radius: 4px;">
-                                                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                                                        <strong style="font-size: 0.95rem;">{html.escape(act['name'])}</strong>
-                                                        <span style="background: {badge_color}; color: white; padding: 0.15rem 0.5rem; border-radius: 8px; font-size: 0.75rem; white-space: nowrap; margin-left: 0.5rem;">{badge_text}</span>
-                                                    </div>
-                                                    <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #666;">{html.escape(str(act.get('description', 'N/A'))[:120])}...</p>
-                                                    <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #888;">⏱️ {html.escape(str(act.get('duration', 'Varies')))} | 📍 {html.escape(act.get('category', 'Activity'))}</p>
+                                            st.markdown(f"""
+                                            <div style="border-left: 3px solid {badge_color}; padding: 0.75rem; margin: 0.5rem 0; background: white; border-radius: 4px;">
+                                                <div style="display: flex; justify-content: space-between; align-items: start;">
+                                                    <strong style="font-size: 0.95rem;">{html.escape(act['name'])}</strong>
+                                                    <span style="background: {badge_color}; color: white; padding: 0.15rem 0.5rem; border-radius: 8px; font-size: 0.75rem; white-space: nowrap; margin-left: 0.5rem;">{badge_text}</span>
                                                 </div>
-                                                """, unsafe_allow_html=True)
+                                                <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #666;">{html.escape(str(act.get('description', 'N/A'))[:120])}...</p>
+                                                <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #888;">⏱️ {html.escape(str(act.get('duration', 'Varies')))} | 📍 {html.escape(act.get('category', 'Activity'))}</p>
+                                            </div>
+                                            """, unsafe_allow_html=True)
 
-                                                if act.get('phone') and act.get('phone') != 'N/A':
-                                                    st.caption(f"📞 {act['phone']}")
-                                                if act.get('tips'):
-                                                    st.caption(f"💡 {act['tips'][:100]}...")
+                                            if act.get('phone') and act.get('phone') != 'N/A':
+                                                st.caption(f"📞 {act['phone']}")
+                                            if act.get('tips'):
+                                                st.caption(f"💡 {act['tips'][:100]}...")
                                     else:
                                         st.info("⏰ This gap is shorter - perfect for relaxing at the hotel, beach walk, or pool time!")
                             except:
@@ -6851,31 +6851,31 @@ def render_full_schedule(df, activities_data, show_sensitive):
 
                         fitting_activities.sort(key=activity_price_sort_key)
 
-                        # Show top 8 activities
+                        # Show top 8 activities directly visible
                         if fitting_activities:
-                            with st.expander(f"💡 Browse {min(len(fitting_activities), 8)} Alternative Activities (sorted by price)", expanded=False):
-                                for act in fitting_activities[:8]:
-                                    cost = act.get('cost_range', 'N/A')
-                                    is_free = 'FREE' in cost.upper() or 'INCLUDED' in cost.upper() or '$' not in cost
-                                    badge_color = '#4caf50' if is_free else '#2196f3'
-                                    badge_text = '✨ FREE' if is_free else f'💰 {cost}'
+                            st.markdown(f"**{min(len(fitting_activities), 8)} alternative activity options sorted by price:**")
+                            for act in fitting_activities[:8]:
+                                cost = act.get('cost_range', 'N/A')
+                                is_free = 'FREE' in cost.upper() or 'INCLUDED' in cost.upper() or '$' not in cost
+                                badge_color = '#4caf50' if is_free else '#2196f3'
+                                badge_text = '✨ FREE' if is_free else f'💰 {cost}'
 
-                                    import html
-                                    st.markdown(f"""
-                                    <div style="border-left: 3px solid {badge_color}; padding: 0.75rem; margin: 0.5rem 0; background: white; border-radius: 4px;">
-                                        <div style="display: flex; justify-content: space-between; align-items: start;">
-                                            <strong style="font-size: 0.95rem;">{html.escape(act['name'])}</strong>
-                                            <span style="background: {badge_color}; color: white; padding: 0.15rem 0.5rem; border-radius: 8px; font-size: 0.75rem; white-space: nowrap; margin-left: 0.5rem;">{badge_text}</span>
-                                        </div>
-                                        <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #666;">{html.escape(str(act.get('description', 'N/A'))[:120])}...</p>
-                                        <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #888;">⏱️ {html.escape(str(act.get('duration', 'Varies')))} | 📍 {html.escape(act.get('category', 'Activity'))}</p>
+                                import html
+                                st.markdown(f"""
+                                <div style="border-left: 3px solid {badge_color}; padding: 0.75rem; margin: 0.5rem 0; background: white; border-radius: 4px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                                        <strong style="font-size: 0.95rem;">{html.escape(act['name'])}</strong>
+                                        <span style="background: {badge_color}; color: white; padding: 0.15rem 0.5rem; border-radius: 8px; font-size: 0.75rem; white-space: nowrap; margin-left: 0.5rem;">{badge_text}</span>
                                     </div>
-                                    """, unsafe_allow_html=True)
+                                    <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #666;">{html.escape(str(act.get('description', 'N/A'))[:120])}...</p>
+                                    <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #888;">⏱️ {html.escape(str(act.get('duration', 'Varies')))} | 📍 {html.escape(act.get('category', 'Activity'))}</p>
+                                </div>
+                                """, unsafe_allow_html=True)
 
-                                    if act.get('phone') and act.get('phone') != 'N/A':
-                                        st.caption(f"📞 {act['phone']}")
-                                    if act.get('tips'):
-                                        st.caption(f"💡 {act['tips'][:100]}...")
+                                if act.get('phone') and act.get('phone') != 'N/A':
+                                    st.caption(f"📞 {act['phone']}")
+                                if act.get('tips'):
+                                    st.caption(f"💡 {act['tips'][:100]}...")
 
                 # Special handling for activity voting
                 elif activity.get('is_activity_voting'):
@@ -7330,30 +7330,30 @@ def render_full_schedule(df, activities_data, show_sensitive):
 
                         fitting_activities.sort(key=activity_price_sort_key)
 
-                        # Show top 8 activities in a compact format
+                        # Show top 8 activities directly visible
                         if fitting_activities:
-                            with st.expander(f"💡 Browse {min(len(fitting_activities), 8)} Alternative Activities (sorted by price)", expanded=False):
-                                for act in fitting_activities[:8]:
-                                    cost = act.get('cost_range', 'N/A')
-                                    is_free = 'FREE' in cost.upper() or 'INCLUDED' in cost.upper() or '$' not in cost
-                                    badge_color = '#4caf50' if is_free else '#2196f3'
-                                    badge_text = '✨ FREE' if is_free else f'💰 {cost}'
+                            st.markdown(f"**{min(len(fitting_activities), 8)} alternative activity options sorted by price:**")
+                            for act in fitting_activities[:8]:
+                                cost = act.get('cost_range', 'N/A')
+                                is_free = 'FREE' in cost.upper() or 'INCLUDED' in cost.upper() or '$' not in cost
+                                badge_color = '#4caf50' if is_free else '#2196f3'
+                                badge_text = '✨ FREE' if is_free else f'💰 {cost}'
 
-                                    st.markdown(f"""
-                                    <div style="border-left: 3px solid {badge_color}; padding: 0.75rem; margin: 0.5rem 0; background: white; border-radius: 4px;">
-                                        <div style="display: flex; justify-content: space-between; align-items: start;">
-                                            <strong style="font-size: 0.95rem;">{html.escape(act['name'])}</strong>
-                                            <span style="background: {badge_color}; color: white; padding: 0.15rem 0.5rem; border-radius: 8px; font-size: 0.75rem; white-space: nowrap; margin-left: 0.5rem;">{badge_text}</span>
-                                        </div>
-                                        <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #666;">{html.escape(str(act.get('description', 'N/A'))[:120])}...</p>
-                                        <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #888;">⏱️ {html.escape(str(act.get('duration', 'Varies')))} | 📍 {html.escape(act.get('category', 'Activity'))}</p>
+                                st.markdown(f"""
+                                <div style="border-left: 3px solid {badge_color}; padding: 0.75rem; margin: 0.5rem 0; background: white; border-radius: 4px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                                        <strong style="font-size: 0.95rem;">{html.escape(act['name'])}</strong>
+                                        <span style="background: {badge_color}; color: white; padding: 0.15rem 0.5rem; border-radius: 8px; font-size: 0.75rem; white-space: nowrap; margin-left: 0.5rem;">{badge_text}</span>
                                     </div>
-                                    """, unsafe_allow_html=True)
+                                    <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #666;">{html.escape(str(act.get('description', 'N/A'))[:120])}...</p>
+                                    <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #888;">⏱️ {html.escape(str(act.get('duration', 'Varies')))} | 📍 {html.escape(act.get('category', 'Activity'))}</p>
+                                </div>
+                                """, unsafe_allow_html=True)
 
-                                    if act.get('phone') and act.get('phone') != 'N/A':
-                                        st.caption(f"📞 {act['phone']}")
-                                    if act.get('tips'):
-                                        st.caption(f"💡 {act['tips'][:100]}...")
+                                if act.get('phone') and act.get('phone') != 'N/A':
+                                    st.caption(f"📞 {act['phone']}")
+                                if act.get('tips'):
+                                    st.caption(f"💡 {act['tips'][:100]}...")
 
         # NEW: Show Michael's free time options when John has solo activities
         michael_free_time_activities = [a for a in day_activities if a.get('activity_type') == 'john_solo']
