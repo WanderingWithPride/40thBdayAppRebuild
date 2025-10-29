@@ -6224,7 +6224,7 @@ def render_full_schedule(df, activities_data, show_sensitive):
         date_str = date.strftime('%Y-%m-%d')
         meal_slots = [
             {"id": "fri_dinner", "date": "2025-11-07", "time": "8:30 PM"},
-            {"id": "sat_breakfast", "date": "2025-11-08", "time": "9:00 AM"},
+            {"id": "sat_breakfast", "date": "2025-11-08", "time": "7:30 AM"},  # Fixed to match actual breakfast time
             {"id": "sat_lunch", "date": "2025-11-08", "time": "12:30 PM"},
             {"id": "sun_breakfast", "date": "2025-11-09", "time": "9:00 AM"},
             {"id": "sun_lunch", "date": "2025-11-09", "time": "12:30 PM"},
