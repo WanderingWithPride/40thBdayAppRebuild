@@ -7710,13 +7710,53 @@ def render_budget(df, show_sensitive):
             st.info("No confirmed meals yet")
 
     with tab2:
-        activities = budget_data.get('confirmed_activities', [])
-        if activities:
-            st.markdown(f"**Total Activities Budget:** ${budget_data.get('confirmed_activities_total', 0):,.0f}")
-            for activity in activities:
-                st.markdown(f"- **{activity['name']}**: ${activity['total_cost']:.0f}")
+        # Get base activities (spa, boat, etc.) from activities_data
+        base_activities = [
+            a for a in activities_data
+            if a.get('category') in ['Spa', 'Activity'] and a.get('cost', 0) > 0
+        ]
+
+        # Get confirmed optional activities from proposals
+        optional_activities = budget_data.get('confirmed_activities', [])
+
+        # Calculate total
+        base_total = sum(a.get('cost', 0) for a in base_activities)
+        optional_total = budget_data.get('confirmed_activities_total', 0)
+        total_activities = base_total + optional_total
+
+        if base_activities or optional_activities:
+            st.markdown(f"**Total Activities & Spa Budget:** ${total_activities:,.0f}")
+            st.markdown("")
+
+            # Show base activities (spa, boat) grouped by type
+            if base_activities:
+                # Group by category
+                spa_activities = [a for a in base_activities if a.get('category') == 'Spa']
+                other_activities = [a for a in base_activities if a.get('category') == 'Activity']
+
+                if spa_activities:
+                    st.markdown("**💆 Spa Treatments**")
+                    for activity in spa_activities:
+                        date_str = activity.get('date', '')
+                        time_str = f" • {activity.get('time', '')}" if activity.get('time') else ""
+                        st.markdown(f"  {activity.get('activity', 'Spa Treatment')}: **${activity.get('cost', 0):.0f}**{time_str}")
+                    st.markdown("")
+
+                if other_activities:
+                    st.markdown("**🎯 Activities**")
+                    for activity in other_activities:
+                        date_str = activity.get('date', '')
+                        time_str = f" • {activity.get('time', '')}" if activity.get('time') else ""
+                        st.markdown(f"  {activity.get('activity', 'Activity')}: **${activity.get('cost', 0):.0f}**{time_str}")
+                    st.markdown("")
+
+            # Show confirmed optional activities from proposals
+            if optional_activities:
+                st.markdown("**📋 Confirmed Optional Activities**")
+                for activity in optional_activities:
+                    st.markdown(f"  {activity['name']}: **${activity['total_cost']:.0f}**")
         else:
-            st.info("No confirmed optional activities yet")
+            st.info("No activities or spa treatments yet")
 
     with tab3:
         alcohol = budget_data.get('confirmed_alcohol', [])
