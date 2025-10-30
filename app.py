@@ -1159,7 +1159,7 @@ def get_ultimate_trip_data():
         {
             "id": "spa002",
             "date": "2025-11-09",
-            "time": "11:45 AM",
+            "time": "2:00 PM",
             "activity": "HydraFacial Treatment (for you)",
             "type": "spa",
             "duration": "1 hour",
@@ -1182,7 +1182,7 @@ def get_ultimate_trip_data():
         {
             "id": "spa003",
             "date": "2025-11-09",
-            "time": "1:30 PM",
+            "time": "3:00 PM",
             "activity": "Mani-Pedi Combo (for you)",
             "type": "spa",
             "duration": "2 hours",
@@ -2100,7 +2100,7 @@ def get_optional_activities():
             {"name": "Wine & Tasting Tour", "description": "Local guide takes you to best restaurants, bars and hot spots", "cost_range": "$60-90 per person", "duration": "2-3 hours", "phone": "904-556-7594", "booking_url": "N/A", "tips": "Fun way to discover local flavors and meet people", "rating": "4.5/5"},
         ],
         "💆 Your Birthday Spa Day": [
-            {"name": "Birthday Spa Day at Ritz-Carlton", "description": "🎂 YOUR BOOKED TREATMENTS: • 10:00 AM: Men's Muscle Recovery Couples Massage (100 min deep tissue - PERFECT for John's bad back!) - $410 total • 11:45 AM: HydraFacial Treatment (50 min glowing skin) - $245 • 1:30 PM: Mani-Pedi Combo (90 min pampering) - $180 | ✨ FREE AMENITIES INCLUDED: Arrive 30 min early (9:30 AM) to enjoy: • Healing Saltwater Pool • Steam Rooms & Saunas • Relaxation Lounges with healthy snacks & tea • Spa robes, slippers, and all amenities | 📞 Call 904-277-1087 with any questions | 💪 This massage is THERAPEUTIC - great for chronic back pain! Private couples suite with professional draping. | ✨ Want to add more treatments? See 'Complete Spa Menu' below for 60+ services!", "cost_range": "$835 total (already calculated in budget)", "duration": "9:30 AM - 3:30 PM (full spa day)", "phone": "904-277-1087", "booking_url": "https://www.ritzcarlton.com/en/hotels/jaxam-the-ritz-carlton-amelia-island/spa/", "tips": "ARRIVE AT 9:30 AM to enjoy free saltwater pool before your 10:00 AM massage! Mention John's bad back when booking - therapist will focus there. Request firm/deep pressure for maximum relief. Professional draping maintained throughout (you're covered at all times, undress to comfort level). Gratuity (20%) is automatically added. Stay in the relaxation lounges between treatments! See Complete Spa Menu below for additional treatments.", "rating": "5.0/5"},
+            {"name": "Birthday Spa Day at Ritz-Carlton", "description": "🎂 YOUR BOOKED TREATMENTS: • 10:00 AM: Men's Muscle Recovery Couples Massage (100 min deep tissue - PERFECT for John's bad back!) - $410 total • 12:30 PM: Lunch break • 2:00 PM: HydraFacial Treatment (60 min glowing skin) - $245 • 3:00 PM: Mani-Pedi Combo (2 hours pampering) - $180 | ✨ FREE AMENITIES INCLUDED: Arrive 30 min early (9:30 AM) to enjoy: • Healing Saltwater Pool • Steam Rooms & Saunas • Relaxation Lounges with healthy snacks & tea • Spa robes, slippers, and all amenities | 📞 Call 904-277-1087 with any questions | 💪 This massage is THERAPEUTIC - great for chronic back pain! Private couples suite with professional draping. | ✨ Want to add more treatments? See 'Complete Spa Menu' below for 60+ services!", "cost_range": "$835 total (already calculated in budget)", "duration": "9:30 AM - 5:00 PM (full spa day)", "phone": "904-277-1087", "booking_url": "https://www.ritzcarlton.com/en/hotels/jaxam-the-ritz-carlton-amelia-island/spa/", "tips": "ARRIVE AT 9:30 AM to enjoy free saltwater pool before your 10:00 AM massage! Mention John's bad back when booking - therapist will focus there. Request firm/deep pressure for maximum relief. Professional draping maintained throughout (you're covered at all times, undress to comfort level). Gratuity (20%) is automatically added. Enjoy lunch at 12:30 PM, then continue with your treatments! Stay in the relaxation lounges between treatments. See Complete Spa Menu below for additional treatments.", "rating": "5.0/5"},
         ],
         "💆 Complete Ritz Spa Menu (60+ Services with Pricing)": [
             {"name": "📋 VIEW ALL SPA SERVICES & PRICING", "description": "Complete menu of all Ritz-Carlton Spa services: • Massage (17 options: $185-410) • Facials (16 options: $185-510) • Body Treatments (5 options: $195-515) • LPG Endermologie Advanced Tech (7 options: $325-350) • Nail Services (12 options: $45-245) • Hair Services (6 options: $35-150) • Red Light Therapy ($50) • Spa Pool Cabanas ($150-600) | All actual pricing from poolside app. Call 904-277-1087 to book additional treatments!", "cost_range": "See full menu below", "duration": "15 min - 150 min depending on service", "phone": "904-277-1087", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "📞 Call 904-277-1087 to add any treatments to your birthday spa day or other days! Ask about LPG Endermologie series packages. Spa facility day pass fee: $25 per person (resort guests), $75 per person (non-guests) - grants access to spa amenities like relaxation lounges, steam rooms, spa pools. Couples massages must be booked by phone.", "rating": "5.0/5", "view_full_spa_menu": True},
@@ -7042,25 +7042,36 @@ def render_full_schedule(df, activities_data, show_sensitive):
                     # Activity type label
                     activity_type_label = activity.get('activity_type_label', '')
 
+                    # Check if activity is marked as done/skipped
+                    is_skipped = activity.get('activity', '') in st.session_state.done_activities
+
                     # Status emoji for expander title
-                    if activity['status'] == 'URGENT':
+                    if is_skipped and activity_id in ['spa002', 'spa003']:
+                        status_emoji = "⏭️"  # Skip emoji for skipped optional spa treatments
+                    elif activity['status'] == 'URGENT':
                         status_emoji = "🚨"
                     elif activity['status'] in ['confirmed', 'Confirmed']:
                         status_emoji = "✅"
                     else:
                         status_emoji = "⏳"
 
-                    # Determine if expanded by default (only urgent items)
-                    expanded = activity['status'] == 'URGENT'
+                    # Determine if expanded by default (only urgent items, or skipped items so user can un-skip)
+                    expanded = activity['status'] == 'URGENT' or (is_skipped and activity_id in ['spa002', 'spa003'])
 
                     # Create expander title
                     expander_title = f"{status_emoji} {safe_time_display} - {safe_activity_name}"
+                    if is_skipped and activity_id in ['spa002', 'spa003']:
+                        expander_title += " (SKIPPED)"
                     if activity.get('is_custom'):
                         expander_title += " ➕"
 
                     with st.expander(expander_title, expanded=expanded):
                         # Get ALL live data for this activity
                         live_data = enrich_activity_with_live_data(activity, date_str, weather_data)
+
+                        # Skipped badge for optional spa treatments
+                        if is_skipped and activity_id in ['spa002', 'spa003']:
+                            st.warning("⏭️ **SKIPPED** - This treatment has been removed from your schedule. Use the button below to add it back if you change your mind.")
 
                         # Activity type badge
                         if activity_type_label:
@@ -7070,9 +7081,9 @@ def render_full_schedule(df, activities_data, show_sensitive):
                                 st.markdown(f"**Type:** {activity_type_label}")
 
                         # Status
-                        if activity['status'] == 'URGENT':
+                        if activity['status'] == 'URGENT' and not is_skipped:
                             st.error(f"**Status:** {safe_status} - BOOK ASAP!")
-                        else:
+                        elif not is_skipped:
                             st.markdown(f"**Status:** {safe_status}")
 
                         # === LIVE WEATHER ALERT ===
@@ -7327,6 +7338,31 @@ def render_full_schedule(df, activities_data, show_sensitive):
                         # Booking link
                         if activity.get('booking_url') and activity.get('booking_url') != 'N/A' and activity.get('booking_url').startswith('http'):
                             st.markdown(f"[📞 Book Now]({activity.get('booking_url')})")
+
+                        # Add "Skip This" button for optional spa treatments
+                        if activity_id in ['spa002', 'spa003']:
+                            st.markdown("---")
+                            # Check if this activity is already marked as done (skipped)
+                            activity_name = activity.get('activity', '')
+                            if activity_name in st.session_state.done_activities:
+                                # Show unmark button
+                                st.success("✅ You've marked this as skipped - it won't be included in your schedule")
+                                skip_key = f"unskip_{activity_id}_{date_str}"
+                                if st.button(f"🔄 Add Back to Schedule", key=skip_key, help="Remove from skip list and add back to schedule"):
+                                    unmark_activity_done(activity_name)
+                                    st.session_state.done_activities = load_done_activities()
+                                    st.rerun()
+                            else:
+                                # Show skip button
+                                skip_key = f"skip_{activity_id}_{date_str}"
+                                col1, col2 = st.columns([3, 1])
+                                with col1:
+                                    st.markdown("**Not planning to do this treatment?**")
+                                with col2:
+                                    if st.button(f"❌ Skip This", key=skip_key, help="Mark as skipped - removes from schedule"):
+                                        mark_activity_done(activity_name)
+                                        st.session_state.done_activities = load_done_activities()
+                                        st.rerun()
 
                         # Show activity suggestions for this time slot
                         st.markdown("---")
@@ -8574,8 +8610,9 @@ def render_travel_dashboard(activities_data, show_sensitive=True):
             "2025-11-09": [  # Sunday - Birthday!
                 {"time": "9:00 AM", "activity": "Room Service Breakfast (already booked)", "icon": "🛎️"},
                 {"time": "10:00 AM", "activity": "Men's Muscle Recovery Couples Massage (100 min - for John's back!)", "icon": "💆"},
-                {"time": "11:45 AM", "activity": "HydraFacial Spa Treatment (50 min)", "icon": "💧"},
-                {"time": "1:30 PM", "activity": "Mani-Pedi Spa Treatment (90 min)", "icon": "💅"},
+                {"time": "12:30 PM", "activity": "Lunch", "icon": "🍽️"},
+                {"time": "2:00 PM", "activity": "HydraFacial Spa Treatment (60 min)", "icon": "💧"},
+                {"time": "3:00 PM", "activity": "Mani-Pedi Spa Treatment (2 hours)", "icon": "💅"},
                 {"time": "7:00 PM", "activity": "Birthday Dinner (already booked)", "icon": "🎂"},
             ],
             "2025-11-10": [  # Monday
