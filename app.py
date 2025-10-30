@@ -211,28 +211,41 @@ def parse_duration_to_minutes(duration_str):
 
     duration_str = duration_str.lower().strip()
 
-    # Handle ranges like "2-3 hours" or "1-1.5 hours"
+    # Handle ranges like "2-3 hours" or "1-1.5 hours" or "45min-1 hour"
     if '-' in duration_str:
         parts = duration_str.split('-')
-        # Get the average of the range
         try:
-            low = float(re.findall(r'[\d.]+', parts[0])[0])
-            high = float(re.findall(r'[\d.]+', parts[1])[0])
-            avg = (low + high) / 2
+            # Parse each part separately with its unit
+            low_num = float(re.findall(r'[\d.]+', parts[0])[0])
+            high_num = float(re.findall(r'[\d.]+', parts[1])[0])
+
+            # Convert each part to minutes
+            if 'min' in parts[0] and 'hour' not in parts[0]:
+                low_minutes = low_num  # Already in minutes
+            else:
+                low_minutes = low_num * 60  # Convert hours to minutes
+
+            if 'min' in parts[1] and 'hour' not in parts[1]:
+                high_minutes = high_num  # Already in minutes
+            else:
+                high_minutes = high_num * 60  # Convert hours to minutes
+
+            # Average the two values in minutes
+            return int((low_minutes + high_minutes) / 2)
         except:
-            avg = 1.0
+            return 60  # Default to 1 hour on error
     else:
         # Single value like "1.5 hours" or "45min"
         try:
-            avg = float(re.findall(r'[\d.]+', duration_str)[0])
+            num = float(re.findall(r'[\d.]+', duration_str)[0])
         except:
-            avg = 1.0
+            return 60  # Default to 1 hour on error
 
-    # Convert to minutes
-    if 'min' in duration_str and 'hour' not in duration_str:
-        return int(avg)  # Already in minutes
-    else:
-        return int(avg * 60)  # Convert hours to minutes
+        # Convert to minutes
+        if 'min' in duration_str and 'hour' not in duration_str:
+            return int(num)  # Already in minutes
+        else:
+            return int(num * 60)  # Convert hours to minutes
 
 def calculate_end_time(start_time_str, duration_str):
     """Calculate end time given start time and duration
