@@ -171,6 +171,8 @@
       "final_choice": "David's Restaurant & Lounge",
       "meal_time": "7:00 PM",
       "submitted_by": "Michael",
+      "paid_by": "Michael",
+      "paid_for": "both",
       "created_at": "2025-10-28T00:00:00.000000",
       "updated_at": "2025-10-28T00:00:00.000000"
     },
@@ -1001,12 +1003,23 @@
   "alcohol_requests": [
     {
       "id": 1,
-      "item_name": "Variety pack of hard seltzers ",
-      "quantity": "24",
-      "notes": "",
+      "item_name": "Variety pack of hard seltzers",
+      "quantity": "24 cans",
+      "notes": "Various flavors",
       "purchased": false,
       "cost": 0.0,
-      "created_at": "2025-10-28T16:18:23.964268"
+      "created_at": "2025-10-28T16:18:23.964268",
+      "provided_by": "Michael"
+    },
+    {
+      "id": 2,
+      "item_name": "Canned cocktails",
+      "quantity": "12-24 cans",
+      "notes": "Various flavors - margaritas, vodka sodas, etc.",
+      "purchased": false,
+      "cost": 0.0,
+      "created_at": "2025-10-30T00:00:00.000000",
+      "provided_by": "Michael"
     }
   ],
   "packing_progress": {},

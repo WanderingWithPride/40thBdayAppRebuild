@@ -2136,7 +2136,7 @@ def get_optional_activities():
             {"name": "Wine & Tasting Tour", "description": "Local guide takes you to best restaurants, bars and hot spots", "cost_range": "$60-90 per person", "duration": "2-3 hours", "phone": "904-556-7594", "booking_url": "N/A", "tips": "Fun way to discover local flavors and meet people", "rating": "4.5/5"},
         ],
         "💆 Your Birthday Spa Day": [
-            {"name": "Birthday Spa Day at Ritz-Carlton", "description": "🎂 YOUR BOOKED TREATMENTS: • 10:00 AM: Men's Muscle Recovery Couples Massage (100 min deep tissue - PERFECT for John's bad back!) - $410 total • 12:30 PM: Lunch break • 2:00 PM: HydraFacial Treatment (60 min glowing skin) - $245 • 3:15 PM: Mani-Pedi Combo (2 hours pampering) - $180 | ✨ FREE AMENITIES INCLUDED: Arrive 30 min early (9:30 AM) to enjoy: • Healing Saltwater Pool • Steam Rooms & Saunas • Relaxation Lounges with healthy snacks & tea • Spa robes, slippers, and all amenities | 📞 Call 904-277-1087 with any questions | 💪 This massage is THERAPEUTIC - great for chronic back pain! Private couples suite with professional draping. | ✨ Want to add more treatments? See 'Complete Spa Menu' below for 60+ services!", "cost_range": "$835 total (already calculated in budget)", "duration": "9:30 AM - 5:15 PM (full spa day)", "phone": "904-277-1087", "booking_url": "https://www.ritzcarlton.com/en/hotels/jaxam-the-ritz-carlton-amelia-island/spa/", "tips": "ARRIVE AT 9:30 AM to enjoy free saltwater pool before your 10:00 AM massage! Mention John's bad back when booking - therapist will focus there. Request firm/deep pressure for maximum relief. Professional draping maintained throughout (you're covered at all times, undress to comfort level). Gratuity (20%) is automatically added. Enjoy lunch at 12:30 PM, then continue with your treatments! Stay in the relaxation lounges between treatments. See Complete Spa Menu below for additional treatments.", "rating": "5.0/5"},
+            {"name": "Birthday Spa Day at Ritz-Carlton", "description": "🎂 JOHN'S BOOKED TREATMENT: • 10:00 AM: Men's Muscle Recovery Couples Massage (100 min deep tissue - PERFECT for John's bad back!) - $410 total for both Michael & John | ✨ FREE AMENITIES INCLUDED: Arrive 30 min early (9:30 AM) to enjoy: • Healing Saltwater Pool • Steam Rooms & Saunas • Relaxation Lounges with healthy snacks & tea • Spa robes, slippers, and all amenities | 📞 Call 904-277-1087 with any questions | 💪 This massage is THERAPEUTIC - great for chronic back pain! Private couples suite with professional draping. | ✨ Want to add more treatments? See 'Complete Spa Menu' below for 60+ services!", "cost_range": "$410 total (already calculated in budget)", "duration": "9:30 AM - 12:00 PM (spa morning)", "phone": "904-277-1087", "booking_url": "https://www.ritzcarlton.com/en/hotels/jaxam-the-ritz-carlton-amelia-island/spa/", "tips": "ARRIVE AT 9:30 AM to enjoy free saltwater pool before your 10:00 AM massage! Mention John's bad back when booking - therapist will focus there. Request firm/deep pressure for maximum relief. Professional draping maintained throughout (you're covered at all times, undress to comfort level). Gratuity (20%) is automatically added. Stay in the relaxation lounges after your massage. See Complete Spa Menu below if you want to add more treatments.", "rating": "5.0/5"},
         ],
         "💆 Complete Ritz Spa Menu (60+ Services with Pricing)": [
             {"name": "📋 VIEW ALL SPA SERVICES & PRICING", "description": "Complete menu of all Ritz-Carlton Spa services: • Massage (17 options: $185-410) • Facials (16 options: $185-510) • Body Treatments (5 options: $195-515) • LPG Endermologie Advanced Tech (7 options: $325-350) • Nail Services (12 options: $45-245) • Hair Services (6 options: $35-150) • Red Light Therapy ($50) • Spa Pool Cabanas ($150-600) | All actual pricing from poolside app. Call 904-277-1087 to book additional treatments!", "cost_range": "See full menu below", "duration": "15 min - 150 min depending on service", "phone": "904-277-1087", "booking_url": "ritzcarltonameliaisland.ipoolside.com", "tips": "📞 Call 904-277-1087 to add any treatments to your birthday spa day or other days! Ask about LPG Endermologie series packages. Spa facility day pass fee: $25 per person (resort guests), $75 per person (non-guests) - grants access to spa amenities like relaxation lounges, steam rooms, spa pools. Couples massages must be booked by phone.", "rating": "5.0/5", "view_full_spa_menu": True},
@@ -3242,27 +3242,57 @@ def render_budget_widget(activities_data, show_sensitive=True, view_mode='michae
         st.info("💰 Budget information hidden in public mode")
         return
 
+    # Add toggle for expense splitting mode
+    split_mode_key = f'split_mode_{view_mode}'
+    if split_mode_key not in st.session_state:
+        st.session_state[split_mode_key] = '50/50'  # Default to 50/50 split
+
+    col1, col2 = st.columns([3, 1])
+    with col2:
+        split_mode = st.radio(
+            "Expense split:",
+            ['50/50', 'Cover own'],
+            key=split_mode_key,
+            horizontal=False,
+            help="50/50: Split meals & alcohol evenly. Cover own: Each pays their own (can discuss in person)"
+        )
+
     budget_data = calculate_trip_budget(activities_data)
 
-    # Calculate shares (simplified: split dining and alcohol costs 50/50, Michael pays for activities)
-    meals_split = budget_data.get('confirmed_meals_total', 0) / 2
-    alcohol_split = budget_data.get('confirmed_alcohol_total', 0) / 2
-    johns_share = meals_split + alcohol_split
-    michaels_share = budget_data['total'] - johns_share
+    # Calculate shares based on split mode
+    if split_mode == '50/50':
+        # Split dining and alcohol costs 50/50, Michael pays for activities
+        meals_split = budget_data.get('confirmed_meals_total', 0) / 2
+        alcohol_split = budget_data.get('confirmed_alcohol_total', 0) / 2
+        johns_share = meals_split + alcohol_split
+        michaels_share = budget_data['total'] - johns_share
+    else:  # Cover own
+        # Each person covers their own expenses
+        # For now, show full amounts (they'll discuss in person)
+        johns_share = 0  # To be determined
+        michaels_share = budget_data['total']  # Full budget for planning
 
     if view_mode == 'john':
         display_total = johns_share
-        share_label = "Your Share"
-        # John's categories: only Dining and Alcohol (he splits these 50/50)
-        johns_categories = {}
-        if meals_split > 0:
-            johns_categories['Dining'] = meals_split
-        if alcohol_split > 0:
-            johns_categories['Alcohol'] = alcohol_split
-        display_categories = sorted(johns_categories.items(), key=lambda x: x[1], reverse=True)
+        if split_mode == '50/50':
+            share_label = "Your Share (50/50 Split)"
+            # John's categories: only Dining and Alcohol (he splits these 50/50)
+            johns_categories = {}
+            if meals_split > 0:
+                johns_categories['Dining'] = meals_split
+            if alcohol_split > 0:
+                johns_categories['Alcohol'] = alcohol_split
+            display_categories = sorted(johns_categories.items(), key=lambda x: x[1], reverse=True)
+        else:
+            share_label = "Your Share (To Be Discussed)"
+            display_categories = []
+            st.info("💬 Expense split to be discussed in person. Full trip costs shown for planning.")
     else:
         display_total = michaels_share
-        share_label = "Your Total"
+        if split_mode == '50/50':
+            share_label = "Your Total (50/50 Split)"
+        else:
+            share_label = "Your Total (Full Budget)"
         # Michael's categories: everything (full budget breakdown)
         display_categories = budget_data['categories']
 
