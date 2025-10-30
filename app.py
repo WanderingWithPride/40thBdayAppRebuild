@@ -7042,25 +7042,36 @@ def render_full_schedule(df, activities_data, show_sensitive):
                     # Activity type label
                     activity_type_label = activity.get('activity_type_label', '')
 
+                    # Check if activity is marked as done/skipped
+                    is_skipped = activity.get('activity', '') in st.session_state.done_activities
+
                     # Status emoji for expander title
-                    if activity['status'] == 'URGENT':
+                    if is_skipped and activity_id in ['spa002', 'spa003']:
+                        status_emoji = "⏭️"  # Skip emoji for skipped optional spa treatments
+                    elif activity['status'] == 'URGENT':
                         status_emoji = "🚨"
                     elif activity['status'] in ['confirmed', 'Confirmed']:
                         status_emoji = "✅"
                     else:
                         status_emoji = "⏳"
 
-                    # Determine if expanded by default (only urgent items)
-                    expanded = activity['status'] == 'URGENT'
+                    # Determine if expanded by default (only urgent items, or skipped items so user can un-skip)
+                    expanded = activity['status'] == 'URGENT' or (is_skipped and activity_id in ['spa002', 'spa003'])
 
                     # Create expander title
                     expander_title = f"{status_emoji} {safe_time_display} - {safe_activity_name}"
+                    if is_skipped and activity_id in ['spa002', 'spa003']:
+                        expander_title += " (SKIPPED)"
                     if activity.get('is_custom'):
                         expander_title += " ➕"
 
                     with st.expander(expander_title, expanded=expanded):
                         # Get ALL live data for this activity
                         live_data = enrich_activity_with_live_data(activity, date_str, weather_data)
+
+                        # Skipped badge for optional spa treatments
+                        if is_skipped and activity_id in ['spa002', 'spa003']:
+                            st.warning("⏭️ **SKIPPED** - This treatment has been removed from your schedule. Use the button below to add it back if you change your mind.")
 
                         # Activity type badge
                         if activity_type_label:
@@ -7070,9 +7081,9 @@ def render_full_schedule(df, activities_data, show_sensitive):
                                 st.markdown(f"**Type:** {activity_type_label}")
 
                         # Status
-                        if activity['status'] == 'URGENT':
+                        if activity['status'] == 'URGENT' and not is_skipped:
                             st.error(f"**Status:** {safe_status} - BOOK ASAP!")
-                        else:
+                        elif not is_skipped:
                             st.markdown(f"**Status:** {safe_status}")
 
                         # === LIVE WEATHER ALERT ===
@@ -7327,6 +7338,31 @@ def render_full_schedule(df, activities_data, show_sensitive):
                         # Booking link
                         if activity.get('booking_url') and activity.get('booking_url') != 'N/A' and activity.get('booking_url').startswith('http'):
                             st.markdown(f"[📞 Book Now]({activity.get('booking_url')})")
+
+                        # Add "Skip This" button for optional spa treatments
+                        if activity_id in ['spa002', 'spa003']:
+                            st.markdown("---")
+                            # Check if this activity is already marked as done (skipped)
+                            activity_name = activity.get('activity', '')
+                            if activity_name in st.session_state.done_activities:
+                                # Show unmark button
+                                st.success("✅ You've marked this as skipped - it won't be included in your schedule")
+                                skip_key = f"unskip_{activity_id}_{date_str}"
+                                if st.button(f"🔄 Add Back to Schedule", key=skip_key, help="Remove from skip list and add back to schedule"):
+                                    unmark_activity_done(activity_name)
+                                    st.session_state.done_activities = load_done_activities()
+                                    st.rerun()
+                            else:
+                                # Show skip button
+                                skip_key = f"skip_{activity_id}_{date_str}"
+                                col1, col2 = st.columns([3, 1])
+                                with col1:
+                                    st.markdown("**Not planning to do this treatment?**")
+                                with col2:
+                                    if st.button(f"❌ Skip This", key=skip_key, help="Mark as skipped - removes from schedule"):
+                                        mark_activity_done(activity_name)
+                                        st.session_state.done_activities = load_done_activities()
+                                        st.rerun()
 
                         # Show activity suggestions for this time slot
                         st.markdown("---")
