@@ -7660,8 +7660,52 @@ def render_budget(df, show_sensitive):
         meals = budget_data.get('confirmed_meals', [])
         if meals:
             st.markdown(f"**Total Meals Budget:** ${budget_data.get('confirmed_meals_total', 0):,.0f}")
+            st.markdown("")  # Spacing
+
+            # Group meals by day
+            from collections import defaultdict
+            meals_by_day = defaultdict(list)
+            day_mapping = {
+                'fri': 'Friday',
+                'sat': 'Saturday',
+                'sun': 'Sunday',
+                'mon': 'Monday',
+                'tue': 'Tuesday',
+                'wed': 'Wednesday'
+            }
+            meal_type_mapping = {
+                'breakfast': '🍳 Breakfast',
+                'lunch': '🍽️ Lunch',
+                'dinner': '🌙 Dinner'
+            }
+
             for meal in meals:
-                st.markdown(f"- **{meal['name']}** ({meal['meal_id']}): ${meal['total_cost']:.0f} ({meal['time']})")
+                # Parse meal_id (e.g., "sat_dinner" -> "Saturday Dinner")
+                meal_id = meal['meal_id']
+                parts = meal_id.split('_')
+                if len(parts) >= 2:
+                    day = day_mapping.get(parts[0], parts[0].title())
+                    meal_type = meal_type_mapping.get(parts[1], parts[1].title())
+                else:
+                    day = "Other"
+                    meal_type = meal_id
+
+                meals_by_day[day].append({
+                    'name': meal['name'],
+                    'type': meal_type,
+                    'cost': meal['total_cost'],
+                    'time': meal['time']
+                })
+
+            # Display meals grouped by day
+            day_order = ['Friday', 'Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday']
+            for day in day_order:
+                if day in meals_by_day:
+                    st.markdown(f"**📅 {day}**")
+                    for meal_info in meals_by_day[day]:
+                        time_str = f" • {meal_info['time']}" if meal_info['time'] and meal_info['time'] != 'None' else ""
+                        st.markdown(f"  {meal_info['type']}: **{meal_info['name']}** • ${meal_info['cost']:.0f}{time_str}")
+                    st.markdown("")  # Spacing between days
         else:
             st.info("No confirmed meals yet")
 
