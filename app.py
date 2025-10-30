@@ -7588,73 +7588,120 @@ def render_full_schedule(df, activities_data, show_sensitive):
         st.markdown("---")
 
 def render_budget(df, show_sensitive):
-    """Budget tracker"""
+    """Budget tracker with comprehensive trip budget calculation"""
     st.markdown('<h2 class="fade-in">💰 Budget Tracker</h2>', unsafe_allow_html=True)
-    
+
     if not show_sensitive:
         st.warning("🔒 Unlock to view budget details")
         return
-    
-    # Summary metrics
-    total_cost = df['cost'].sum()
-    confirmed_cost = df[df['status'] == 'Confirmed']['cost'].sum()
-    pending_cost = df[df['status'].isin(['Pending', 'URGENT'])]['cost'].sum()
-    
+
+    # Get comprehensive budget data (includes meals, activities, alcohol)
+    _, activities_data = get_ultimate_trip_data()
+    budget_data = calculate_trip_budget(activities_data)
+
+    # Summary metrics - using comprehensive budget
+    total_cost = budget_data['total']
+    flights_paid = budget_data.get('already_paid', 0)
+    future_cost = budget_data.get('future_costs', 0)
+
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Total Budget", f"${total_cost:,.0f}")
+        st.metric("Total Trip Budget", f"${total_cost:,.0f}")
     with col2:
-        st.metric("Confirmed", f"${confirmed_cost:,.0f}")
+        st.metric("✅ Already Paid (Flights)", f"${flights_paid:,.0f}")
     with col3:
-        st.metric("Pending", f"${pending_cost:,.0f}")
-    
-    # Category breakdown
+        st.metric("🎯 Future Costs", f"${future_cost:,.0f}")
+
+    # Category breakdown - using comprehensive budget
     col1, col2 = st.columns([2, 1])
-    
+
     with col1:
-        category_spending = df.groupby('category')['cost'].sum().reset_index()
-        
-        fig = px.pie(
-            category_spending,
-            values='cost',
-            names='category',
-            title="Spending by Category",
-            color_discrete_sequence=px.colors.qualitative.Set3,
-            hole=0.4
-        )
-        fig.update_layout(height=400)
-        st.plotly_chart(fig, use_container_width=True)
-    
+        # Convert category dict to dataframe for visualization
+        if budget_data.get('by_category'):
+            category_data = pd.DataFrame(
+                list(budget_data['by_category'].items()),
+                columns=['category', 'cost']
+            )
+
+            fig = px.pie(
+                category_data,
+                values='cost',
+                names='category',
+                title="Spending by Category (Includes Meals, Activities & Alcohol)",
+                color_discrete_sequence=px.colors.qualitative.Set3,
+                hole=0.4
+            )
+            fig.update_layout(height=400)
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("No spending categories yet")
+
     with col2:
         import html
-        for _, row in category_spending.iterrows():
-            safe_category = html.escape(row['category'])
+        # Show category breakdown
+        for category, cost in budget_data.get('categories', []):
+            safe_category = html.escape(category)
             st.markdown(f"""
             <div class="ultimate-card">
                 <div class="card-body">
                     <h4 style="margin: 0 0 0.5rem 0;">{safe_category}</h4>
-                    <p style="margin: 0; font-size: 1.5rem; font-weight: bold; color: #ff6b6b;">${row['cost']:.0f}</p>
+                    <p style="margin: 0; font-size: 1.5rem; font-weight: bold; color: #ff6b6b;">${cost:.0f}</p>
                 </div>
             </div>
             """, unsafe_allow_html=True)
-    
-    # Daily breakdown
-    st.markdown("### 📅 Daily Spending")
-    
-    daily_spending = df.groupby(df['date'].dt.date)['cost'].sum().reset_index()
-    daily_spending['date'] = pd.to_datetime(daily_spending['date'])
-    
-    fig = px.bar(
-        daily_spending,
-        x='date',
-        y='cost',
-        title="Spending by Day",
-        color='cost',
-        color_continuous_scale='Viridis',
-        labels={'cost': 'Amount ($)', 'date': 'Date'}
-    )
-    fig.update_layout(height=400)
-    st.plotly_chart(fig, use_container_width=True)
+
+    # Show breakdown of confirmed items
+    st.markdown("---")
+    st.markdown("### 📊 Budget Breakdown")
+
+    tab1, tab2, tab3, tab4 = st.tabs(["🍽️ Meals", "🎯 Activities", "🍺 Alcohol", "📅 Daily"])
+
+    with tab1:
+        meals = budget_data.get('confirmed_meals', [])
+        if meals:
+            st.markdown(f"**Total Meals Budget:** ${budget_data.get('confirmed_meals_total', 0):,.0f}")
+            for meal in meals:
+                st.markdown(f"- **{meal['name']}** ({meal['meal_id']}): ${meal['total_cost']:.0f} ({meal['time']})")
+        else:
+            st.info("No confirmed meals yet")
+
+    with tab2:
+        activities = budget_data.get('confirmed_activities', [])
+        if activities:
+            st.markdown(f"**Total Activities Budget:** ${budget_data.get('confirmed_activities_total', 0):,.0f}")
+            for activity in activities:
+                st.markdown(f"- **{activity['name']}**: ${activity['total_cost']:.0f}")
+        else:
+            st.info("No confirmed optional activities yet")
+
+    with tab3:
+        alcohol = budget_data.get('confirmed_alcohol', [])
+        if alcohol:
+            st.markdown(f"**Total Alcohol Budget:** ${budget_data.get('confirmed_alcohol_total', 0):,.0f}")
+            for item in alcohol:
+                st.markdown(f"- **{item['name']}** (x{item['quantity']}): ${item['total_cost']:.0f}")
+        else:
+            st.info("No alcohol purchases yet")
+
+    with tab4:
+        # Daily breakdown from base activities dataframe
+        st.markdown("### 📅 Daily Spending (Base Activities)")
+        daily_spending = df.groupby(df['date'].dt.date)['cost'].sum().reset_index()
+        daily_spending['date'] = pd.to_datetime(daily_spending['date'])
+
+        fig = px.bar(
+            daily_spending,
+            x='date',
+            y='cost',
+            title="Base Activities Spending by Day",
+            color='cost',
+            color_continuous_scale='Viridis',
+            labels={'cost': 'Amount ($)', 'date': 'Date'}
+        )
+        fig.update_layout(height=400)
+        st.plotly_chart(fig, use_container_width=True)
+
+        st.caption("💡 Note: Meal, optional activity, and alcohol costs are shown in their respective tabs above")
 
 def render_explore_activities():
     """Explore & Plan page - discover optional activities and fill your schedule"""
