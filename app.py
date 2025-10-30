@@ -3244,21 +3244,41 @@ def render_budget_widget(activities_data, show_sensitive=True, view_mode='michae
 
     budget_data = calculate_trip_budget(activities_data)
 
-    # Calculate shares (simplified: split dining and alcohol costs 50/50, Michael pays for activities)
-    meals_split = budget_data.get('confirmed_meals_total', 0) / 2
+    # Calculate shares
+    # Michael pays for: all activities, all spa, all transport, birthday dinner
+    # John and Michael split 50/50: all other meals, alcohol
+
+    # Identify birthday dinner (sun_dinner)
+    birthday_dinner_cost = 0
+    regular_meals_cost = 0
+
+    for meal in budget_data.get('confirmed_meals', []):
+        if meal['meal_id'] == 'sun_dinner':
+            # Birthday dinner - Michael treats
+            birthday_dinner_cost = meal['total_cost']
+        else:
+            # Regular meals - split 50/50
+            regular_meals_cost += meal['total_cost']
+
+    # Split regular meals and alcohol 50/50
+    regular_meals_split = regular_meals_cost / 2
     alcohol_split = budget_data.get('confirmed_alcohol_total', 0) / 2
-    johns_share = meals_split + alcohol_split
+
+    # John's share: half of regular meals + half of alcohol
+    johns_share = regular_meals_split + alcohol_split
+
+    # Michael's share: everything - John's share
     michaels_share = budget_data['total'] - johns_share
 
     if view_mode == 'john':
         display_total = johns_share
         share_label = "Your Share"
-        # John's categories: only Dining and Alcohol (he splits these 50/50)
+        # John's categories: only regular meals (50%) and alcohol (50%) - NOT birthday dinner
         johns_categories = {}
-        if meals_split > 0:
-            johns_categories['Dining'] = meals_split
+        if regular_meals_split > 0:
+            johns_categories['Meals (split 50/50)'] = regular_meals_split
         if alcohol_split > 0:
-            johns_categories['Alcohol'] = alcohol_split
+            johns_categories['Alcohol (split 50/50)'] = alcohol_split
         display_categories = sorted(johns_categories.items(), key=lambda x: x[1], reverse=True)
     else:
         display_total = michaels_share
@@ -3326,14 +3346,20 @@ def render_budget_widget(activities_data, show_sensitive=True, view_mode='michae
             if budget_data.get('confirmed_meals'):
                 st.markdown("---")
                 if view_mode == 'john':
-                    st.markdown("**🍽️ Your Share of Meals (Going Dutch):**")
+                    st.markdown("**🍽️ Your Share of Meals:**")
                     for meal in budget_data['confirmed_meals']:
-                        your_share = meal['cost_per_person']
-                        st.markdown(f"- **{meal['name']}**: ${your_share:.0f} (your half)")
+                        if meal['meal_id'] == 'sun_dinner':
+                            st.markdown(f"- **{meal['name']}** 🎂: $0 (Michael's treating for birthday!)")
+                        else:
+                            your_share = meal['cost_per_person']
+                            st.markdown(f"- **{meal['name']}**: ${your_share:.0f} (split 50/50)")
                 else:
                     st.markdown("**🍽️ Confirmed Meals:**")
                     for meal in budget_data['confirmed_meals']:
-                        st.markdown(f"- **{meal['name']}**: ${meal['cost_per_person']:.0f}/person × 2 = ${meal['total_cost']:.0f}")
+                        if meal['meal_id'] == 'sun_dinner':
+                            st.markdown(f"- **{meal['name']}** 🎂: ${meal['cost_per_person']:.0f}/person × 2 = ${meal['total_cost']:.0f} (You're treating!)")
+                        else:
+                            st.markdown(f"- **{meal['name']}**: ${meal['cost_per_person']:.0f}/person × 2 = ${meal['total_cost']:.0f} (split 50/50)")
 
             # Show confirmed activities details
             if budget_data.get('confirmed_activities'):
@@ -7660,6 +7686,7 @@ def render_budget(df, show_sensitive):
         meals = budget_data.get('confirmed_meals', [])
         if meals:
             st.markdown(f"**Total Meals Budget:** ${budget_data.get('confirmed_meals_total', 0):,.0f}")
+            st.info("💡 **Split:** Michael & John going Dutch (50/50) on all meals EXCEPT the birthday dinner, which Michael is treating for!")
             st.markdown("")  # Spacing
 
             # Group meals by day
@@ -7694,7 +7721,8 @@ def render_budget(df, show_sensitive):
                     'name': meal['name'],
                     'type': meal_type,
                     'cost': meal['total_cost'],
-                    'time': meal['time']
+                    'time': meal['time'],
+                    'meal_id': meal['meal_id']
                 })
 
             # Display meals grouped by day
@@ -7704,7 +7732,12 @@ def render_budget(df, show_sensitive):
                     st.markdown(f"**📅 {day}**")
                     for meal_info in meals_by_day[day]:
                         time_str = f" • {meal_info['time']}" if meal_info['time'] and meal_info['time'] != 'None' else ""
-                        st.markdown(f"  {meal_info['type']}: **{meal_info['name']}** • ${meal_info['cost']:.0f}{time_str}")
+
+                        # Special handling for birthday dinner
+                        if meal_info['meal_id'] == 'sun_dinner':
+                            st.markdown(f"  {meal_info['type']}: **{meal_info['name']}** 🎂 • ${meal_info['cost']:.0f}{time_str} • *(Michael treating)*")
+                        else:
+                            st.markdown(f"  {meal_info['type']}: **{meal_info['name']}** • ${meal_info['cost']:.0f}{time_str}")
                     st.markdown("")  # Spacing between days
         else:
             st.info("No confirmed meals yet")
@@ -7762,8 +7795,11 @@ def render_budget(df, show_sensitive):
         alcohol = budget_data.get('confirmed_alcohol', [])
         if alcohol:
             st.markdown(f"**Total Alcohol Budget:** ${budget_data.get('confirmed_alcohol_total', 0):,.0f}")
+            st.info("💡 **Split:** Michael & John splitting drinks 50/50")
+            st.markdown("")
             for item in alcohol:
-                st.markdown(f"- **{item['name']}** (x{item['quantity']}): ${item['total_cost']:.0f}")
+                split_cost = item['total_cost'] / 2
+                st.markdown(f"- **{item['name']}** (x{item['quantity']}): ${item['total_cost']:.0f} total • ${split_cost:.0f} each")
         else:
             st.info("No alcohol purchases yet")
 
