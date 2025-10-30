@@ -6960,7 +6960,9 @@ def render_full_schedule(df, activities_data, show_sensitive):
                                             # Action buttons - Interested and Done
                                             col1, col2 = st.columns(2)
                                             with col1:
-                                                interested_key = f"interested_meal_{act['name']}_{idx}_{meal_time}_{category}"
+                                                # Add date_str and activity ID to make keys unique across all meals
+                                                meal_id = activity.get('id', 'meal')
+                                                interested_key = f"interested_meal_{date_str}_{meal_id}_{act['name']}_{idx}_{category}"
                                                 if act['name'] in st.session_state.interested_activities:
                                                     if st.button(f"✓ Interested", key=interested_key, type="secondary", help="Remove from interested list"):
                                                         unmark_activity_interested(act['name'])
@@ -6973,7 +6975,7 @@ def render_full_schedule(df, activities_data, show_sensitive):
                                                         st.rerun()
 
                                             with col2:
-                                                done_key = f"done_meal_{act['name']}_{idx}_{meal_time}_{category}"
+                                                done_key = f"done_meal_{date_str}_{meal_id}_{act['name']}_{idx}_{category}"
                                                 if st.button(f"✅ Mark as Done", key=done_key, help="Already did this - removes from all future suggestions"):
                                                     mark_activity_done(act['name'])
                                                     st.session_state.done_activities = load_done_activities()
@@ -7469,7 +7471,8 @@ def render_full_schedule(df, activities_data, show_sensitive):
                                             # Action buttons - Interested and Done
                                             col1, col2 = st.columns(2)
                                             with col1:
-                                                interested_key = f"interested_sched_{act['name']}_{idx}_{activity_id_str}_{category}"
+                                                # Add date_str to make keys unique across all days
+                                                interested_key = f"interested_sched_{date_str}_{activity_id_str}_{act['name']}_{idx}_{category}"
                                                 if act['name'] in st.session_state.interested_activities:
                                                     if st.button(f"✓ Interested", key=interested_key, type="secondary", help="Remove from interested list"):
                                                         unmark_activity_interested(act['name'])
@@ -7482,7 +7485,7 @@ def render_full_schedule(df, activities_data, show_sensitive):
                                                         st.rerun()
 
                                             with col2:
-                                                done_key = f"done_sched_{act['name']}_{idx}_{activity_id_str}_{category}"
+                                                done_key = f"done_sched_{date_str}_{activity_id_str}_{act['name']}_{idx}_{category}"
                                                 if st.button(f"✅ Mark as Done", key=done_key, help="Already did this - removes from all future suggestions"):
                                                     mark_activity_done(act['name'])
                                                     st.session_state.done_activities = load_done_activities()
