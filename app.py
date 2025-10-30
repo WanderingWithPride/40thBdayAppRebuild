@@ -1161,7 +1161,7 @@ def get_ultimate_trip_data():
             },
             "status": "Confirmed",
             "cost": 60,
-            "category": "Dining",
+            "category": "Meal",
             "notes": "🎂 BIRTHDAY MORNING! Perfect way to start your special day. Room service breakfast delivered to your room. Enjoy a leisurely breakfast before your spa day begins. Order the night before for smooth delivery. Breakfast served 6:30 AM - 11:00 AM.",
             "what_to_bring": ["Nothing needed - delivered to your room!"],
             "tips": ["Order the night before for best timing", "Full menu available until 11 AM", "Gratuity will be added to bill", "Perfect fuel before 10 AM massage"],
@@ -3064,7 +3064,7 @@ def get_confirmed_meals_budget():
                         'cost_per_person': cost_per_person,
                         'total_cost': total_cost,
                         'time': meal_time,
-                        'category': 'Dining'
+                        'category': 'Meal'
                     })
 
         return meals
@@ -6367,7 +6367,7 @@ def render_full_schedule(df, activities_data, show_sensitive):
                             'activity': f"🍽️ {final_restaurant['name']}",
                             'description': final_restaurant.get('description', ''),
                             'type': 'dining',
-                            'category': 'Dining',
+                            'category': 'Meal',
                             'duration': final_restaurant.get('duration', '1-2 hours'),
                             'cost': final_restaurant.get('cost_range', 'N/A'),
                             'status': 'confirmed',
@@ -6394,7 +6394,7 @@ def render_full_schedule(df, activities_data, show_sensitive):
                         'activity': f"{meal_label}",
                         'description': 'Browse restaurant options and pick your favorite',
                         'type': 'dining',
-                        'category': 'Dining',
+                        'category': 'Meal',
                         'duration': '1-2 hours',
                         'cost': 'Varies',
                         'status': 'optional',
