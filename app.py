@@ -1133,6 +1133,29 @@ def get_ultimate_trip_data():
             "priority": 1
         },
         {
+            "id": "brk001",
+            "date": "2025-11-09",
+            "time": "9:00 AM",
+            "activity": "Room Service Breakfast (already booked)",
+            "type": "dining",
+            "duration": "1 hour",
+            "location": {
+                "name": "Your Room - Ritz-Carlton",
+                "address": "4750 Amelia Island Parkway",
+                "lat": 30.6074,
+                "lon": -81.4493,
+                "phone": "904-277-1089"
+            },
+            "status": "Confirmed",
+            "cost": 60,
+            "category": "Dining",
+            "notes": "🎂 BIRTHDAY MORNING! Perfect way to start your special day. Room service breakfast delivered to your room. Enjoy a leisurely breakfast before your spa day begins. Order the night before for smooth delivery. Breakfast served 6:30 AM - 11:00 AM.",
+            "what_to_bring": ["Nothing needed - delivered to your room!"],
+            "tips": ["Order the night before for best timing", "Full menu available until 11 AM", "Gratuity will be added to bill", "Perfect fuel before 10 AM massage"],
+            "booking_url": "Call room service from your room phone or 904-277-1089",
+            "priority": 1
+        },
+        {
             "id": "spa001",
             "date": "2025-11-09",
             "time": "10:00 AM",
@@ -6558,124 +6581,123 @@ def render_full_schedule(df, activities_data, show_sensitive):
                                     </div>
                                     """, unsafe_allow_html=True)
 
-                                    # Show activity suggestions for this free time
-                                    st.markdown("**🎯 Activity Ideas for This Free Time:**")
+                                    # Show activity suggestions for this free time - wrapped in collapsible expander
+                                    with st.expander("🎯 Activity Ideas for This Free Time", expanded=False):
+                                        # Get all activities and filter/sort
+                                        all_activities_dict = get_optional_activities()
+                                        all_activities_list = []
+                                        # Skip ONLY private dining rooms - bars/nightlife ARE activities!
+                                        skip_categories = ['🍽️ Ritz-Carlton Special Dining Experiences']
+                                        for category, activities in all_activities_dict.items():
+                                            if category in skip_categories:
+                                                continue
+                                            for act in activities:
+                                                act['category'] = category
+                                                all_activities_list.append(act)
 
-                                    # Get all activities and filter/sort
-                                    all_activities_dict = get_optional_activities()
-                                    all_activities_list = []
-                                    # Skip ONLY private dining rooms - bars/nightlife ARE activities!
-                                    skip_categories = ['🍽️ Ritz-Carlton Special Dining Experiences']
-                                    for category, activities in all_activities_dict.items():
-                                        if category in skip_categories:
-                                            continue
-                                        for act in activities:
-                                            act['category'] = category
-                                            all_activities_list.append(act)
+                                        # Filter by duration (if activity fits in the gap)
+                                        def parse_duration_hours(duration_str):
+                                            """Parse duration string to hours"""
+                                            if not duration_str:
+                                                return 2  # Default 2 hours
+                                            duration_str = str(duration_str).lower()
+                                            if 'all day' in duration_str or 'full day' in duration_str:
+                                                return 8
+                                            if 'flexible' in duration_str:
+                                                return 1
+                                            # Extract numbers
+                                            import re
+                                            numbers = re.findall(r'(\d+(?:\.\d+)?)', duration_str)
+                                            if numbers:
+                                                return float(numbers[0])
+                                            return 2
 
-                                    # Filter by duration (if activity fits in the gap)
-                                    def parse_duration_hours(duration_str):
-                                        """Parse duration string to hours"""
-                                        if not duration_str:
-                                            return 2  # Default 2 hours
-                                        duration_str = str(duration_str).lower()
-                                        if 'all day' in duration_str or 'full day' in duration_str:
-                                            return 8
-                                        if 'flexible' in duration_str:
-                                            return 1
-                                        # Extract numbers
-                                        import re
-                                        numbers = re.findall(r'(\d+(?:\.\d+)?)', duration_str)
-                                        if numbers:
-                                            return float(numbers[0])
-                                        return 2
+                                        # Filter activities that fit in the time gap (with 30 min buffer)
+                                        available_hours = gap_minutes / 60 - 0.5
+                                        fitting_activities = [
+                                            a for a in all_activities_list
+                                            if parse_duration_hours(a.get('duration', '')) <= available_hours
+                                        ]
 
-                                    # Filter activities that fit in the time gap (with 30 min buffer)
-                                    available_hours = gap_minutes / 60 - 0.5
-                                    fitting_activities = [
-                                        a for a in all_activities_list
-                                        if parse_duration_hours(a.get('duration', '')) <= available_hours
-                                    ]
+                                        # Sort by price (free first, then ascending)
+                                        def activity_price_sort_key(act):
+                                            cost_str = act.get('cost_range', '')
+                                            # Check if truly free
+                                            if 'FREE' in cost_str.upper() or 'INCLUDED' in cost_str.upper():
+                                                return (False, 0)
+                                            # If no dollar sign AND not "Contact for pricing", might be free
+                                            if '$' not in cost_str and 'contact' not in cost_str.lower() and 'pricing' not in cost_str.lower():
+                                                return (False, 0)
+                                            # Otherwise it's paid
+                                            return (True, parse_cost_range(cost_str))
 
-                                    # Sort by price (free first, then ascending)
-                                    def activity_price_sort_key(act):
-                                        cost_str = act.get('cost_range', '')
-                                        # Check if truly free
-                                        if 'FREE' in cost_str.upper() or 'INCLUDED' in cost_str.upper():
-                                            return (False, 0)
-                                        # If no dollar sign AND not "Contact for pricing", might be free
-                                        if '$' not in cost_str and 'contact' not in cost_str.lower() and 'pricing' not in cost_str.lower():
-                                            return (False, 0)
-                                        # Otherwise it's paid
-                                        return (True, parse_cost_range(cost_str))
+                                        fitting_activities.sort(key=activity_price_sort_key)
 
-                                    fitting_activities.sort(key=activity_price_sort_key)
+                                        # Filter out interested and done activities
+                                        interested = st.session_state.interested_activities
+                                        done = st.session_state.done_activities
+                                        fitting_activities = [
+                                            a for a in fitting_activities
+                                            if a['name'] not in interested and a['name'] not in done
+                                        ]
 
-                                    # Filter out interested and done activities
-                                    interested = st.session_state.interested_activities
-                                    done = st.session_state.done_activities
-                                    fitting_activities = [
-                                        a for a in fitting_activities
-                                        if a['name'] not in interested and a['name'] not in done
-                                    ]
+                                        # Group activities by category
+                                        if fitting_activities:
+                                            from collections import defaultdict
+                                            activities_by_category = defaultdict(list)
+                                            for act in fitting_activities:
+                                                activities_by_category[act.get('category', 'Other')].append(act)
 
-                                    # Group activities by category
-                                    if fitting_activities:
-                                        from collections import defaultdict
-                                        activities_by_category = defaultdict(list)
-                                        for act in fitting_activities:
-                                            activities_by_category[act.get('category', 'Other')].append(act)
+                                            st.markdown(f"**{len(fitting_activities)} activity options grouped by type:**")
 
-                                        st.markdown(f"**{len(fitting_activities)} activity options grouped by type:**")
+                                            # Display each category in a collapsed expander
+                                            for category, cat_activities in activities_by_category.items():
+                                                with st.expander(f"{category} ({len(cat_activities)} activities)", expanded=False):
+                                                    for idx, act in enumerate(cat_activities):
+                                                        cost = act.get('cost_range', 'N/A')
+                                                        is_free = 'FREE' in cost.upper() or 'INCLUDED' in cost.upper() or '$' not in cost
+                                                        badge_color = '#4caf50' if is_free else '#2196f3'
+                                                        badge_text = '✨ FREE' if is_free else f'💰 {cost}'
 
-                                        # Display each category in a collapsed expander
-                                        for category, cat_activities in activities_by_category.items():
-                                            with st.expander(f"{category} ({len(cat_activities)} activities)", expanded=False):
-                                                for idx, act in enumerate(cat_activities):
-                                                    cost = act.get('cost_range', 'N/A')
-                                                    is_free = 'FREE' in cost.upper() or 'INCLUDED' in cost.upper() or '$' not in cost
-                                                    badge_color = '#4caf50' if is_free else '#2196f3'
-                                                    badge_text = '✨ FREE' if is_free else f'💰 {cost}'
-
-                                                    st.markdown(f"""
-                                                    <div style="border-left: 3px solid {badge_color}; padding: 0.75rem; margin: 0.5rem 0; background: white; border-radius: 4px;">
-                                                        <div style="display: flex; justify-content: space-between; align-items: start;">
-                                                            <strong style="font-size: 0.95rem;">{html.escape(act['name'])}</strong>
-                                                            <span style="background: {badge_color}; color: white; padding: 0.15rem 0.5rem; border-radius: 8px; font-size: 0.75rem; white-space: nowrap; margin-left: 0.5rem;">{badge_text}</span>
+                                                        st.markdown(f"""
+                                                        <div style="border-left: 3px solid {badge_color}; padding: 0.75rem; margin: 0.5rem 0; background: white; border-radius: 4px;">
+                                                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                                                <strong style="font-size: 0.95rem;">{html.escape(act['name'])}</strong>
+                                                                <span style="background: {badge_color}; color: white; padding: 0.15rem 0.5rem; border-radius: 8px; font-size: 0.75rem; white-space: nowrap; margin-left: 0.5rem;">{badge_text}</span>
+                                                            </div>
+                                                            <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #666;">{html.escape(str(act.get('description', 'N/A'))[:120])}...</p>
+                                                            <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #888;">⏱️ {html.escape(str(act.get('duration', 'Varies')))}</p>
                                                         </div>
-                                                        <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #666;">{html.escape(str(act.get('description', 'N/A'))[:120])}...</p>
-                                                        <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #888;">⏱️ {html.escape(str(act.get('duration', 'Varies')))}</p>
-                                                    </div>
-                                                    """, unsafe_allow_html=True)
+                                                        """, unsafe_allow_html=True)
 
-                                                    if act.get('phone') and act.get('phone') != 'N/A':
-                                                        st.caption(f"📞 {act['phone']}")
-                                                    if act.get('tips'):
-                                                        st.caption(f"💡 {act['tips'][:100]}...")
+                                                        if act.get('phone') and act.get('phone') != 'N/A':
+                                                            st.caption(f"📞 {act['phone']}")
+                                                        if act.get('tips'):
+                                                            st.caption(f"💡 {act['tips'][:100]}...")
 
-                                                    # Action buttons - Interested and Done
-                                                    col1, col2 = st.columns(2)
-                                                    with col1:
-                                                        interested_key = f"interested_gap_{act['name']}_{idx}_{date_str}_{category}"
-                                                        if act['name'] in st.session_state.interested_activities:
-                                                            if st.button(f"✓ Interested", key=interested_key, type="secondary", help="Remove from interested list"):
-                                                                unmark_activity_interested(act['name'])
-                                                                st.session_state.interested_activities = load_interested_activities()
+                                                        # Action buttons - Interested and Done
+                                                        col1, col2 = st.columns(2)
+                                                        with col1:
+                                                            interested_key = f"interested_gap_{act['name']}_{idx}_{date_str}_{category}"
+                                                            if act['name'] in st.session_state.interested_activities:
+                                                                if st.button(f"✓ Interested", key=interested_key, type="secondary", help="Remove from interested list"):
+                                                                    unmark_activity_interested(act['name'])
+                                                                    st.session_state.interested_activities = load_interested_activities()
+                                                                    st.rerun()
+                                                            else:
+                                                                if st.button(f"⭐ Mark Interested", key=interested_key, help="Save for later - removes from other days"):
+                                                                    mark_activity_interested(act['name'])
+                                                                    st.session_state.interested_activities = load_interested_activities()
+                                                                    st.rerun()
+
+                                                        with col2:
+                                                            done_key = f"done_gap_{act['name']}_{idx}_{date_str}_{category}"
+                                                            if st.button(f"✅ Mark as Done", key=done_key, help="Already did this - removes from all future suggestions"):
+                                                                mark_activity_done(act['name'])
+                                                                st.session_state.done_activities = load_done_activities()
                                                                 st.rerun()
-                                                        else:
-                                                            if st.button(f"⭐ Mark Interested", key=interested_key, help="Save for later - removes from other days"):
-                                                                mark_activity_interested(act['name'])
-                                                                st.session_state.interested_activities = load_interested_activities()
-                                                                st.rerun()
-
-                                                    with col2:
-                                                        done_key = f"done_gap_{act['name']}_{idx}_{date_str}_{category}"
-                                                        if st.button(f"✅ Mark as Done", key=done_key, help="Already did this - removes from all future suggestions"):
-                                                            mark_activity_done(act['name'])
-                                                            st.session_state.done_activities = load_done_activities()
-                                                            st.rerun()
-                                    else:
-                                        st.info("⏰ This gap is shorter - perfect for relaxing at the hotel, beach walk, or pool time!")
+                                        else:
+                                            st.info("⏰ This gap is shorter - perfect for relaxing at the hotel, beach walk, or pool time!")
                             except:
                                 pass
 
